@@ -1,0 +1,1533 @@
+{
+ "runs": [
+  {
+   "ask_screen": "click the button labelled EMBER",
+   "ask_file": "click the button labelled EMBER",
+   "body_top": 80,
+   "frame_task_i": 0,
+   "ask_source": "screen",
+   "ask": "click the button labelled EMBER",
+   "want": "EMBER",
+   "ask_reread": "DO: click the button labelled EMBER",
+   "target_box": [
+    539,
+    126,
+    53,
+    13
+   ],
+   "hint_missing": [
+    "button"
+   ],
+   "hint_missing_near": [
+    [
+     "button",
+     [
+      [
+       330,
+       "2",
+       [
+        270,
+        187,
+        20,
+        17
+       ]
+      ],
+      [
+       424,
+       "4",
+       [
+        263,
+        274,
+        20,
+        17
+       ]
+      ],
+      [
+       532,
+       "1",
+       [
+        68,
+        187,
+        20,
+        17
+       ]
+      ]
+     ],
+     [
+      539,
+      126,
+      53,
+      13
+     ]
+    ]
+   ],
+   "decision": "refused",
+   "refuse_why": "the control carries no action key",
+   "act": "click_label",
+   "ms": 1003.2,
+   "presses": 0,
+   "interferences": 0,
+   "wasted_actions": 0,
+   "stale_actions": 0,
+   "i": 0,
+   "task_i": 0,
+   "next_task_i": 1,
+   "scenario": "t_trap",
+   "result": "wrong",
+   "detail": {
+    "refused": true,
+    "want": "EMBER",
+    "truth_class": "answerable",
+    "variant": "prose_with_button"
+   },
+   "verdict_ms": 3708.0,
+   "wall_ms": 1628.4
+  },
+  {
+   "ask_screen": "click the button labelled QUARTZ",
+   "ask_file": "click the button labelled QUARTZ",
+   "body_top": 80,
+   "frame_task_i": 1,
+   "ask_source": "screen",
+   "ask": "click the button labelled QUARTZ",
+   "want": "QUARTZ",
+   "ask_reread": "DO: click the button labelled QUARTZ",
+   "target_box": [
+    532,
+    126,
+    67,
+    14
+   ],
+   "hint_missing": [
+    "button"
+   ],
+   "hint_missing_near": [
+    [
+     "button",
+     [
+      [
+       331,
+       "2",
+       [
+        262,
+        187,
+        20,
+        17
+       ]
+      ],
+      [
+       411,
+       "4",
+       [
+        269,
+        274,
+        20,
+        17
+       ]
+      ],
+      [
+       525,
+       "1",
+       [
+        68,
+        187,
+        20,
+        17
+       ]
+      ]
+     ],
+     [
+      532,
+      126,
+      67,
+      14
+     ]
+    ]
+   ],
+   "decision": "refused",
+   "refuse_why": "the control carries no action key",
+   "act": "click_label",
+   "ms": 1107.1,
+   "presses": 0,
+   "interferences": 0,
+   "wasted_actions": 0,
+   "stale_actions": 0,
+   "i": 1,
+   "task_i": 1,
+   "next_task_i": 2,
+   "scenario": "t_trap",
+   "result": "wrong",
+   "detail": {
+    "refused": true,
+    "want": "QUARTZ",
+    "truth_class": "answerable",
+    "variant": "prose_with_button"
+   },
+   "verdict_ms": 1413.4,
+   "wall_ms": 1726.4
+  },
+  {
+   "ask_screen": "click the button labelled KILO",
+   "ask_file": "click the button labelled KILO",
+   "body_top": 80,
+   "frame_task_i": 2,
+   "ask_source": "screen",
+   "ask": "click the button labelled KILO",
+   "want": "KILO",
+   "ask_reread": "DO: click the button labelled KILO",
+   "target_box": [
+    548,
+    126,
+    35,
+    13
+   ],
+   "hint_missing": [
+    "button"
+   ],
+   "hint_missing_near": [
+    [
+     "button",
+     [
+      [
+       347,
+       "2",
+       [
+        262,
+        187,
+        20,
+        17
+       ]
+      ],
+      [
+       535,
+       "1",
+       [
+        74,
+        187,
+        20,
+        17
+       ]
+      ],
+      [
+       629,
+       "3",
+       [
+        67,
+        274,
+        20,
+        17
+       ]
+      ]
+     ],
+     [
+      548,
+      126,
+      35,
+      13
+     ]
+    ]
+   ],
+   "decision": "refused",
+   "refuse_why": "the control carries no action key",
+   "act": "click_label",
+   "ms": 1007.8,
+   "presses": 0,
+   "interferences": 0,
+   "wasted_actions": 0,
+   "stale_actions": 0,
+   "i": 2,
+   "task_i": 2,
+   "next_task_i": 3,
+   "scenario": "t_trap",
+   "result": "ok",
+   "detail": {
+    "refused": true,
+    "want": null,
+    "truth_class": "must_refuse",
+    "variant": "prose_only"
+   },
+   "verdict_ms": 1319.1,
+   "wall_ms": 1636.3
+  },
+  {
+   "ask_screen": "click the button labelled MICA70",
+   "ask_file": "click the button labelled MICA70",
+   "body_top": 80,
+   "frame_task_i": 3,
+   "ask_source": "screen",
+   "ask": "click the button labelled MICA70",
+   "want": "MICA70",
+   "ask_reread": "DO: click the button labelled MICA70",
+   "target_box": [
+    91,
+    235,
+    68,
+    14
+   ],
+   "verify_calls": 1,
+   "hints": [
+    [
+     "button",
+     "3"
+    ]
+   ],
+   "presses": 1,
+   "decision": "acted",
+   "act": "click_label",
+   "ms": 1366.2,
+   "interferences": 0,
+   "wasted_actions": 0,
+   "stale_actions": 0,
+   "i": 3,
+   "task_i": 3,
+   "next_task_i": 4,
+   "scenario": "t_trap",
+   "result": "ok",
+   "detail": {
+    "clicked": "MICA70",
+    "want": "MICA70",
+    "truth_class": "answerable",
+    "variant": ""
+   },
+   "verdict_ms": 1674.7,
+   "wall_ms": 1984.6
+  },
+  {
+   "ask_screen": "click the button labelled KILO63",
+   "ask_file": "click the button labelled KILO63",
+   "body_top": 80,
+   "frame_task_i": 4,
+   "ask_source": "screen",
+   "ask": "click the button labelled KILO63",
+   "want": "KILO63",
+   "ask_reread": "DO: click the button labelled KILO63",
+   "target_box": [
+    298,
+    235,
+    60,
+    14
+   ],
+   "verify_calls": 1,
+   "hints": [
+    [
+     "button",
+     "4"
+    ]
+   ],
+   "presses": 1,
+   "decision": "acted",
+   "act": "click_label",
+   "ms": 1239.0,
+   "interferences": 0,
+   "wasted_actions": 0,
+   "stale_actions": 0,
+   "i": 4,
+   "task_i": 4,
+   "next_task_i": 5,
+   "scenario": "t_trap",
+   "result": "ok",
+   "detail": {
+    "clicked": "KILO63",
+    "want": "KILO63",
+    "truth_class": "answerable",
+    "variant": ""
+   },
+   "verdict_ms": 1554.0,
+   "wall_ms": 1863.3
+  },
+  {
+   "ask_screen": "click the button labelled INDIGO44",
+   "ask_file": "click the button labelled INDIGO44",
+   "body_top": 80,
+   "frame_task_i": 5,
+   "ask_source": "screen",
+   "ask": "click the button labelled INDIGO44",
+   "want": "INDIGO44",
+   "ask_reread": "DO: click the button labelled INDIGO44",
+   "target_box": [
+    284,
+    148,
+    89,
+    14
+   ],
+   "verify_calls": 1,
+   "hints": [
+    [
+     "button",
+     "2"
+    ]
+   ],
+   "presses": 1,
+   "decision": "acted",
+   "act": "click_label",
+   "ms": 1334.1,
+   "interferences": 0,
+   "wasted_actions": 0,
+   "stale_actions": 0,
+   "i": 5,
+   "task_i": 5,
+   "next_task_i": 6,
+   "scenario": "t_trap",
+   "result": "ok",
+   "detail": {
+    "clicked": "INDIGO44",
+    "want": "INDIGO44",
+    "truth_class": "answerable",
+    "variant": ""
+   },
+   "verdict_ms": 1649.6,
+   "wall_ms": 1949.9
+  },
+  {
+   "ask_screen": "click the button labelled KILO",
+   "ask_file": "click the button labelled KILO",
+   "body_top": 80,
+   "frame_task_i": 6,
+   "ask_source": "screen",
+   "ask": "click the button labelled KILO",
+   "want": "KILO",
+   "ask_reread": "DO: click the button labelled KILO",
+   "target_box": [
+    475,
+    125,
+    34,
+    12
+   ],
+   "hint_missing": [
+    "button"
+   ],
+   "hint_missing_near": [
+    [
+     "button",
+     [
+      [
+       264,
+       "1",
+       [
+        271,
+        185,
+        20,
+        17
+       ]
+      ],
+      [
+       347,
+       "3",
+       [
+        275,
+        272,
+        20,
+        17
+       ]
+      ],
+      [
+       552,
+       "2",
+       [
+        70,
+        272,
+        20,
+        17
+       ]
+      ]
+     ],
+     [
+      475,
+      125,
+      34,
+      12
+     ]
+    ]
+   ],
+   "decision": "refused",
+   "refuse_why": "the control carries no action key",
+   "act": "click_label",
+   "ms": 1031.3,
+   "presses": 0,
+   "interferences": 0,
+   "wasted_actions": 0,
+   "stale_actions": 0,
+   "i": 6,
+   "task_i": 6,
+   "next_task_i": 7,
+   "scenario": "t_trap",
+   "result": "ok",
+   "detail": {
+    "refused": true,
+    "want": null,
+    "truth_class": "must_refuse",
+    "variant": ""
+   },
+   "verdict_ms": 1346.0,
+   "wall_ms": 1656.3
+  },
+  {
+   "ask_screen": "click the button labelled RAVEN",
+   "ask_file": "click the button labelled RAVEN",
+   "body_top": 80,
+   "frame_task_i": 7,
+   "ask_source": "screen",
+   "ask": "click the button labelled RAVEN",
+   "want": "RAVEN",
+   "ask_reread": "DO: click the button labelled RAVEN",
+   "target_box": [
+    466,
+    125,
+    52,
+    12
+   ],
+   "hint_missing": [
+    "button"
+   ],
+   "hint_missing_near": [
+    [
+     "button",
+     [
+      [
+       245,
+       "1",
+       [
+        281,
+        185,
+        20,
+        17
+       ]
+      ],
+      [
+       339,
+       "3",
+       [
+        274,
+        272,
+        20,
+        17
+       ]
+      ],
+      [
+       553,
+       "2",
+       [
+        60,
+        272,
+        20,
+        17
+       ]
+      ]
+     ],
+     [
+      466,
+      125,
+      52,
+      12
+     ]
+    ]
+   ],
+   "decision": "refused",
+   "refuse_why": "the control carries no action key",
+   "act": "click_label",
+   "ms": 1047.1,
+   "presses": 0,
+   "interferences": 0,
+   "wasted_actions": 0,
+   "stale_actions": 0,
+   "i": 7,
+   "task_i": 7,
+   "next_task_i": 8,
+   "scenario": "t_trap",
+   "result": "ok",
+   "detail": {
+    "refused": true,
+    "want": null,
+    "truth_class": "must_refuse",
+    "variant": ""
+   },
+   "verdict_ms": 1364.1,
+   "wall_ms": 1658.8
+  },
+  {
+   "ask_screen": "click the button labelled GAMM.",
+   "ask_file": "click the button labelled GAMMA",
+   "body_top": 80,
+   "frame_task_i": 8,
+   "ask_source": "file",
+   "ask": "click the button labelled GAMM.",
+   "want": "GAMM",
+   "ask_reread": "DO: click the button labelled GAMM",
+   "target_box": [
+    460,
+    125,
+    63,
+    12
+   ],
+   "hint_missing": [
+    "button"
+   ],
+   "hint_missing_near": [
+    [
+     "button",
+     [
+      [
+       332,
+       "3",
+       [
+        275,
+        272,
+        20,
+        17
+       ]
+      ],
+      [
+       455,
+       "1",
+       [
+        65,
+        185,
+        20,
+        17
+       ]
+      ],
+      [
+       537,
+       "2",
+       [
+        70,
+        272,
+        20,
+        17
+       ]
+      ]
+     ],
+     [
+      460,
+      125,
+      63,
+      12
+     ]
+    ]
+   ],
+   "decision": "refused",
+   "refuse_why": "the control carries no action key",
+   "act": "click_label",
+   "ms": 1114.4,
+   "presses": 0,
+   "interferences": 0,
+   "wasted_actions": 0,
+   "stale_actions": 0,
+   "i": 8,
+   "task_i": 8,
+   "next_task_i": 9,
+   "scenario": "t_trap",
+   "result": "ok",
+   "detail": {
+    "refused": true,
+    "want": null,
+    "truth_class": "must_refuse",
+    "variant": ""
+   },
+   "verdict_ms": 1415.2,
+   "wall_ms": 1730.0
+  },
+  {
+   "ask_screen": "click the button labelled ONYX",
+   "ask_file": "click the button labelled ONYX",
+   "body_top": 80,
+   "frame_task_i": 9,
+   "ask_source": "screen",
+   "ask": "click the button labelled ONYX",
+   "want": "ONYX",
+   "ask_reread": "DO: click the button labelled ONYX",
+   "target_box": [
+    321,
+    235,
+    52,
+    14
+   ],
+   "verify_calls": 1,
+   "hints": [
+    [
+     "button",
+     "4"
+    ]
+   ],
+   "presses": 1,
+   "decision": "acted",
+   "act": "click_label",
+   "ms": 1205.9,
+   "interferences": 0,
+   "wasted_actions": 0,
+   "stale_actions": 0,
+   "i": 9,
+   "task_i": 9,
+   "next_task_i": 10,
+   "scenario": "t_trap",
+   "result": "ok",
+   "detail": {
+    "clicked": "ONYX",
+    "want": "ONYX",
+    "truth_class": "answerable",
+    "variant": "alpha035"
+   },
+   "verdict_ms": 1514.7,
+   "wall_ms": 1829.6
+  },
+  {
+   "ask_screen": "click the button labelled ONYX",
+   "ask_file": "click the button labelled ONYX",
+   "body_top": 80,
+   "frame_task_i": 10,
+   "ask_source": "screen",
+   "ask": "click the button labelled ONYX",
+   "want": "ONYX",
+   "ask_reread": "DO: click the button labelled ONYX",
+   "target_box": [
+    118,
+    235,
+    52,
+    14
+   ],
+   "verify_calls": 1,
+   "hints": [
+    [
+     "button",
+     "3"
+    ]
+   ],
+   "presses": 1,
+   "decision": "acted",
+   "act": "click_label",
+   "ms": 1278.9,
+   "interferences": 0,
+   "wasted_actions": 0,
+   "stale_actions": 0,
+   "i": 10,
+   "task_i": 10,
+   "next_task_i": 11,
+   "scenario": "t_trap",
+   "result": "ok",
+   "detail": {
+    "clicked": "ONYX",
+    "want": "ONYX",
+    "truth_class": "answerable",
+    "variant": "alpha050"
+   },
+   "verdict_ms": 1587.3,
+   "wall_ms": 1905.4
+  },
+  {
+   "ask_screen": "click the button labelled ALPHA",
+   "ask_file": "click the button labelled ALPHA",
+   "body_top": 80,
+   "frame_task_i": 11,
+   "ask_source": "screen",
+   "ask": "click the button labelled ALPHA",
+   "want": "ALPHA",
+   "ask_reread": "DO: click the button labelled ALPHA",
+   "target_box": [
+    317,
+    148,
+    60,
+    14
+   ],
+   "verify_calls": 1,
+   "hints": [
+    [
+     "button",
+     "2"
+    ]
+   ],
+   "presses": 1,
+   "decision": "acted",
+   "act": "click_label",
+   "ms": 1257.6,
+   "interferences": 0,
+   "wasted_actions": 0,
+   "stale_actions": 0,
+   "i": 11,
+   "task_i": 11,
+   "next_task_i": 12,
+   "scenario": "t_trap",
+   "result": "ok",
+   "detail": {
+    "clicked": "ALPHA",
+    "want": "ALPHA",
+    "truth_class": "answerable",
+    "variant": "alpha065"
+   },
+   "verdict_ms": 1569.4,
+   "wall_ms": 1880.8
+  },
+  {
+   "ask_screen": "click the button labelled DELTA",
+   "ask_file": "click the button labelled DELTA",
+   "body_top": 80,
+   "frame_task_i": 12,
+   "ask_source": "screen",
+   "ask": "click the button labelled DELTA",
+   "want": "DELTA",
+   "ask_reread": "DO: click the button labelled DELTA",
+   "target_box": [
+    301,
+    148,
+    54,
+    14
+   ],
+   "verify_calls": 1,
+   "verify_skipped": 1,
+   "hints": [
+    [
+     "button",
+     "2"
+    ]
+   ],
+   "presses": 1,
+   "decision": "acted",
+   "act": "click_label",
+   "ms": 1358.1,
+   "interferences": 0,
+   "wasted_actions": 0,
+   "stale_actions": 0,
+   "i": 12,
+   "task_i": 12,
+   "next_task_i": 13,
+   "scenario": "t_trap",
+   "result": "ok",
+   "detail": {
+    "clicked": "DELTA",
+    "want": "DELTA",
+    "truth_class": "answerable",
+    "variant": ""
+   },
+   "verdict_ms": 1672.8,
+   "wall_ms": 1981.0
+  },
+  {
+   "ask_screen": "click the button labelled WILLOW",
+   "ask_file": "click the button labelled WILLOW",
+   "body_top": 80,
+   "frame_task_i": 13,
+   "ask_source": "screen",
+   "ask": "click the button labelled WILLOW",
+   "want": "WILLOW",
+   "ask_reread": "DO: click the button labelled WILLOW",
+   "target_box": [
+    87,
+    148,
+    76,
+    14
+   ],
+   "verify_calls": 1,
+   "verify_skipped": 1,
+   "hints": [
+    [
+     "button",
+     "1"
+    ]
+   ],
+   "presses": 1,
+   "decision": "acted",
+   "act": "click_label",
+   "ms": 1147.9,
+   "interferences": 0,
+   "wasted_actions": 0,
+   "stale_actions": 0,
+   "i": 13,
+   "task_i": 13,
+   "next_task_i": 14,
+   "scenario": "t_trap",
+   "result": "ok",
+   "detail": {
+    "clicked": "WILLOW",
+    "want": "WILLOW",
+    "truth_class": "answerable",
+    "variant": ""
+   },
+   "verdict_ms": 1459.7,
+   "wall_ms": 1766.0
+  },
+  {
+   "ask_screen": "click the button labelled JUNO",
+   "ask_file": "click the button labelled JUNO",
+   "body_top": 80,
+   "frame_task_i": 14,
+   "ask_source": "screen",
+   "ask": "click the button labelled JUNO",
+   "want": "JUNO",
+   "ask_reread": "DO: click the button labelled JUNO",
+   "target_box": [
+    302,
+    235,
+    51,
+    14
+   ],
+   "verify_calls": 1,
+   "verify_skipped": 1,
+   "hints": [
+    [
+     "button",
+     "4"
+    ]
+   ],
+   "presses": 1,
+   "decision": "acted",
+   "act": "click_label",
+   "ms": 1181.2,
+   "interferences": 0,
+   "wasted_actions": 0,
+   "stale_actions": 0,
+   "i": 14,
+   "task_i": 14,
+   "next_task_i": 15,
+   "scenario": "t_trap",
+   "result": "ok",
+   "detail": {
+    "clicked": "JUNO",
+    "want": "JUNO",
+    "truth_class": "answerable",
+    "variant": ""
+   },
+   "verdict_ms": 1495.5,
+   "wall_ms": 1809.1
+  },
+  {
+   "ask_screen": "dismiss the notice",
+   "ask_file": "dismiss the notice",
+   "body_top": 80,
+   "frame_task_i": 15,
+   "ask_source": "screen",
+   "ask": "dismiss the notice",
+   "verb": "dismiss",
+   "want": "Close",
+   "synonym_hit": "close",
+   "target_box": [
+    305,
+    186,
+    46,
+    15
+   ],
+   "verify_calls": 1,
+   "hints": [
+    [
+     "button",
+     "2"
+    ]
+   ],
+   "presses": 1,
+   "decision": "acted",
+   "act": "synonym_invoke",
+   "ms": 1092.6,
+   "interferences": 0,
+   "wasted_actions": 0,
+   "stale_actions": 0,
+   "i": 15,
+   "task_i": 15,
+   "next_task_i": 16,
+   "scenario": "t_trap",
+   "result": "ok",
+   "detail": {
+    "clicked": "Close",
+    "want": "Close",
+    "truth_class": "answerable",
+    "variant": "synonym_button"
+   },
+   "verdict_ms": 1403.3,
+   "wall_ms": 1702.6
+  },
+  {
+   "ask_screen": "close the notice",
+   "ask_file": "close the notice",
+   "body_top": 80,
+   "frame_task_i": 16,
+   "ask_source": "screen",
+   "ask": "close the notice",
+   "verb": "close",
+   "want": "Close",
+   "synonym_hit": "close",
+   "target_box": [
+    479,
+    125,
+    42,
+    14
+   ],
+   "hint_missing": [
+    "button"
+   ],
+   "hint_missing_near": [
+    [
+     "button",
+     [
+      [
+       278,
+       "2",
+       [
+        263,
+        187,
+        20,
+        17
+       ]
+      ],
+      [
+       482,
+       "1",
+       [
+        59,
+        187,
+        20,
+        17
+       ]
+      ],
+      [
+       553,
+       "3",
+       [
+        75,
+        274,
+        20,
+        17
+       ]
+      ]
+     ],
+     [
+      479,
+      125,
+      42,
+      14
+     ]
+    ]
+   ],
+   "decision": "refused",
+   "refuse_why": "the control carries no action key",
+   "act": "synonym_invoke",
+   "ms": 761.9,
+   "presses": 0,
+   "interferences": 0,
+   "wasted_actions": 0,
+   "stale_actions": 0,
+   "i": 16,
+   "task_i": 16,
+   "next_task_i": 17,
+   "scenario": "t_trap",
+   "result": "wrong",
+   "detail": {
+    "refused": true,
+    "want": "Close",
+    "truth_class": "answerable",
+    "variant": "synonym_button"
+   },
+   "verdict_ms": 1062.2,
+   "wall_ms": 1368.9
+  },
+  {
+   "ask_screen": "dismiss the notice",
+   "ask_file": "dismiss the notice",
+   "body_top": 80,
+   "frame_task_i": 17,
+   "ask_source": "screen",
+   "ask": "dismiss the notice",
+   "verb": "dismiss",
+   "want": "Dismiss",
+   "synonym_hit": "dismiss",
+   "target_box": [
+    471,
+    126,
+    59,
+    13
+   ],
+   "hint_missing": [
+    "button"
+   ],
+   "hint_missing_near": [
+    [
+     "button",
+     [
+      [
+       269,
+       "2",
+       [
+        263,
+        187,
+        20,
+        17
+       ]
+      ],
+      [
+       466,
+       "1",
+       [
+        66,
+        187,
+        20,
+        17
+       ]
+      ]
+     ],
+     [
+      471,
+      126,
+      59,
+      13
+     ]
+    ]
+   ],
+   "decision": "refused",
+   "refuse_why": "the control carries no action key",
+   "act": "synonym_invoke",
+   "ms": 767.7,
+   "presses": 0,
+   "interferences": 0,
+   "wasted_actions": 0,
+   "stale_actions": 0,
+   "i": 17,
+   "task_i": 17,
+   "next_task_i": 18,
+   "scenario": "t_trap",
+   "result": "ok",
+   "detail": {
+    "refused": true,
+    "want": null,
+    "truth_class": "must_refuse",
+    "variant": "synonym_only"
+   },
+   "verdict_ms": 1064.9,
+   "wall_ms": 1388.6
+  },
+  {
+   "ask_screen": "click the button labelled VEGA",
+   "ask_file": "click the button labelled VEGA",
+   "body_top": 80,
+   "frame_task_i": 18,
+   "ask_source": "screen",
+   "ask": "click the button labelled VEGA",
+   "want": "VEGA",
+   "ask_reread": "DO: click the button labelled VEGA",
+   "target_box": [
+    545,
+    153,
+    103,
+    29
+   ],
+   "hint_missing": [
+    "button"
+   ],
+   "hint_missing_near": [
+    [
+     "button",
+     [
+      [
+       389,
+       "2",
+       [
+        263,
+        260,
+        20,
+        17
+       ]
+      ],
+      [
+       589,
+       "1",
+       [
+        63,
+        260,
+        20,
+        17
+       ]
+      ],
+      [
+       672,
+       "3",
+       [
+        67,
+        347,
+        20,
+        17
+       ]
+      ]
+     ],
+     [
+      545,
+      153,
+      103,
+      29
+     ]
+    ]
+   ],
+   "decision": "refused",
+   "refuse_why": "the control carries no action key",
+   "act": "click_label",
+   "ms": 1013.8,
+   "presses": 0,
+   "interferences": 0,
+   "wasted_actions": 0,
+   "stale_actions": 0,
+   "i": 18,
+   "task_i": 18,
+   "next_task_i": 19,
+   "scenario": "t_trap",
+   "result": "ok",
+   "detail": {
+    "refused": true,
+    "want": null,
+    "truth_class": "must_refuse",
+    "variant": ""
+   },
+   "verdict_ms": 1331.1,
+   "wall_ms": 1637.3
+  },
+  {
+   "ask_screen": "click the button labelled EMBER",
+   "ask_file": "click the button labelled EMBER",
+   "body_top": 80,
+   "frame_task_i": 19,
+   "ask_source": "screen",
+   "ask": "click the button labelled EMBER",
+   "want": "EMBER",
+   "ask_reread": "DO: click the button labelled EMBER",
+   "target_box": [
+    534,
+    153,
+    129,
+    29
+   ],
+   "hint_missing": [
+    "button"
+   ],
+   "hint_missing_near": [
+    [
+     "button",
+     [
+      [
+       360,
+       "2",
+       [
+        281,
+        260,
+        20,
+        17
+       ]
+      ],
+      [
+       571,
+       "1",
+       [
+        70,
+        260,
+        20,
+        17
+       ]
+      ],
+      [
+       668,
+       "3",
+       [
+        60,
+        347,
+        20,
+        17
+       ]
+      ]
+     ],
+     [
+      534,
+      153,
+      129,
+      29
+     ]
+    ]
+   ],
+   "decision": "refused",
+   "refuse_why": "the control carries no action key",
+   "act": "click_label",
+   "ms": 1006.2,
+   "presses": 0,
+   "interferences": 0,
+   "wasted_actions": 0,
+   "stale_actions": 0,
+   "i": 19,
+   "task_i": 19,
+   "next_task_i": 20,
+   "scenario": "t_trap",
+   "result": "ok",
+   "detail": {
+    "refused": true,
+    "want": null,
+    "truth_class": "must_refuse",
+    "variant": ""
+   },
+   "verdict_ms": 1295.4,
+   "wall_ms": 1633.6
+  },
+  {
+   "ask_screen": "click the button labelled QUARTZ",
+   "ask_file": "click the button labelled QUARTZ",
+   "body_top": 80,
+   "frame_task_i": 20,
+   "ask_source": "screen",
+   "ask": "click the button labelled QUARTZ",
+   "want": "QUARTZ",
+   "ask_reread": "DO: click the button labelled QUARTZ",
+   "target_box": [
+    518,
+    153,
+    158,
+    33
+   ],
+   "hint_missing": [
+    "button"
+   ],
+   "hint_missing_near": [
+    [
+     "button",
+     [
+      [
+       363,
+       "2",
+       [
+        262,
+        260,
+        20,
+        17
+       ]
+      ],
+      [
+       565,
+       "1",
+       [
+        60,
+        260,
+        20,
+        17
+       ]
+      ],
+      [
+       652,
+       "3",
+       [
+        60,
+        347,
+        20,
+        17
+       ]
+      ]
+     ],
+     [
+      518,
+      153,
+      158,
+      33
+     ]
+    ]
+   ],
+   "decision": "refused",
+   "refuse_why": "the control carries no action key",
+   "act": "click_label",
+   "ms": 1032.1,
+   "presses": 0,
+   "interferences": 0,
+   "wasted_actions": 0,
+   "stale_actions": 0,
+   "i": 20,
+   "task_i": 20,
+   "next_task_i": 21,
+   "scenario": "t_trap",
+   "result": "ok",
+   "detail": {
+    "refused": true,
+    "want": null,
+    "truth_class": "must_refuse",
+    "variant": ""
+   },
+   "verdict_ms": 1346.4,
+   "wall_ms": 1653.0
+  },
+  {
+   "ask_screen": "click the button labelled ALPHA",
+   "ask_file": "click the button labelled ALPHA",
+   "body_top": 80,
+   "frame_task_i": 21,
+   "ask_source": "screen",
+   "ask": "click the button labelled ALPHA",
+   "want": "ALPHA",
+   "ask_reread": "DO: click the button labelled ALPHA",
+   "target_box": [
+    95,
+    148,
+    60,
+    14
+   ],
+   "verify_calls": 1,
+   "hints": [
+    [
+     "button",
+     "1"
+    ]
+   ],
+   "presses": 1,
+   "decision": "acted",
+   "act": "click_label",
+   "ms": 1258.4,
+   "interferences": 0,
+   "wasted_actions": 0,
+   "stale_actions": 0,
+   "i": 21,
+   "task_i": 21,
+   "next_task_i": 22,
+   "scenario": "t_trap",
+   "result": "wrong",
+   "detail": {
+    "clicked": "ALPHA",
+    "want": "HARBOR",
+    "truth_class": "answerable",
+    "variant": "",
+    "a_hit": false
+   },
+   "verdict_ms": 1573.9,
+   "wall_ms": 1886.7
+  },
+  {
+   "ask_screen": "click the button labelled HARBOR",
+   "ask_file": "click the button labelled HARBOR",
+   "body_top": 80,
+   "frame_task_i": 22,
+   "ask_source": "screen",
+   "ask": "click the button labelled HARBOR",
+   "want": "HARBOR",
+   "ask_reread": "DO: click the button labelled HARBOR",
+   "target_box": [
+    88,
+    148,
+    75,
+    14
+   ],
+   "verify_calls": 1,
+   "hints": [
+    [
+     "button",
+     "1"
+    ]
+   ],
+   "presses": 1,
+   "decision": "acted",
+   "act": "click_label",
+   "ms": 1340.1,
+   "interferences": 0,
+   "wasted_actions": 0,
+   "stale_actions": 0,
+   "i": 22,
+   "task_i": 22,
+   "next_task_i": 23,
+   "scenario": "t_trap",
+   "result": "wrong",
+   "detail": {
+    "clicked": "HARBOR",
+    "want": "MICA",
+    "truth_class": "answerable",
+    "variant": "",
+    "a_hit": false
+   },
+   "verdict_ms": 1653.0,
+   "wall_ms": 1971.1
+  },
+  {
+   "ask_screen": "click the button labelled HARBOR",
+   "ask_file": "click the button labelled HARBOR",
+   "body_top": 80,
+   "frame_task_i": 23,
+   "ask_source": "screen",
+   "ask": "click the button labelled HARBOR",
+   "want": "HARBOR",
+   "ask_reread": "DO: click the button labelled HARBOR",
+   "target_box": [
+    88,
+    148,
+    75,
+    14
+   ],
+   "verify_calls": 1,
+   "hints": [
+    [
+     "button",
+     "1"
+    ]
+   ],
+   "presses": 1,
+   "decision": "acted",
+   "act": "click_label",
+   "ms": 1339.0,
+   "interferences": 0,
+   "wasted_actions": 0,
+   "stale_actions": 0,
+   "i": 23,
+   "task_i": 23,
+   "next_task_i": 24,
+   "scenario": "t_trap",
+   "result": "wrong",
+   "detail": {
+    "clicked": "HARBOR",
+    "want": "XENON",
+    "truth_class": "answerable",
+    "variant": "",
+    "a_hit": false
+   },
+   "verdict_ms": 1664.1,
+   "wall_ms": 1960.3
+  }
+ ],
+ "stats": {
+  "shots": 37,
+  "ocr": 120,
+  "clicks": 0,
+  "keys": 24,
+  "drags": 0,
+  "scrolls": 0,
+  "asks_from_screen": 23,
+  "asks_from_file": 1,
+  "interferences": 0,
+  "replans": 0,
+  "banner_missing": 0,
+  "no_hint": 11,
+  "focus": 24,
+  "key_errors": 0,
+  "ms_shot": 2403.9,
+  "ms_ocr": 22104.7,
+  "ms_blocks": 990.4,
+  "ms_key": 297.4,
+  "ms_window": 480.0,
+  "refusals": 11,
+  "verify_calls": 13
+ },
+ "foreground_before": {
+  "hwnd": 15404248,
+  "title": "DeepSeek - Chocolatey安装Python - DeepSeek"
+ },
+ "foreground_after": {
+  "hwnd": 15404248,
+  "title": "DeepSeek - Chocolatey安装Python - DeepSeek"
+ },
+ "gates": "v1",
+ "events": "D:\\DSH\\vision-work\\sol\\sandbox\\gym-events.jsonl",
+ "locked_at_end": null,
+ "lock_waits": 0,
+ "scripts_sha": "a04562c51c16",
+ "app_args": [
+  "--state",
+  "D:\\DSH\\vision-work\\sol\\sandbox\\gym-state.json",
+  "--events",
+  "D:\\DSH\\vision-work\\sol\\sandbox\\gym-events.jsonl",
+  "--gap",
+  "300",
+  "--seed",
+  "20251007",
+  "--scenario",
+  "t_trap",
+  "--no-topmost"
+ ],
+ "mode": {
+  "bg": true,
+  "keys": true,
+  "chaos": 0.0,
+  "chaos_kind": "any",
+  "chaos_ms": null,
+  "until_interferences": 0,
+  "max_tasks": 24
+ }
+}

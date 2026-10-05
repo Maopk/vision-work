@@ -1,0 +1,120 @@
+# vision-work — GUI 判分线（靶场 + 全盲驱动 + 评分器）
+#
+# 规则：批次证据只入库 sol/sandbox/t_trap*.json；运行产物、本机 UI 截图、
+#       与判分线无关的历史材料一律不入库。本文件只声明"哪些不提交"，
+#       不改动、不删除磁盘上的任何文件。
+
+# ---------- 运行产物（每次跑批都会重写/覆盖） ----------
+*-events.jsonl
+*-state.json
+*-out.txt
+*.err
+*.log
+*.jsonl
+
+# ---------- Python 缓存 ----------
+__pycache__/
+*.pyc
+*.pyo
+
+# ---------- 本机 UI 截图：一律不入库（沿用 dsh-vision-kit 的规则） ----------
+*.png
+
+# ---------- 一次性调试脚本 / 填充曲线目录 ----------
+sol/sandbox/_*.py
+sol/sandbox/_fill_curve/
+sol/sandbox/_fill_curve2/
+_fill_curve*/
+
+# ---------- sol/sandbox：只保留批次证据与探针 ----------
+# 先忽略 sandbox 下的全部 json，再把批次证据显式放行；
+# negation 在最后，保证 t_trap*.json 不会被误伤。
+sol/sandbox/*.json
+!sol/sandbox/t_trap*.json
+# 放行之后再把批次的 state 重新排除（最后命中的规则生效）
+sol/sandbox/t_trap*-state.json
+sol/sandbox/*.txt
+sol/sandbox/*.out
+sol/sandbox/*.box
+sol/sandbox/audit_runs.py
+sol/sandbox/find_run.py
+sol/sandbox/patch_w6.py
+sol/sandbox/score_read.py
+sol/sandbox/spider_sandbox.py
+sol/sandbox/spider_table.py
+
+# ---------- 与判分线无关的历史材料（保留在磁盘，不入库） ----------
+# 顶层：早期视觉 / 几何 / QQ / 爱心等实验
+DshInput.dll
+brightmap.py
+check_corner.py
+check_native.py
+crop_widget.py
+cv_ui_geometry.py
+dbg.py
+diff_regions.py
+diffbox.py
+direct_test.py
+find_colorful.py
+find_whale.py
+gen_heart.py
+geometry.py
+ground_test.py
+heart-demo.ps1
+heart-frames/
+heart_proof.py
+locate_whale.py
+make_inputs.py
+match_widget.py
+mk_tpl.py
+now-match.json
+ocr_boxes.py
+planA.json
+planB.json
+planC.json
+planR.json
+planR2.json
+planR3.json
+planR4.json
+probe_and_ocr.py
+qq-*.json
+qq-send.ps1
+qq-steps.ps1
+qq_verify.py
+qs-*.json
+shot_prep.py
+sight.py
+smoke.json
+template-result.json
+template_match.py
+time_small.py
+timing-7b.txt
+timing.txt
+timing2.py
+timing7b.py
+视觉能力结论表.md
+
+# sol/ 顶层：蜘蛛纸牌那条线
+sol/SolInput.dll
+sol/arc/
+sol/cards.py
+sol/msc-geom.json
+sol/tab-geom.json
+sol/p-*.json
+sol/r-*.json
+sol/pips.py
+sol/probe_lib.py
+sol/probe_pip.py
+sol/probe_profile.py
+sol/probe_suit.py
+sol/reader.py
+sol/sol.ps1
+sol/spider_read.py
+sol/spider_solve.py
+sol/strip.ps1
+sol/suit_icons.py
+sol/textmap.ps1
+sol/uia.ps1
+sol/uia2.ps1
+sol/unzip-zstd.js
+sol/wfp.ps1

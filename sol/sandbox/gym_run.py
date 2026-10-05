@@ -848,11 +848,20 @@ class Driver:
         return hits
 
     def window_by_title(self, title: str) -> dict | None:
-        """Find one top-level window whose name contains `title` (UIA list)."""
+        """Find one top-level window whose name contains `title` (UIA list).
+
+        The list is read from the step's *inline* reply, not from `data`: `results=True`
+        folds the reply into `data`, but the actor's `_slim` keeps only the first few
+        items of a list there (actor.py `_slim`).  Measured 2026-10-05: the same reply
+        carried 11 windows inline and 7 in `data`, and the dialog of debt #16 sat past
+        that cut whenever the driver was running - so `window_by_title("attention")`
+        answered None, the keyboard path never sent its Return, and two whole popup
+        batches (batch 8) recorded `interferences 0` with the dialog still on screen.
+        """
         rep = self.a.run([{"op": "uia", "what": "windows", "max": 120}], results=True)
         for step in rep.get("trace", []):
-            data = step.get("data") or {}
-            for w in (data.get("windows") or []):
+            wins = step.get("windows") or (step.get("data") or {}).get("windows") or []
+            for w in wins:
                 # same guard as `target_windows`: a truncated or locked desktop answers with
                 # bare strings (e.g. "(1 more items)") - skip those instead of crashing
                 if not isinstance(w, dict):
@@ -912,12 +921,18 @@ class Driver:
                     # painted as a block, and here the question is just "is it up?"
                     if not self._button_candidates(img2, "DISMISS", keep_vetoed=True):
                         break
+                if seen == 0:                   # the gate opened: the dialog was found
+                    self.stats["popup_seen"] = int(self.stats.get("popup_seen") or 0) + 1
                 self.key("Return")
                 seen += 1
                 self.stats["interferences"] += 1
                 time.sleep(0.35)
                 if img is not None:
                     img = self.shot()
+            if seen and self.bg:                # did the key actually clear it?
+                key = ("popup_dismiss_failed" if self.window_by_title("attention")
+                       else "popup_dismissed")
+                self.stats[key] = int(self.stats.get(key) or 0) + 1
             return (img if img is not None else self.shot()), seen
         if self.bg:
             seen, tried = 0, []
@@ -3095,7 +3110,9 @@ def target_windows(a, title: str = "GUI Gym") -> list[dict]:
     out: list[dict] = []
     rep = a.run([{"op": "uia", "what": "windows", "max": 120}], results=True)
     for step in rep.get("trace", []):
-        for w in ((step.get("data") or {}).get("windows") or []):
+        # inline first: `data` is folded and the actor's `_slim` cuts a list after a few
+        # items (see window_by_title) - the target window can sit past that cut
+        for w in (step.get("windows") or (step.get("data") or {}).get("windows") or []):
             # a locked or half-torn-down desktop can answer with bare strings - skip those
             if not isinstance(w, dict):
                 continue
@@ -3443,6 +3460,9 @@ def main() -> int:
                         _, n = d.dismiss_interference()
                         if n:
                             rec["interferences"] = rec.get("interferences", 0) + n
+                            # the dialog is gone, but the press it swallowed was never
+                            # scored: stop waiting and answer again (replan below)
+                            break
                 if v.get("result") not in (None, "", "none") or nxt != task_i:
                     break
                 if attempt == tries - 1:

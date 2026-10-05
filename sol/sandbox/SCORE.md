@@ -811,6 +811,11 @@ sha **`f598406cfc70`**（批次 8 = "**读不出的重读不再被当成'问题�
   该题永远不结束；而弹窗不消失 ⇒ 靶子也不再推进下一题（所以 app 侧只有 1 次 fire）。
 - ⚠ 这是**驱动的能力缺口**（不是测量脚本的 bug）：`popup` 类要能跑，驱动必须先"看得见并打掉"外来窗口（鼠标通道已有这条路径：`_button_candidates(img2, "DISMISS")`），
   **`--keys --bg` 通道没有**。按用户规则：**delta 解释不了就停并写欠账** ⇒ 本类**不并入定稿**，写进 `STATE.md` §7 #16 / `HANDOFF.md` 盲区 17。
+- ⚠⚠ **2026-10-05 第十段更正（本节的机制判断错了一半，勿再引用上面两句当结论）**：直接探针（`D:\DSH\dsh-actor\tmp\w10-uia-probe3.py`）证明
+  **弹窗一直能被 UIA 看见**（同一条 trace 里 inline `windows` 11 项、含 `name="attention"`），真正的根因是 **actor 折叠把 `data.windows` 截断**（`actor.py:_slim`
+  对 list 只留前 6 项左右），而 `window_by_title()` 当时**只读 `data`** ⇒ 枚举"看不见"。所以：①"没有这条路"**错**（路在，读错字段）；②"借鼠标视觉路径
+  `_button_candidates`"在 `--keys --bg` 下**仍不可行**（弹窗是独立 HWND、不在主窗帧里；且 `--bg` 鼠标点击整条失效，见 `STATE.md` §16）——这条判断**对**。
+  修法与修后结果见本节之后的 **批次 12**（`gym_run.py` `105cf6cb679eea10` → `87470aaff559`）。
 
 ### ④ 引用这批时必须带上的三条口径
 
@@ -1019,3 +1024,73 @@ t_trap5  v3 35/48  72.9%  decided 100.0%  disturb 0   screen 42/48 replan 31   1
 1. **同协议重复 2–3 次**坐实 `task_i 38` 是噪声（只做了 1 次）。
 2. **"瞬时空帧"的构造**（遮挡 / 抓帧偶发）：两种手法都是永久的 ⇒ 重试分支**在真实空帧下一次都没被走到**（只有构造产物里的 `shot_retry 2/2` 走过）。
 3. **A/B 对照批**（用 `gym_run.py.bak-w5` 跑同协议小批）：未做；改动的零成本结论只由 `shot_empty 0 / shot_retry 0` 支撑。
+
+---
+
+## 批次 12（口径 v2；欠账 **#16「`popup` 类干扰打不掉」还清** —— 根因是 actor 折叠截断，只改"看窗口"的读法与清障计数，**判定路径一字未动**）
+
+`t_trap2-w12-popup35.json` / `-state.json` / `-events.jsonl`；`scripts_sha **186edbd9c024**`；`gym_run.py` `105cf6cb679eea10` → **`87470aaff559`**（`gym_app.py` / `score.py` 未动）。
+协议与批次 8 的 `popup35` **逐项相同**（`--keys --bg`、`t_trap2`、seed 20251007、`chaos 0.35`、`chaos-ms 200,700`、`chaos-kind popup`、`--no-topmost`、60 题、**未传 `--until-interferences`** ⇒ 跑满不早停），只有驱动版本不同。
+
+### ① 根因（直接探针，2026-10-05 第十段）
+
+- **弹窗一直能被 UIA 看见**：`{"op":"uia","what":"windows","max":120}` 的 trace 里有 `{"name":"attention","cls":"TkTopLevel","type":"Window","rect":[…]}`（同列表 11 项）。
+- **真正的原因 = actor 折叠截断**：同一条 trace 条目里 **inline `windows` 11 项**，而 **`data.windows` 只有 7 项** —— `actor.py:_slim()` 对 list **只保留前 ~6 项**，`data` 只在 `results=True` 时写入。改前 `window_by_title()`（以及 `target_windows()`）**只读 `step["data"]["windows"]`** ⇒ "attention" 一落到截断之后，`window_by_title("attention")` 恒 `None` ⇒ 键通道 bg 分支第一行就 `break` ⇒ **一次 Return 都没发**。
+- 探针方式与坑（写进这里以免下次再踩）：actor `:8731` 是**裸 TCP + 换行 JSON**（`{"op":"run","steps":[…]}`），**不是 HTTP**；**WSL 到不了 Windows loopback** ⇒ 必须 pwsh + Windows venv python；复刻驱动读法的脚本 = `D:\DSH\dsh-actor\tmp\w10-uia-probe3.py`。
+- 批次 8 原始产物复核（旧驱动 `f598406cfc70`）：`t_trap2-w8-popup35.json` 只 **7** 行 / `max task_i 4` = 4 ok + 3 none；`t_trap2-w8-popup70.json` 只 **4** 行 / `max task_i 1` = 1 ok + 3 none；两批 `interferences 0`、`clicks 0 / drags 0`、无 `popup_*` 键；而 app 事件显示驱动发的键**到了 app**（`hit:true, modal:true`）却没计分（`gym_app.py:465-481 finish()` 的 modal 门）。
+- ⚠ 本节推翻了批次 8 ③ 的一半判断（那里说"没有这条路"）：**路在，是读错了字段**。原判断的另一半**仍然成立**：`_button_candidates` 那条视觉路在 `--keys --bg` 下**不可用**（弹窗是独立 HWND、不在主窗帧里；且 `--bg` 鼠标点击整条失效，见 `STATE.md` §16）⇒ 只能走"按键打掉"（app 自己的设计：`gym_app.py:376-383` 弹窗在时 `Return/space/Escape/d/D` 直接关）。
+
+### ② 本批定稿行
+
+```
+chaos:popup    v2 60/60 100.0%  decided 100.0%  disturb 15  screen 50/60 replan 29    1714 ms/task  keys 109   shots 402  ocr 595
+               answered_right=46 refused_right=14
+               false_refusal 0/46 (0.0%)  false_accept 0/14 (0.0%)  stale 0  wasted 0  verify_giveup 0  re-reads 0
+               fired-task pass 15/15 (100.0%)  quiet 45/45 (100.0%)  swapped 15  a_hit 10  a_hit_but_failed 0  (wrong_target 0 / twin 0)
+               variant alpha020 2/2  variant alpha030 2/2  variant alpha035 2/2  variant alpha050 2/2  variant alpha065 2/2  variant prose_only 4/4  variant prose_with_button 6/6  variant swap_after_press 10/10  variant swap_timer 5/5
+               swap by variant  swap_after_press n=10 a_hit=10 wrong=0  swap_timer n=5 a_hit=0 wrong=0  race(pressed the replaced ask) 0/0
+               guard gate sample 70  P50 127 ms  P95 138 ms  (criterion P50<=240, P95<=320)
+```
+
+驱动统计：`popup_seen 24`、`popup_dismissed 24`、`popup_dismiss_failed`（键不出现 = **0**）、`interferences 24`、`replans 29`、`keys 109`、`shots 402`、`ocr 595`、`asks_from_screen 78`、`asks_from_file 11`、`shot_empty 0 / shot_retry 0`、`key_errors 0`、`verify_calls 74`；`foreground after: <用户前台窗口> unchanged: True`。
+app 事件：`chaos_planned 25` / `chaos 25`（全 `popup`）、`key 109`、`trap_swap 15`、`trap_a_hit 10`、`done 60`、`refused 14`、`ready 61`（**无 `blocked` 类事件**，批次 8 也没有 ⇒ 不要引用"app emit blocked"）。
+
+### ③ 判据（本段规格，逐条）
+
+| 判据 | 阈值 | 实测 | 结论 |
+|---|---|---|---|
+| 能 fire ≥ 5 次 | ≥5 | app 侧 **25** 次 `chaos`（24 个不同 task 被清障）+ 15 题题内命中 | ✅ |
+| 不早停 | 跑满 60 题 | 逐题行 **60**（`max task_i 59`）、`done 60`、退出码 0、`--max-repeat` 未触发 | ✅ |
+| 有 dismiss 记录 | ≥1 | `popup_seen 24` / `popup_dismissed 24` / `popup_dismiss_failed 0` ⇒ **24/24 全成** | ✅ |
+
+### ④ 改动前后对照（**旧数据 = 批次 8 的历史产物**，不是随机对照）
+
+| 项 | 批次 8 `popup35`（旧驱动 `f598406cfc70`） | 批次 12（新驱动 `186edbd9c024`） |
+|---|---|---|
+| 逐题行 / 最大 `task_i` | 7 / 4（早停） | **60 / 59** |
+| 逐题结果 | 4 ok + **3 none** | **60 ok** |
+| 驱动 `interferences` | **0** | **24** |
+| `popup_seen / dismissed / failed` | 键不存在 | **24 / 24 / 0** |
+| app 侧 `chaos`（popup） | 1（早停前只发 1 次） | **25** |
+| `clicks / drags` | 0 / 0 | 0 / 0（纯键通道） |
+| `score.py` | 无（批早停，不进任何表） | `v2 60/60` |
+
+### ⑤ 恢复路径与时间口径
+
+- `replan_why = "no verdict arrived"` **12 行，全部 `result = ok`**：这些正是"被弹窗吞掉第一次按压 → 重答"的题（`presses 1` 首答 + `replans 1` 重答）；`ask re-rolled` 14 行是换题类（与批次 8 同类）；其余 34 行无重规划。
+- 逐题 `ms`：**1748.6**（n=12，被吞过）vs **1639.5**（n=34，未被吞）⇒ 恢复代价 **+6.7%**；全批均值 **1715.0**（= `score.py` 的 `1714 ms/task`）。
+- 驱动墙钟 **3627 ms/题**（222.7 s / 60 题）与 `ms/题` **不是同一个量**（差额在题间建题/轮询与清障）⇒ **未细分，不并入性能结论**。
+
+### ⑥ 引用这批时必须带上的边界
+
+1. **与批次 8 的对照是"历史产物对照"**：驱动版本不同、无同批 A/B ⇒ 只能说"**这一类现在可测了**"，**不能说"改动提升了通过率"**（批次 8 没有可比的分母）。
+2. **旧的 `interferences 0` 一律不可读成"没被干扰"**：那是"打不掉"的缺陷；批次 7/8 的 `popup` 两档成绩仍然**不可引用**。
+3. **本批仍是「探索性·不并入定稿」**：键通道 + `--bg`，与鼠标批（批次 4/5/6/9/11）**不同通道、不同协议**，不能与之并列成"提升/退步"。
+4. **`disturb 15` 只数"题内"清障**：驱动 `interferences 24` = 逐题行合计 **15** + `interferences_at_start` 合计 **9**（题首清障，`gym_run.py:2033-2034`）—— 两个计数不可互推；`screen 50/60` 与驱动摘要的 `asks read off the screen 78 / from the state file 11` 也是两个不同计数。
+5. **app 侧 fire 25 对驱动清障 24 差 1 次**：两种候选解释（落在最后一题之后 / 被下一次换题的 `self._close_modal()`，`gym_app.py:512` 顺手关掉）**都成立，未取证** ⇒ 只并列、不裁定。
+6. **没做的事**：同协议重复批（1 次）、`0.70` 档复跑（批次 8 的 `popup70` 仍是旧驱动的失败产物）、鼠标通道批（`--bg` 鼠标整条不生效）、A/B 对照批（用 `D:\DSH\dsh-actor\tmp\gym_run.py.bak-w10` 跑同协议）。
+7. **本批留档**：`t_trap2-w12-popup35.json` / `-state.json` / `-events.jsonl` + 驱动 stdout `D:\DSH\dsh-actor\tmp\w12-driver-stdout.txt`；改前备份 `D:\DSH\dsh-actor\tmp\gym_run.py.bak-w10`（sha `105cf6cb679eea10`）。
+
+### ⑦ 成本
+
+新增三计数只在"真看到弹窗"时才动（本批 24 次），每次 `popup_dismissed/failed` 判定多一次 UIA 枚举（本批 24 次 × 约 40–70 ms ≈ 1.2 s，占 222.7 s 墙钟 < 1%）。无弹窗的题**零成本**：键分支的闸门在 `--keys --bg` 下本来就走一次枚举，只是改前读错字段。`shot_empty / shot_retry 0/0`、`key_errors 0`、`stale 0`、`wasted 0`、`verify_giveup 0`。

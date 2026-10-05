@@ -3,8 +3,12 @@
 > 从这里继续。所有路径都在 `D:\DSH\vision-work\sol\sandbox\`（下称 `sandbox\`）。
 > 计分板：`sandbox\SCORE.md`；分表工具 `sandbox\score.py`。
 
-## 接续点（2026-10-05 收工：探路日 + 技能落盘 + 批次 9 + 第三段三件 + 第四段（#4 改完、批次 10 定稿）+ **第五段（#17 改完、批次 11 定稿、#18 已量）+ 第六段（#12 关闭）+ 第七段（报告正文初稿）+ 第八段（独立仓库已推送）**；开工先读这几行）
+## 接续点（2026-10-05 收工：探路日 + 技能落盘 + 批次 9 + 第三段三件 + 第四段（#4 改完、批次 10 定稿）+ **第五段（#17 改完、批次 11 定稿、#18 已量）+ 第六段（#12 关闭）+ 第七段（报告正文初稿）+ 第八段（独立仓库已推送）**+ 第九段（报告 v0.2 打磨）+ **第十段（报告 v0.2 已提交推送、#16 还清 → 批次 12 定稿、`gym_run.py` 裂一次 sha = `87470aaff559`）**；开工先读这几行）
 
+- **最新一批（第十段 2026-10-05）：批次 12**，`sol/sandbox/t_trap2-w12-popup35.json`（**`popup` 类 / 键通道 + `--bg`**，**60/60**、`decided 100%`，口径 v2，`scripts_sha` **`186edbd9c024`**，wall **222.7 s**）—— 欠账 **#16「`popup` 打不掉」还清**：
+  根因**不是**"UIA 看不见弹窗"，而是 **actor 折叠把 `data.windows` 截断**（`actor.py:_slim` 对 list 只留前 6 项左右）而 `window_by_title()` 当时**只读 `data`**（同一条回包的 inline 字段里明明有 11 项、含 `attention`）⇒ 闸门恒 `None` ⇒ **一次 Return 都没发**（批次 8 两批因此 `interferences 0`、各 1 次 fire 后早停）。
+  改动 4 处、**24 行（+24 / −4，含注释）**、**判定路径一字未动**：① `window_by_title()` 与 ② `target_windows()` 改 **inline 优先**；③ 键分支加 `popup_seen` / `popup_dismissed` / `popup_dismiss_failed` 三计数；④ 等判定循环里清掉弹窗后**立刻 break** 走重答（被吞掉的按压不会补分）。
+  实测：`popup_seen 24 / popup_dismissed 24 / failed 0`、`interferences 24`（15 题内 + 9 题首，计数闭合）、逐题 **60 行全 ok**、**无早停**、`false_refusal 0/46`、`gate_ms` P50 **127 ms**；其中 **12 题**走"被弹窗吞一次 → 重答"路径（逐题 ms 1748.6 vs 干净题 1639.5 ⇒ **+6.7%**）。详见 `sol/sandbox/SCORE.md` 批次 12 节 + 本文 **§18**。
 - **上一批定稿**：**批次 11**，`sandbox\t_trap7-1.json`（**鼠标通道 48 题**，**35/48**、`decided 100%`、口径 v3，`scripts_sha` **`8da029edccbc`**，json sha `dd77abc08e911794`）—— 欠账 **#17「`shot` 空帧零容忍」还清**：
   只改抓帧失败的处理（`ShotFailed` + `_shot` 重试 3 次 + main `try` ⇒ **已完成的题写成 partial run json** + 退出码 **3**），**判定路径一字未动**（`score.py` 只加两行 `!! PARTIAL RUN` 警示）；
   与批次 9（36/48）**逐项同协议同 seed** ⇒ **核心 14 = 12/14、翻转 0**、`ms/题 +0.9%`、`shot_empty / shot_retry = 0 / 0`；唯一翻转 `task_i 38`（`swap_race_timer`，**不在核心 14**）记为竞态族抖动（**未做重复批，引用前要补**）。详见 `SCORE.md` 批次 11 节 + 本文 **§15**。
@@ -29,7 +33,7 @@
   若注入正常 ⇒ 在新会话里试一次"技能路由命中"；异常 ⇒ 排查技能中心 / skills-manager 插件层并记回本节。
 - **今天第四段：把 #4 的"改"做完了（批次 10 定稿；只裂一次 sha）** —— 假设/证伪四条/观测点/判据写在本文 **§14.1–14.4**，改动三处写在 **§14.5 / §14.5b**，结果与判据核对写在 **§14.7**，本批唯一一次作废尝试写在 **§14.8**；
   过程一句话：`ask_box` 进题即冻结 ⇒ `move` 干扰下边缘切在 label 之前 ⇒ 守门重读只剩前缀（文本路径说"变了"、指纹说"没变"）⇒ 不放行 ⇒ 死锁；改成**每帧用像素段重算 banner box**（重算优先、失败退回冻结框），成本 **+8.71 ms/门**（场景匹配口径），60 题里读不出次数 2 → **0**。
-- **明天第二件事（二选一）**：①**报告再下一轮（v0.3）** —— `REPORT.md` 现为 **v0.2**（第九段打磨已完成：第 2 章 11 条**已核对**外部引用、附录 A **带行号**、附录 B-2 四问复查、新增附录 C「复现指南」），可做的：与公开基准做同题对照、把行号改成**自动生成**、找同侪复核；②或从 `HANDOFF.md` §6 挑一条欠账开工（现在**只剩** §7 #16 `popup` 与 §7 #18 滚轮+拖拽）。**#4 / #17 已还、#12 已量完关闭，都不要再重开**（证据冻结在 `SCORE.md` 批次 10/11 节 + 本文 §13/§14/§15/§17）。
+- **明天第二件事（二选一）**：①**报告再下一轮（v0.3）** —— `REPORT.md` 现为 **v0.2**（第九段打磨已完成：第 2 章 11 条**已核对**外部引用、附录 A **带行号**、附录 B-2 四问复查、新增附录 C「复现指南」），可做的：与公开基准做同题对照、把行号改成**自动生成**、找同侪复核、**同步批次 12**（v0.2 里"`popup` 类测不了"的表述已被批次 12 推翻 ⇒ 第 6 章"能力缺口"那一族要改口径）；②或从 `HANDOFF.md` §6 挑一条欠账开工（现在**只剩** §7 #18 滚轮+拖拽，用户明示排在最后）。**#4 / #12 / #16 / #17 都已还或已关闭，都不要再重开**（证据冻结在 `SCORE.md` 批次 10/11/12 节 + 本文 §13/§14/§15/§17/§18）。
 - **今日第三段（2026-10-05，三件都不裂 sha、不改三件套）**：① `D:\DSH\vision-work\SCORE-history.md`（**口径史一页纸**：v0–v3 四版表 + 10 条勘误/"勿引用" + 可比性判定六步 + 批族矩阵）
   ② `D:\DSH\vision-work\REPORT-draft.md`（**报告框架**：标题 + 摘要 + 七章 × 3–5 个一句话要点 + 每章素材指针；**未写正文**）③ 本文 **§13**（#4 前置量：机制 + 成本 + 改法草案）。
 - **今日新增欠账（未冻结）**：① 走 B 的坐标映射只做了定性；② 技能目录注入待新会话验证；③ 报告正文未写（框架已成，取材顺序见 `REPORT-draft.md` 附录）。
@@ -54,12 +58,13 @@
 - **第八段新增欠账 / 旧账（未冻结）**：① **报告打磨未做**（第 2 章外部引用 / 附录 A 升级为带行号 / 按附录 B 四问复查）⇒ `REPORT.md` 仍是 **v0.1**；② 仓库**有意不配 CI**（应用层决策）；③ 后续推送仍需带 token 头（**未做凭据持久化**，避免把 token 落盘）；④ 上述第七段 ①–③ 与第六段 ④–⑦ 全部照旧。
 - **第九段：报告打磨 v0.1 → v0.2（只改 `REPORT.md` + `REPORT-draft.md`；不裂 sha、不碰三件套、不动任何批次文件、不删任何文件）** —— 四处改动：①**第 2 章补 11 条已核对的外部引用**（Sikuli UIST 2009 / GUI Testing CHI 2010 / RERAN ICSE 2013 / WebArena / Mind2Web / WebVoyager / OSWorld / *An Illusion of Progress?* / reject-option 综述 / selective classification / refusal direction；**逐条打开核对过标题+作者+年份+可查链接**，核不到的一律不引）；②**附录 A 升级为带行号引用**（`SCORE.md:7–33` 这种；含行号口径与"文件一改就漂"的说明）；③**附录 B-2**：v0.2 逐章四问复查表 + **发现并改掉的三处问题**（版本行把 #17 误称"探针"、§7.3 第 4 项与本轮重复、"不做文献综述"与新增引用冲突）；④**新增附录 C「复现指南」**（环境三件事 / 跑批骨架 / 四件留档 / 引用前四步手续；**只整理、不新增实验、不含任何成绩数字**）。**干扰鲁棒性那一小节没有可核文献 ⇒ 明写留空**，不用"已有大量研究"带过。
 - **第九段新增欠账 / 旧账（未冻结）**：① 报告**仍无外部同题对照**（第 2 章是差异说明，不是综述）；② 附录 A 行号**人工对齐**，文件一改就漂（§7.3 第 4 项后半"自动生成"仍开放）；③ 报告**未做同侪复核**（附录 B 自检表仍是自己填的）；④ 上述第八段 ②–④、第七段 ①–③、第六段 ④–⑦ 全部照旧。
-- **主线仍悬着的那一件**：从 `HANDOFF.md` §6 挑一条（**#4 / #17 已还清、#12 已量完关闭，都跳过**）—— 现在只剩两条：**§7 #16 `popup` 打不掉**（驱动能力缺口，最难：`--keys --bg` 下没有可用的窗口标题，弹窗留屏、按键被吃）→ **§7 #18 滚轮 + 拖拽**（新题型 + `--bg` 鼠标通道缺口，用户明示排在所有欠账之后）。
-  非批次类的那一件是**报告正文**（初稿 `REPORT.md` 已成 **353 行**；框架 `REPORT-draft.md` **129 行**，取材顺序在它的附录；写它不裂 sha、不动三件套）。
+- **第十段新增欠账 / 旧账（未冻结）**：① **§7 #19 `popup` 只跑了 1 档 1 通道**（`0.35` + 键通道 + 1 次；`0.70` 档与鼠标通道无修后数据；与批次 8 是历史产物对照、无同批 A/B）；② `REPORT.md` 里"`popup` 类测不了"的表述**已被推翻但未同步**（`REPORT.md:237` + 附录 A 索引 `:347`，见 §18.4 ⑤）；③ 报告**仍无外部同题对照**、附录 A 行号仍人工对齐、**未做同侪复核**；④ 上述第九段 ②–④、第八段 ②–④、第七段 ①–③、第六段 ④–⑦ 全部照旧。
+- **主线仍悬着的那一件**：从 `HANDOFF.md` §6 挑一条（**#4 / #16 / #17 已还清、#12 已量完关闭，都跳过**）—— 现在**只剩一条**：**§7 #18 滚轮 + 拖拽**（新题型 + `--bg` 鼠标通道缺口，用户明示排在所有欠账之后）。
+  非批次类的那一件是**报告正文**（`REPORT.md` 现 **446 行 v0.2**；框架 `REPORT-draft.md` **132 行**，取材顺序在它的附录；写它不裂 sha、不动三件套）。**报告 v0.3 的第一项待同步**：`REPORT.md` 里"`popup` 类不可测"的表述已被批次 12 推翻（本段按规格未改报告）。
 - **开工前必读**：本文件开头 + `HANDOFF.md` §2（口径）与 §4（已知盲区 **21** 条）；动报告时再读 `REPORT-draft.md` **§0 写作原则** + `REPORT.md`（**v0.2**）+ 它的附录 A（带行号）/ 附录 B-2（四问复查）/ 附录 C（复现指南）。**仓库已在 https://github.com/Maopk/vision-work**（公开，首 commit `9bc567d`，2026-10-05 推送；README 双版 + `CHANGELOG.md` + `LICENSE` + `.gitignore` 都在仓库根）。
 - **开工前必查**：venv `D:\DSH\.venvs\vision-ci\Scripts\python.exe` 可用；actor 守护进程在（`:8731`，**第五段收工时 pid 12008、uptime 5066 s**；`act.py ping` 一句话可查）；
   `foreground` 当前状态（收工时未锁屏；**同一时刻只能有 1 个 gym 窗口 ⇒ 各批串行**）。
-- **本日状态（2026-10-05 收工）**：**第九段已收工** —— 报告打磨 **v0.1 → v0.2**（`REPORT.md` **353 → 446 行**：第 2 章 11 条**已核对**外部引用 + 附录 A **带行号** + 附录 B-2 四问复查 + **新增附录 C「复现指南」**；`REPORT-draft.md` **129 → 132 行**同步修订；**只改这两份文档**，三件套、批次文件、仓库文件一字未动）；第八段 —— `vision-work` 已推成独立公开仓库 **https://github.com/Maopk/vision-work**（首 commit `9bc567d297fcf95854264a92e6d5f0d9447b4df9`，102 文件 / 5.3 MB，MIT；未删任何文件、未改三件套、未动任何批次文件）；第七段 —— 报告正文初稿 `D:\DSH\vision-work\REPORT.md`（**353 行**：8 章 + 附录 A 数字索引 + 附录 B 逐章自检）完成；数字一律指向 `SCORE.md`（未复制任何通过率/分母/毫秒），**未裂 sha、未动三件套、未动任何批次文件**；**三件套 sha 与第六段收工完全一致**（`gym_app.py 66632d85eac81c12` / `gym_run.py 105cf6cb679eea10` / `score.py ef066713a03eb940`）；
+- **本日状态（2026-10-05 收工）**：**第十段已收工** —— ① 报告 **v0.2 已提交推送**（commit **`b08243bb0130a942c945c100a429e205024be512`**，远端 HEAD 同 hash；远端 `REPORT.md` **446** 行 / `README.md` **92** 行核过）；② **欠账 #16（`popup` 打不掉）还清**并定稿 **批次 12**（根因 = actor 折叠截断 `data.windows`；`gym_run.py` `105cf6cb679eea10` → **`87470aaff559`**，+24/−4 行，判定路径一字未动；`popup_seen/dismissed/failed = 24/24/0`、60/60 无早停）；**第九段已收工** —— 报告打磨 **v0.1 → v0.2**（`REPORT.md` **353 → 446 行**：第 2 章 11 条**已核对**外部引用 + 附录 A **带行号** + 附录 B-2 四问复查 + **新增附录 C「复现指南」**；`REPORT-draft.md` **129 → 132 行**同步修订；**只改这两份文档**，三件套、批次文件、仓库文件一字未动）；第八段 —— `vision-work` 已推成独立公开仓库 **https://github.com/Maopk/vision-work**（首 commit `9bc567d297fcf95854264a92e6d5f0d9447b4df9`，102 文件 / 5.3 MB，MIT；未删任何文件、未改三件套、未动任何批次文件）；第七段 —— 报告正文初稿 `D:\DSH\vision-work\REPORT.md`（**353 行**：8 章 + 附录 A 数字索引 + 附录 B 逐章自检）完成；数字一律指向 `SCORE.md`（未复制任何通过率/分母/毫秒），**未裂 sha、未动三件套、未动任何批次文件**；**三件套 sha 与第六段收工完全一致**（`gym_app.py 66632d85eac81c12` / `gym_run.py 105cf6cb679eea10` / `score.py ef066713a03eb940`）；
   此前：第六段 #12（`guard-blind` 分母）量完并**关闭**（探针批 `D:\DSH\dsh-actor\tmp\w12-trap5-keys20.json` + 留档 `w12-events-archive.json`；`SCORE.md` 未动）；批次 11 定稿（`gym_run.py` `105cf6cb679eea10`、`score.py` `ef066713a03eb940`）、#17 还清、#18 只量不改（探针产物全在 `D:\DSH\dsh-actor\tmp\`）；
   批次 8 的四类 chaos 结果已入 `SCORE.md` 与本文 §10.4；`popup` 类不可测（欠账 #16）、`a_hit` 未达标如实记录（不硬推）、`shot` 空帧零容忍（#17 已还）。
 
@@ -265,9 +270,10 @@ t13 `ask_moved=1`（守门真的开火了，重规划到 `GAMMB`）、t33 `ask_c
 | 13 | run json 的 `events` 是路径且 app 覆盖写 ⇒ 跨批 stale 归因要逐批即时打分 | `--events` 按批命名（或 json 内嵌事件） | `SCORE.md` 引用规则 7 | **还**（批次 7：`--json-out` 带出 `x-state.json`/`x-events.jsonl`） |
 | 14 | 每批的 app state/events 不留档 ⇒ **事后重打分一定错联**（`score.py:162-169` 按 `events` 路径读真值；实测重打 `t_trap5-1.json` 得 36/48、`MISMATCH 11`，真值 37/48、`MISMATCH 0`） | 驱动把 app 的 `--state/--events` 按 `--json-out` 命名（或每批拷一份 events）⇒ 事后 `score.py <json> --events <留档>` 可复核 | `SCORE.md` 引用规则 7 | **还**（批次 7，只改命名不改判定逻辑 ⇒ 与批次 6 数字可比；批次 1–6 的旧数字仍是"跑完立刻打的"） |
 | 15 | **Option A：守门每帧重算 banner box**（本批只做"读不出 ⇒ 回落指纹"，不去重算框） | 守门不再依赖"计划时记录的 `ask_box`"，`ask_read_unreadable` 在 move/前台批次里降为 0 | `DESIGN` 修订 r13 ⑤、`STATE.md` §10.2 | **还**（批次 10：新增 `ask_box_now()` 每帧用像素段重算（重算优先、失败退回冻结框），指纹基线/匹配/阈值一字未动；`move@0.70` `ask_read_unreadable` **2 → 0**、`ask_box_recomputed 124 == ask_gates 124`、同 `task_i` 无 ok→非 ok 翻转、`gate_ms` P50 **139 ms**（+15 ≤ 30）；见 `SCORE.md` 批次 10 节 + 本文 §14） |
-| 16 | **`popup` 类干扰打不掉**：`dismiss_interference` 在 `--keys --bg` 下只按窗口标题找 `"attention"`（UIA 枚举没找到）⇒ 弹窗留屏、按键被吃、该题永不结束（两档各 1 次 fire 后早停） | `--keys --bg` 通道能"看见并打掉"外来窗口（鼠标通道已有视觉路径 `_button_candidates(img2,"DISMISS")`）⇒ `popup` 类能跑到 ≥5 fire | `STATE.md` §10.4、`SCORE.md` 批次 8 ③、`HANDOFF.md` 盲区 17 | 欠（批次 8 新增，**这一类因此不并入定稿**） |
+| 16 | **`popup` 类干扰打不掉**：`dismiss_interference` 在 `--keys --bg` 下只按窗口标题找 `"attention"`（UIA 枚举没找到）⇒ 弹窗留屏、按键被吃、该题永不结束（两档各 1 次 fire 后早停） | `--keys --bg` 通道能"看见并打掉"外来窗口（鼠标通道已有视觉路径 `_button_candidates(img2,"DISMISS")`）⇒ `popup` 类能跑到 ≥5 fire | `STATE.md` §10.4、`SCORE.md` 批次 8 ③、`HANDOFF.md` 盲区 17 | **还**（批次 12：`popup_seen/dismissed/failed = 24/24/0`、`interferences 24`、60/60 无早停、判定路径一字未动；见 §18 + `SCORE.md` 批次 12 节）<br>⚠ 第十段更正：根因**不是**"枚举看不见弹窗"，而是 **actor `_slim` 折叠把 `data.windows` 截断**、驱动只读 `data`（inline 里有 `attention`）；"借鼠标视觉路径"在 `--keys --bg` 下**仍不可行**（弹窗是独立 HWND、不在主窗帧里；`--bg` 鼠标点击整条失效，见 §16） |
 | 17 | **`shot` 空帧零容忍**：一次空位图（`ValueError: cannot write empty image`）⇒ `gym_run.py:508 raise SystemExit` ⇒ **整批退出 + 不写 run json + 逐题行全丢** | 遇到空帧先做一次短重试（或至少记 `shot_retry` 并把已跑题的逐题行落盘）⇒ 单次抓帧失败不再作废整批 | `SCORE.md` 批次 10 ⑥、`STATE.md` §14.8 | **还**（批次 11：`ShotFailed` 异常类型 + `_shot` 重试 3 次（间隔 0.2 s）+ main `try` ⇒ 已完成的题写成 partial run json（`partial`/`exit_reason`/`tasks_planned`）+ 退出码 **3**；判定路径一字未动。实测两类空帧构造（kill / minimize）都不再丢批、`score.py` 可打分；同协议 48 题回归 `35/48`、核心 14 翻转 0、`ms/题 +0.9%`、`shot_empty/shot_retry = 0/0`。见本文 §15.6B + `SCORE.md` 批次 11 节） |
 | 18 | **连续 / 视口类交互盲区（滚轮 + 拖拽）**：v1–v3 口径下**覆盖 = 0**——`TRAP_PLAN`/`PLAN2`–`PLAN5` 从不排 `t_rows`/`t_chips`，所有 `t_trap*` 记录里 `stats.scrolls = 0`、`stats.drags = 0`；驱动侧两条路径**只挂在鼠标通道**（`Driver.wheel()` = `gym_run.py:1199–1210`，唯一调用点 `gym_run.py:2314`；`Driver.drag()` = `gym_run.py:1193–1197`，唯一调用点 `gym_run.py:2862`）⇒ "主动移动视口后重定位"与"连续动作轨迹 + 落点"**从未在口径内被测过** | `t_trap` 家族里补可滚动场景 + 可拖拽场景，覆盖这两种交互；八问（滚轮 4：会不会滚 / 方向 / 幅度 / 滚完重定位；拖拽 4：会不会拖 / 起点抓准 / 落点精度 / 拖拽中途 `move` 干扰能否适应）逐条有据 | `HANDOFF.md` §4 盲区 21、本文 §16 | **欠（有据）** —— 见 §16 的八问逐条判定（八问 = **1 能 / 1 代码级一致 / 6 量不到**，原因 = `--bg` 鼠标通道不生效；**新题型，排在所有现有欠账之后**；本段只量不改、不裂 sha） |
+| 19 | **`popup` 类只跑了 1 档 1 通道**（第十段新增，未冻结）：批次 12 = `0.35` 档、键通道 + `--bg`、只跑 1 次；`0.70` 档（批次 8 的 `popup70` 仍是旧驱动的失败产物）与**鼠标通道**（受 §16 的 `--bg` 鼠标缺口限制）都**没有**可引用的修后数据；与批次 8 的对照是**历史产物对照**（驱动版本不同、无同批 A/B） | `popup` 两类档位都有修后数据（每档 ≥5 fire），或明确宣告只做 `0.35` 档并把口径写死；鼠标通道待 §16 的鼠标 op 修好后再量 | `SCORE.md` 批次 12 节 ⑥ / `STATE.md` §18.4、`HANDOFF.md` 盲区 17 | 欠（**不影响 #16 的"可测"结论**，只限"覆盖面"） |
 
 ## 8. 放弃清单（B 收口时明确不做的，各一句"为什么不影响主结论"）
 
@@ -911,5 +917,51 @@ D:\DSH\.venvs\vision-ci\Scripts\python.exe gym_run.py --scenario t_trap5 --tasks
 ⇒ **判定 = 情况 B**：**#12 关闭**（`blind_seen` 结构性为 0）。本段**没有改任何代码、没有裂 sha、没有把这次探针并入任何成绩**（`SCORE.md` 不动）。
 **已知局限（不许读成"已证"）**：①本次量在**键通道**（`--keys --bg`）完成；鼠标通道共用同一个 `press_guard`（`gym_run.py:2123` / `2156` / `2220`），但受 §16.3 的 `--bg` 鼠标缺口限制**没有复测**；②样本 = 1 批 20 题（家族 5 题），不是多批重复；③要让分母**打印**出来仍得改 `score.py`，按判据（`blind_seen ≥ 1` 才改）**不做**。
 **旁证（顺带量到的）**：`swap_twin_press` 7/8（唯一失败 `task_i 0`：`no_press`，9.0 s 一个东西都没按 ⇒ 与批次 11 的 twin 抖动同族）；`nb046` 0/2（全拒答，与批次 9/10/11 的 `nb046 0/3` 同构）；`ask_source` 屏幕 32 / 文件 6。
+
+
+## 18. 第十段（2026-10-05）：#16 `popup` 打不掉 —— 根因是 **actor 折叠截断**，改 4 处、批次 12 定稿
+
+### 18.0 一句话
+弹窗**一直看得见**，是驱动**读错了字段**：actor 把 `data` 里的 list 折叠截断（`actor.py:_slim()`，只留前 ~6 项），而 `window_by_title()` 只读 `data.windows` ⇒ "attention" 只要排在截断之后，`window_by_title("attention")` 恒 `None` ⇒ 键通道 bg 分支第一行 `break` ⇒ **一次 Return 都没发**（批次 8 两批 `interferences 0`、各 1 次 fire 后早停）。
+
+### 18.1 定位过程（不猜阈值，直接探针）
+- **协议坑（教训）**：actor `:8731` 是**裸 TCP + 换行 JSON**（`loop.py:Actor.call` 发 `{"op":"run","steps":[…]}`），**不是 HTTP**（用 `urllib` 会得到 `BadStatusLine`）；**从 WSL 到不了 Windows loopback** ⇒ 探针必须 `pwsh` + Windows venv python。
+- 探针 1：app 以 `--chaos 1.0 --chaos-kind popup --no-topmost` 起，`{"op":"uia","what":"windows","max":120}` 的 trace 里**有** `{"name":"attention","cls":"TkTopLevel","type":"Window"}`（同列表 11 项）；app 事件确认 `chaos kind=popup` 真的 fire。
+- 探针 2（决定性；脚本 `D:\DSH\dsh-actor\tmp\w10-uia-probe3.py`，用 actor 自己的 `loop.Actor` 复刻驱动读法）：**同一条 trace 条目**里 inline `windows` **11** 项、`data.windows` **7** 项 ⇒ 截断坐实（`results=False` 时 `data` 干脆为空）。
+- 批次 8 原始产物复核（旧驱动 `f598406cfc70`）：`w8-popup35.json` 只 7 行 / `max task_i 4` = 4 ok + 3 none；`w8-popup70.json` 只 4 行 / `max task_i 1` = 1 ok + 3 none；两批 `interferences 0`、`clicks 0 / drags 0`、无 `popup_*` 键；而 app 事件显示驱动发的键**到了 app**（`hit:true, modal:true`）却没计分（`gym_app.py:465-481 finish()` 的 modal 门）。
+
+### 18.2 改了哪 4 处（`sol/sandbox/gym_run.py`；+24 / −4 行，其中约 8 行是注释/docstring；**判定路径一字未动**）
+1. `Driver.window_by_title()`（约 `:849`）：**inline 优先** —— `wins = step.get("windows") or (step.get("data") or {}).get("windows") or []`，docstring 写明 `_slim` 截断根因与批次 8 症状。
+2. `target_windows()`（约 `:3111`）：同一改法（同一缺陷类；它是"挂窗口"用的）。
+3. `dismiss_interference()` 键分支（约 `:922-935`）：越过闸门时 `popup_seen += 1`；发完 Return 后再查一次 `attention` ⇒ `popup_dismissed += 1` 或 `popup_dismiss_failed += 1`（`interferences` 语义未动）。
+4. 等判定循环（约 `:3461-3466`）：清干扰返回 `n>0` ⇒ **立刻 `break`**（弹窗已清，但被它吞掉的按压不会补分 ⇒ 马上走 `_redo(..., "no verdict arrived")` 重答，省掉剩余最多 4.4 s 空等）。
+- 未采用"盲按 Return"方案：闸门本身可修；盲按有 60 题 × 3 键噪声与表单题 Entry `<Return>` 误提交风险（`gym_app.py:768`）。
+- 备份：`D:\DSH\dsh-actor\tmp\gym_run.py.bak-w10`（sha `105cf6cb679eea10`，与改前一致）。
+
+### 18.3 批次 12 结果（判据逐条）
+`sol/sandbox/t_trap2-w12-popup35.json`，`scripts_sha 186edbd9c024`，协议与批次 8 `popup35` **逐项相同**（`--keys --bg` / t_trap2 / seed 20251007 / `chaos 0.35` / `chaos-ms 200,700` / kind popup / `--no-topmost` / 60 题 / **未传 `--until-interferences`**）。
+
+| 判据 | 阈值 | 实测 | 结论 |
+|---|---|---|---|
+| 能 fire ≥ 5 次 | ≥5 | app 侧 `chaos 25`（24 个 task 被清障） | ✅ |
+| 不早停 | 60 题跑满 | 逐题行 60、`max task_i 59`、`done 60`、退出码 0 | ✅ |
+| 有 dismiss 记录 | ≥1 | `popup_seen 24` / `popup_dismissed 24` / `popup_dismiss_failed 0` | ✅ |
+
+- 成绩行：`v2 60/60 100.0%`、`disturb 15`、`screen 50/60`、`replan 29`、`1714 ms/task`、`false_refusal 0/46`、`false_accept 0/14`、`fired-task pass 15/15`、`quiet 45/45`、`gate_ms` P50 127 / P95 138 ms。定稿行在 `sol/sandbox/SCORE.md` 批次 12 节 ②。
+- **计数闭合（可复算）**：驱动 `interferences 24` = 逐题行合计 **15** + `interferences_at_start` 合计 **9**（9 行，题首清障，`gym_run.py:2033-2034`），涉及 **24 个不同 task**；`score.py` 的 `disturb 15` 只数"题内"那 15 次 ⇒ 两个计数**不可互推**。
+- **恢复代价**：`replan_why = "no verdict arrived"` **12 行全 ok**；逐题 ms **1748.6**（n=12）vs 未被吞的 **1639.5**（n=34）⇒ **+6.7%**。驱动墙钟 3627 ms/题（222.7 s / 60 题）与 `ms/题 1714` 不是同一个量 ⇒ 未细分、不并入性能结论。
+- **app 侧 fire 25 vs 驱动清障 24 差 1 次**：两种候选解释（落在最后一题之后 / 被下一次换题的 `_close_modal()` 顺手关掉，`gym_app.py:512`）都成立、**未取证** ⇒ 只并列、不裁定。
+
+### 18.4 引用时必带的边界
+1. 与批次 8 是**历史产物对照**（驱动版本不同、无同批 A/B）⇒ 只能说"**这一类现在可测了**"，不能说"通过率被提升"。
+2. 旧的 `interferences 0` **不可**读成"没被干扰"；批次 7/8 的 `popup` 两档成绩仍**不可引用**。
+3. 本批仍标「**探索性·不并入定稿**」（键通道 + `--bg`，与鼠标批不同通道不同协议）。
+4. 未做：同协议重复批、`0.70` 档复跑、鼠标通道批、A/B 对照批（`gym_run.py.bak-w10`）。
+5. **报告 v0.3 待同步项**：`REPORT.md` 第 6 章"能力缺口"族里关于 `popup` 类"测不了"的表述（`REPORT.md:237`）及其附录 A 的索引行（`REPORT.md:347`，指向 `SCORE.md:804–814` + `STATE.md:809–858`）已被本段推翻（本段按规格**未改报告**）。
+
+### 18.5 可复用的教训（跨项目）
+- **读 actor 回包要读 inline 字段**：`results=True` 时 `data` 会被 `_slim` 折叠（list 只留前 ~6 项、str 截 400 字符）；`step["windows"]` 这类 inline 才是全量。判"某个东西不存在"之前，先确认不是被折叠掉了。
+- **"看不见"与"看得见但拿不到"要分开证**：本欠账拖了三段，起因是把"枚举结果里没有"当成"枚举不到"（其实是读错了字段）；直接探针（同一请求，两种读法对照）一次就定了性。
+- **actor 是裸 TCP+JSON，不是 HTTP**；`WSL → Windows loopback` 不通 ⇒ 探针走 `pwsh` + Windows venv python。
 
 

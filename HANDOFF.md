@@ -148,6 +148,7 @@ D:\DSH\.venvs\vision-ci\Scripts\python.exe score.py t_trap7-1.json
     **这是驱动的能力缺口，不是脚本 bug**；修法见 `STATE.md` §7 #16（鼠标通道已有视觉路径 `_button_candidates(img2,"DISMISS")`，键通道没有）。**该类的数字任何情况下都不引用。**
     ⚠ **2026-10-05 第十段更正 + 已还（批次 12）**：真正根因**不是"UIA 枚举看不见弹窗"**，而是 **actor 折叠把 `data.windows` 截断**（`actor.py:_slim()` 对 list 只留前 ~6 项）而 `window_by_title()` **只读 `data`**（同一条回包的 inline 字段里一直有 `attention`，11 项）⇒ 闸门恒 `None` ⇒ **一次 Return 都没发**。改法 = `window_by_title()` / `target_windows()` 改 **inline 优先** + 清障三计数（`popup_seen` / `popup_dismissed` / `popup_dismiss_failed`）+ 清掉弹窗后**立刻 break 重答**（`gym_run.py` `105cf6cb679eea10` → **`87470aaff559`**，+24/−4 行，判定路径一字未动）。
     批次 12 实测 `popup_seen 24 / popup_dismissed 24 / failed 0`、60/60 无早停（`SCORE.md` 批次 12 节 + `STATE.md` §18）。**批次 7/8 的 `popup` 两档成绩仍不可引用**（那是缺陷产物）；原判断的另一半**仍然成立**：`--keys --bg` 下**不能**借鼠标视觉路径（弹窗是独立 HWND、不在主窗帧里；且 `--bg` 鼠标点击整条失效，见盲区 21 与 `STATE.md` §16）。
+    ⚠ **2026-10-05 第十一段补测（欠账 #19 的覆盖面）**：**键通道的第二个强度档也成立**（`sol/sandbox/t_trap2-w13-popup70.json`：`popup_seen/dismissed = 45/45`、`popup_dismiss_failed` 键不存在、60 题无早停、`scripts_sha 186edbd9c024`）⇒ 键通道的可测性不再只是"一个档位"。但**鼠标通道（前台）仍然打不掉**（`sol/sandbox/t_trap5-w13-popup35.json`：3 题后早停、退出码 1、驱动 `disturbances: 0 fired`、app 侧 `event blocked by modal`、`blocked 10`）⇒ 记为**新欠账 #20**（该分支没有 `popup_*` 计数，且候选走默认 veto）；不要再把"鼠标视觉路径"当成现成修法。见 `SCORE.md` 批次 13 节 + `STATE.md` §19。
 18. **`shot` 空帧原本零容忍**（批次 10 首跑实测）：一次 `PrintWindow` 返回**空位图**（stderr 原文 `shot failed: … "error": "ValueError: cannot write empty image"`）⇒ `gym_run.py:508 raise SystemExit`（当时设计如此）⇒ **整批退出 + 不写 run json + 逐题行全丢**。
     触发点是 `move` 干扰命中的那一瞬（死前最后三条 app 事件 = `ready` / `chaos_planned` / `chaos`；app 自报 `layout.origin [312,267]`，**不是批次 9 那种离屏 `-32000`**）。残留的两个 app 进程会**活着但没有窗口**（UIA 顶层窗口表里 `GUI Gym` = 0）⇒ 必须 `Stop-Process -Force` 清掉再重跑。
     **批次 11 已还**（`STATE.md` §7 #17）：`ShotFailed` 异常类型（4 处 `raise SystemExit` 改掉、消息原文不变）+ `_shot` 重试 3 次（间隔 0.2 s，恢复链原样）+ main `try` 包住题目循环 ⇒ **已完成的题写成 partial run json**（`partial` / `exit_reason` / `tasks_planned`，退出码 **3**）；判定路径一字未动。
@@ -186,6 +187,11 @@ D:\DSH\.venvs\vision-ci\Scripts\python.exe score.py t_trap7-1.json
 - **批次 11**：`sol/sandbox/t_trap7-1.json`（json sha `dd77abc08e911794`，鼠标通道 48 题，**35/48**，口径 v3；只改抓帧失败处理 ⇒ 与批次 9 逐题同构；`scripts_sha 8da029edccbc`；
   `gym_run.py` = **`105cf6cb679eea10`**、`score.py` = **`ef066713a03eb940`**、`gym_app.py` = `66632d85eac81c12` 未动）+ 自带 `t_trap7-1-state.json` / `-events.jsonl`；
   同段的失败路径产物 `t_trap7-empty6.json`(4354 B) / `t_trap7-minim6.json`(4546 B) / 合成先验 `t_trap7-partial-synth.json` —— **只做路径验证，不并入任何成绩**（见 `SCORE.md` 批次 11 节 ③⑦）。
+- **批次 12–13**（`popup` 类，键通道 + `--bg`，`scripts_sha 186edbd9c024`）：
+  `sol/sandbox/t_trap2-w12-popup35.json`（`0.35` 档，**60/60**、`popup_seen/dismissed/failed 24/24/0`）与
+  `sol/sandbox/t_trap2-w13-popup70.json`（`0.70` 档，**60/60**、`45/45/0`、`interferences 45`、无早停）+ 各自的 `-state.json` / `-events.jsonl`。
+- **批次 13 的鼠标通道失败产物**：`sol/sandbox/t_trap5-w13-popup35.json`（+ `-state.json` / `-events.jsonl`）—— 3 题早停、退出码 1、`disturbances: 0 fired`、app 侧 `event blocked by modal`；
+  **不进任何成绩**，只作欠账 #20 的证据（见 §4 盲区 17 与 `SCORE.md` 批次 13 节 13.2）。
 - 逐题守门字段都在行里：`ask_label_read`、`ask_cells`、`ask_delta`、`ask_word_from`、`ask_word_short`、
   `ask_word_noise`、`ask_moved`、`ask_moved_press`、`ask_guard_skipped`、`label_painted`、`label_text_like`、
   `label_alt_tried`、`gate_ms`。
@@ -214,7 +220,7 @@ D:\DSH\.venvs\vision-ci\Scripts\python.exe score.py t_trap7-1.json
 | 10 | 键通道核心 2 题（synonym）独立成批 + 分层跑测（核心 ~15 题 / 盲区 ~20 题） | 核心集可单独跑且 < 2 min |
 | 11 | 批次 1–6 的 events 无留档 ⇒ 那些批次**事后不可复核**（数字都是跑完立刻打的，仍然有效） | 只对新批有效（#14 已还）；不追溯 |
 | 12 | chaos 未跑到的强度组合（如 `move@0.35` 的复现性、`slow`/`popup` 若某档不足 5 fire） | 每类 2 强度 × ≥5 fire（**探索性**，不并入定稿） |
-| 13 | **`popup` 类干扰打不掉**（键通道 `--keys --bg` 的 `dismiss_interference` 只按标题找 `"attention"`，找不到）⇒ 该类测不了 | `--keys --bg` 能打掉外来窗口（可借鼠标通道的视觉路径：`_button_candidates(img2,"DISMISS")`），`popup` 跑到 ≥5 fire |
+| 13 | **`popup` 类干扰打不掉**（键通道 `--keys --bg` 的 `dismiss_interference` 只按标题找 `"attention"`，找不到）⇒ 该类测不了（**第十段起：键通道可测；第十一段：鼠标通道仍不可测 = 新欠账 #20**） | `--keys --bg` 能打掉外来窗口（可借鼠标通道的视觉路径：`_button_candidates(img2,"DISMISS")`），`popup` 跑到 ≥5 fire |
 
 > 上表是 **2026-10-04 冻结时的原样清单**（注意：**本表 #4 = `STATE.md` §7 #15**，两处编号不同）。
 > **2026-10-05 第四段还掉了本表 #4**（判据两条都满足）；同一天新开的两条**不在本表**、记在 `STATE.md` §7：
@@ -222,4 +228,5 @@ D:\DSH\.venvs\vision-ci\Scripts\python.exe score.py t_trap7-1.json
 > **2026-10-05 第五段还掉了 #17**（批次 11：重试 3 次 + partial 落盘 + 退出码 3，判定路径一字未动；见 §4 盲区 18 与 `SCORE.md` 批次 11 节），并**新增 #18**（滚轮 + 拖拽的连续/视口类盲区：v1–v3 覆盖 = 0、驱动有路径但只挂鼠标通道，
 > 见 §4 盲区 21 与 `STATE.md` §7 #18 / §16；**只量不改**）—— **#18 当段已量完**：`--keys --bg` 下两种题型都能跑（rows 8/8 与 22/24、chips 8/8），但 bg 鼠标通道不生效 ⇒ 八问里 **1 条能 + 1 条代码级一致 + 6 条量不到**，状态维持 **欠（有据）**（待前台鼠标批或改鼠标 op）。
 > **2026-10-05 第十段还掉了 `STATE.md` §7 #16**（`popup` 类：批次 12 `popup_seen 24 / popup_dismissed 24 / failed 0`、60/60 无早停；根因更正 = **actor 折叠截断 `data.windows`**，不是"枚举看不见"；见 §4 盲区 17 与 `SCORE.md` 批次 12 节）。
+> **2026-10-05 第十一段补测了 `STATE.md` §7 #19 的覆盖面**：**键通道的第二个强度档也成立**（`popup_seen/dismissed 45/45`、60 题无早停），但**鼠标通道仍不可测**（3 题早停、退出码 1）⇒ 覆盖面 = **2 档 1 通道**，#19 只关了一半，并**新开 #20**（鼠标通道下清障路径不生效，见 §4 盲区 17 与 `SCORE.md` 批次 13 节 13.2/13.5）。
 > 下一批建议顺序：`STATE.md` §7 **#18**（滚轮 + 拖拽，新题型 + `--bg` 鼠标通道缺口，用户明示排在所有欠账之后）—— **#4 / #12 / #16 / #17 都已还或已关闭，不要再重开**；非批次类的那一件是**报告正文**（`REPORT.md` = v0.2，446 行；框架 `vision-work/REPORT-draft.md`，不裂 sha），报告 v0.3 的待同步项见 `STATE.md` 接续点（§18.4 ⑤ 有行号）。

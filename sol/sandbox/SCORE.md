@@ -1094,3 +1094,86 @@ app 事件：`chaos_planned 25` / `chaos 25`（全 `popup`）、`key 109`、`tra
 ### ⑦ 成本
 
 新增三计数只在"真看到弹窗"时才动（本批 24 次），每次 `popup_dismissed/failed` 判定多一次 UIA 枚举（本批 24 次 × 约 40–70 ms ≈ 1.2 s，占 222.7 s 墙钟 < 1%）。无弹窗的题**零成本**：键分支的闸门在 `--keys --bg` 下本来就走一次枚举，只是改前读错字段。`shot_empty / shot_retry 0/0`、`key_errors 0`、`stale 0`、`wasted 0`、`verify_giveup 0`。
+
+---
+
+## 批次 13 结果（2026-10-05 第十一段）—— 欠账 #19「`popup` 只跑了 1 档 1 通道」的覆盖面补测
+
+**本批目的**：批次 12 只给出「**0.35 档 + 键通道**」的可测证据。本段按规格补两条覆盖面：**另一强度档（0.70）** 与 **另一条通道（鼠标前台）**。**代码一字未改** —— 三件套 sha 与批次 12 相同（`gym_app.py 66632d85eac8` / `gym_run.py 87470aaff559` / `score.py ef066713a03e`）。
+
+### 13.1 第一批：0.70 档 · 键通道（**成功**，判据全过）
+
+- **命令（逐字）**：`gym_run.py --scenario t_trap2 --tasks 60 --seed 20251007 --keys --bg --chaos 0.70 --chaos-kind popup --chaos-ms 200,700 --until-interferences 5 --max-tasks 60 --max-repeat 3 --json-out t_trap2-w13-popup70.json`
+- **留档**：`sol/sandbox/t_trap2-w13-popup70.json`（+ `-state.json` / `-events.jsonl`）；驱动 stdout `D:\DSH\dsh-actor\tmp\w13-driver-stdout-p70.txt`；打分输出 `D:\DSH\dsh-actor\tmp\w13_score70.txt`。`scripts_sha 186edbd9c024`、`partial False`、退出码 **0**、墙钟 **250.9 s**（驱动自己计的 4095 ms/题）。
+- **干跑**（同协议 `--tasks 2`，`D:\DSH\dsh-actor\tmp\w13-dry70.json`）：`2/2 ok`（task 0 OK 4721 ms = 首题有真按压）、`disturbances: 1 fired`。
+
+#### ① 定稿行（逐字，`score.py` 输出）
+
+```
+chaos:popup    v2 60/60 100.0%  decided 100.0%  disturb 24  screen 54/60 replan 38    1755 ms/task  keys 139   shots 450  ocr 658
+               answered_right=46 refused_right=14
+               false_refusal 0/46 (0.0%)  false_accept 0/14 (0.0%)  stale 0  wasted 0  verify_giveup 0  re-reads 0
+               fired-task pass 24/24 (100.0%)  quiet 36/36 (100.0%)  swapped 15  a_hit 10  a_hit_but_failed 0  (wrong_target 0 / twin 0)
+               variant alpha020 2/2  variant alpha030 2/2  variant alpha035 2/2  variant alpha050 2/2  variant alpha065 2/2  variant prose_only 4/4  variant prose_with_button 6/6  variant swap_after_press 10/10  variant swap_timer 5/5
+               swap by variant  swap_after_press n=10 a_hit=10 wrong=0  swap_timer n=5 a_hit=0 wrong=0   race(pressed the replaced ask) 0/0
+               guard gate sample 73  P50 122 ms  P95 134 ms  (criterion P50<=240, P95<=320)
+```
+
+#### ② 判据（本段规格，逐条）
+
+| 判据 | 阈值 | 实测 | 结论 |
+|---|---|---|---|
+| 能 fire ≥ 5 次 | ≥5 | 驱动 `interferences` **45**（逐题行合计 **27** + 题首 `interferences_at_start` **18**）；`score.py` `disturb 24` = **有干扰的 task 数**（驱动摘要同句："45 fired over 60 task(s), **24 task(s) had >=1**"） | ✅ |
+| `popup_seen ≥ 5` | ≥5 | **45** | ✅ |
+| `popup_dismissed == popup_seen` | 相等 | **45 == 45**（`popup_dismiss_failed` **键不存在** ⇒ 0） | ✅ |
+| 不早停 | 跑满 60 题 | 逐题行 **60**（`max task_i 59`）、全 `ok`、`stopping: 45 disturbance(s) fired over 60 task(s)`、退出码 0 | ✅ |
+| `score.py` 正常 | 打印成绩行 | `v2 60/60 100.0%`（上方定稿行） | ✅ |
+
+- **与 0.35 档并排**（同通道、同协议，只差档位）：0.35（批次 12，`t_trap2-w12-popup35.json`）`popup_seen/dismissed/failed 24/24/0`、`disturb 15`、`1714 ms/task`；0.70（本批）`45/45/0`、`disturb 24`、`1755 ms/task` ⇒ **强度档更高时清障仍然逐次成功，且不早停**。
+- **`replan_why`**：`None` 28 / `no verdict arrived` 18 / `ask re-rolled` 14（合计 60）。`no verdict arrived` = 被弹窗吞掉一次按压后的重答路径（等判定循环里清障成功即 `break` 重答）。
+- **其它计数**：`keys 139`、`shots 450`、`ocr 658`、`asks_from_screen 90` / `asks_from_file 8`、`verify_calls 77`、`focus 98`、`shot_empty 0`、`shot_retry 0`、`key_errors 0`、`stale 0`、`wasted 0`、`verify_giveup 0`、`re-reads 0`、逐题 ms 均值 **1755.3**。
+
+### 13.2 第二批：鼠标通道 · 0.35 档（**失败**，按规格停手、记新欠账）
+
+- **命令（逐字）**：`gym_run.py --scenario t_trap5 --tasks 48 --seed 20251007 --press-jitter 0,1200 --max-repeat 3 --chaos 0.35 --chaos-ms 200,700 --chaos-kind popup --json-out t_trap5-w13-popup35.json`（鼠标通道协议照批次 4/5/6/9/11，只加 chaos 三参数；**用户已放行前台**）。
+- **结果**：**driver 退出码 1、墙钟 79.1 s、只跑到第 3 题**（`score 0/3`、`stopping early: task 0 failed 3 times in a row`）。留档 `sol/sandbox/t_trap5-w13-popup35.json`（+ `-state.json` / `-events.jsonl`）、日志 `D:\DSH\dsh-actor\tmp\w13_mouse35.log`、`w13-driver-stdout-mouse35.txt`、`w13_score_mouse35.txt`。
+- **驱动侧**：`disturbances: 0 fired`（**清障一次都没发生**）、`keys 0`、`clicks 10`、`shots 47`、`ocr 124`；三题同一 ask（`TANGQ`）、逐题 27317 / 24117 / 24071 ms、`detail = {"ask_box_recomputed": 4, "ask_box_shift_px": [0, 0]}`；`foreground after: GUI Gym (hwnd 3148420) unchanged: False`。
+- **app 侧（决定性证据）**：`t_trap5-w13-popup35-state.json` = `task_i 0`、`variant swap_twin_press`、`result none`、`elapsed_ms 71283`、**`"event": "blocked", "by": "modal"`**；events 计数 = `ready 1 / chaos_planned 1 / chaos 1 / trap_a_hit 1 / trap_swap 1 / blocked 10 / trap_twin_timeout 1` ⇒ **弹窗真的弹了、并且一直没被清掉**，`finish()` 的 modal 门让该题永不结算（与批次 8 同一条门，`gym_app.py:465-481`）。
+- **`score.py` 输出（逐字）**：
+
+```
+chaos:popup    v3  0/1    0.0%  decided 100.0%  disturb 0   screen  1/1  replan 2     2544 ms/task  keys 0     shots 47   ocr 124
+               wrong_target=1   extra_attempts 2 (rows collapsed to one per task)
+               false_refusal 0/1 (0.0%)  false_accept 0/0 (0.0%)  stale 0  wasted 0  verify_giveup 0  re-reads 0
+               fired-task pass 0/0 (0.0%)  quiet 0/1 (0.0%)  swapped 1  a_hit 1  a_hit_but_failed 1  (wrong_target 0 / twin 1)
+               variant swap_twin_press 0/1
+               swap by variant  swap_twin_press n=1 a_hit=1 wrong=1   race(pressed the replaced ask) 0/0
+               guard gate sample 3  P50 156 ms  P95 158 ms  (criterion P50<=240, P95<=320)
+               wrong_target  #0   truth=answerable  dec=acted   act=click_label    result=none clicked=null
+```
+
+- **机制（代码级读出的候选，本段未跑探针坐实）**：`dismiss_interference()` 的**鼠标分支**（`bg=False, keys=False`）——① **没有任何 `popup_*` 计数**（三计数只加在键分支）⇒ 这一支"没看见"与"看见了但没点"在数据上**不可区分**；② 候选走 `self._button_candidates(img, "DISMISS")`（**默认 `keep_vetoed=False`**），而键分支的存在性判据特意传 `keep_vetoed=True`，注释写明 "the veto would drop a dialog whose button is not painted as a block"；③ `_button_candidates` 的 docstring 另记一条实测："a whole-window sparse pass can miss a short bold label（**measured on the practice dialog, whose DISMISS button no word pass ever returned**）" ⇒ 靠**块路径**兜。所以本支失败的两个候选机制：**(a) 候选被 veto 丢掉**；**(b) 这一帧里根本没有该按钮**（抓帧路径不同）。
+- **为什么不再跑**：本段规格 §五写明"任何一批跑不通 ⇒ 停，写欠账"；定位这两个候选需要一次**只读探针**（把弹窗帧 dump 下来、对 `_button_candidates` 的两种 `keep_vetoed` 各跑一遍），那是 #20 的第一步，不在本段。
+
+### 13.3 两批判据汇总
+
+| 批次 | 档位 | 通道 | `popup_seen` | `popup_dismissed` | 早停 | 退出码 | 结论 |
+|---|---|---|---|---|---|---|---|
+| 批次 12 | 0.35 | 键 + `--bg` | 24 | 24 | 无（60 题） | 0 | ✅ 可测 |
+| 批次 13 第一批 | 0.70 | 键 + `--bg` | 45 | 45 | 无（60 题） | 0 | ✅ 可测 |
+| 批次 13 第二批 | 0.35 | 鼠标前台 | 键不存在（该支无计数） | 键不存在 | **有（3 题）** | **1** | ❌ 不可用 |
+
+### 13.4 引用这批时必须带上的边界
+
+1. **键通道两个强度档都成立**，但都是**单次批**、无重复批、无同批 A/B（与批次 8 仍是历史产物对照）⇒ 只能说"**这一类在键通道下可测且这一批逐次成功**"，不能说"提升"。
+2. **鼠标通道那一批不进任何成绩**：早停、退出码 1、分母只有 1 题；它唯一的用处是**证明该支当前不可用**（见 #20）。
+3. **#19 只关闭一半**：覆盖面从「1 档 1 通道」变成「**2 档 1 通道**」；**鼠标通道仍空** ⇒ #19 状态 = **部分达标（键通道两档）**，剩余部分与 #20 合并处理。
+4. **`popup` 仍是探索性线**（键通道 + `--bg`，与鼠标批不同通道不同协议）⇒ 不与批次 4/5/6/9/11 并列。
+5. **两个计数不可互推**：驱动 `interferences 45` 是**清障次数**（题内 27 + 题首 18）；`score.py` 的 `disturb 24` 是**有干扰的 task 数**（与驱动同句的 "24 task(s) had >=1" 一致）—— 次数 vs 题数，不是同一个量。
+6. **"鼠标分支没有计数"本身就是一条测量缺陷**（与候选 veto 问题一起记入 #20）：不要把这批的 `0` 读成"这一支没被触发"——它在 app 侧留下了 `blocked 10` 与 `chaos 1`。
+
+### 13.5 本段新增欠账 #20（落在 `STATE.md` §7）
+
+**鼠标通道下 `popup` 清障路径不生效。** 证据 = 13.2；该分支没有 `popup_*` 计数、候选走默认 veto。
+**判据（怎么算还清）**：鼠标通道的 `popup` 批跑满题数且 `popup_dismissed == popup_seen ≥ 5`；**或**明确宣告"鼠标通道不支持清障"并把该组合从覆盖面里划掉。
+**出处**：本节 13.2 / 13.5 + `STATE.md` §19 + `HANDOFF.md` 盲区 17。

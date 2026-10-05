@@ -1508,7 +1508,7 @@ foreground after:  搜索 (hwnd 66100)  unchanged: False
 ## 31. 第二十四段（2026-10-05）：#21 重跑清单 + 修复设计（纯文档：不跑批、不改 `.py`、不裂 sha）
 
 **31.0 一句话**：#21 的**必重跑**只有两批（批次 14、批次 20）；产生 #20 结论的四批（16–19）**该族题数 = 0** ⇒ **#20 结论不受影响**；
-修复设计两条路线，推荐**路线②**（"点了没反应 ⇒ 走拒答"，**+7 净行**、不新增字段、不改靶子），全文见 `DESIGN-21-mouse-operability.md`。
+修复设计两条路线，推荐**路线②**（"点了没反应 ⇒ 走拒答"，**+9 净行**（含驱动侧计数键 `stats["refuse_by_stall"]`）、不改靶子），全文见 `DESIGN-21-mouse-operability.md`。
 
 **31.1 1a 普查：哪些批次含"靠 `[k]` 徽章判可操作性"的 `must_refuse` 题**
 （方法 = 全库 run json 逐题行 + 同名 `-events.jsonl` 的 `ready.truth_class` 联结；靶子侧 5 类里有 4 类 `variant` 为空串 ⇒ 位置靠 plan 题序 + 各批 `--tasks` 值判）
@@ -1550,5 +1550,5 @@ foreground after:  搜索 (hwnd 66100)  unchanged: False
 
 **31.5 约束与下一件**
 - **未跑任何批次、未改任何 `.py`** ⇒ 三件套 sha 逐位未变（`gym_app.py 66632d85eac81c12` / `gym_run.py 3fa0e4ba4b1b9679` / `score.py ef066713a03eb940`）；技能 sha `208366a01c45a2ae` 未动。
-- **下一件 = B 开工**：按 `DESIGN-21` §4 改 `gym_run.py`（+7 行，**首次裂驱动 sha**）→ 跑验证批（判据见 `DESIGN-21` §6：跑到 ≥25 题不早停 + `task 21` 记 `refused_right` + 回归）；
+- **下一件 = B 开工**：按 `DESIGN-21` §4 改 `gym_run.py`（+9 行，**首次裂驱动 sha**）→ 跑验证批（判据见 `DESIGN-21` §6：跑到 ≥25 题不早停 + `task 21` 记 `refused_right` + 回归）；
   之后才是 A（#18：靶子侧两处一行 + `score.py` 新桶，见 `DESIGN-18-scroll-drag.md` §9）。

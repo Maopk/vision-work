@@ -7,7 +7,7 @@
 
 鼠标分支要补的**不是**"有没有 `[k]` 徽章"（那是**键**通道的可操作性判据，鼠标通道按设计不用它 —— 照搬会翻掉已有的
 `no_badge_fill` 证据），而是"**点了没反应 ⇒ 这不是控件**"这条行为判据。推荐路线②：挂在 `gym_run.py:3507` 之后、
-"第二次等判定"之前，**+7 净行**；像素路线（路线①）留作升级路径。
+"第二次等判定"之前，**+9 净行**；像素路线（路线①）留作升级路径。
 
 ## 1. 两套可操作性模型（现状）
 
@@ -44,9 +44,10 @@
 |---|---|---|
 | 补什么 | `control_visible` 的 D1 兜底再加一个**填充率**统计：散文只有字形占少数像素、填充控件占多数（D1 只测"对比够不够"，分不开这两者） | "这一次点击**没有让题前进**" ⇒ 用 app 自己的拒答协议说"做不了" |
 | 落点 | 新常量（`gym_run.py:51` 旁）+ 新统计（`vis_score` `:1279-1315` 旁）+ `control_visible`（`:1317-1335`）第三条判据 | `gym_run.py:3507`（`rec = _redo(...)`）之后、`:3508`（第二次 `wait_verdict`）之前 |
-| 净行数 | **+15～22** | **+7** |
+| 净行数 | **+15～22** | **+9** |
 | 额外成本 | 必须先**标定**：现有 frame 没存盘（只有 `GYM_DEBUG_*` 会存图）⇒ 一个探针批 + 一个验证批 | 无标定；一个验证批即可 |
 | 风险 | 阈值拟合样本少；散文与"无徽章控件"的**分离度未测** | 若某题只是"点偏了"，会记成 `false_refusal`（**可见的数据**，取代今天的整批死掉） |
+| **风险面**（谁会被误判） | 把**可操作但无徽章**的好控件判成拒答（`nb065` D1 70.0 / `nb100` 125.0，四个鼠标批 + smoke ≈ **27 行**）—— **已否** | 残留 **overclaim**：把「点偏了」断言成「屏上没有合法控件」；面被靶子侧三道 `return` 限在**无判定**的题上 ⇒ **需人工抽查** `false_refusal` 题（见 §8） |
 | 什么时候选 | 路线②跑完仍有 `false_refusal`；或将来需要"点之前就知道这不是控件" | **先跑** |
 
 ## 4. 路线②的落点与守卫（行级）
@@ -55,7 +56,7 @@
 
 ```
             rec = _redo(d, rec, rec.get("ask") or "", "no verdict arrived")
-            # ← 在这里插入 4 行守卫 + 3 行注释
+            # ← 在这里插入 4 行守卫 + 1 行计数 + 3 行注释（净 +9）
             v = v if v.get("result") not in (None, "", "none") else d.wait_verdict(task_i, 1.5)
 ```
 
@@ -67,24 +68,50 @@
 4. `d.task_i() == task_i` —— 发 F8 之前必须确认 app **仍停在这一题**（`refuse()` 会按 `REFUSE_KEY = "F8"`，见 `gym_run.py:1816-1832`；
    题已换 ⇒ 会把**下一题**拒掉）。
 
+**次序约束（硬）**：守卫 3、4 的读取（`v`、`d.task_i()`）与 `d.refuse(...)` 之间**不得插入任何其它操作**（不抓帧、不 OCR、不重规划、不打印）。
+理由：`verdict()` 读 app 的 `history`、`task_i()` 读 state 文件，二者与「题有没有前进」是同一件事的两面 —— 中间插任何耗时操作都会把「确认仍停在这一题」的有效期拉长，
+一旦 app 在此期间判过并前进，F8 就落到**下一题**上。靶子侧另有两道兜底（`finish()` 在 `result != "none"` 或 `_pending` 挂起时直接 return；`_commit()` 末尾整表清空 `keymap`），
+但兜底不能替代次序约束。
+
 动作：`d.refuse(rec, "clicking the asked label changed nothing")` —— 只写 `decision="refused"` / `refuse_why` / `stats["refusals"]` 并按键；
 紧接着那一行 `d.wait_verdict(task_i, 1.5)` 会取回 app 的 `refused` 判定 ⇒ 行的 `result` 变 `ok`（真相 = `must_refuse` ⇒ `score.py` 判 `refused_right`）。
 **不需要**新增任何字段、协议或靶子改动。
 
-## 5. 影响面
+## 5. 影响面（三类，不是两类）
 
 - 键通道：**零改动**（守卫 1）。
 - `--bg` 鼠标通道：**零改动**（守卫 2）。
-- 前台鼠标通道、正常题：**零改动** —— 点下去就有判定 ⇒ `v.get("result")` 非空 ⇒ 守卫 3 不成立。
-- 前台鼠标通道、`no_badge_fill` 族：**零改动** —— 它们的 `decision` 由 `control_visible` 决定（`acted` 或 `refused`），与"有没有反应"无关。
-- 唯一被改变的是 #21 那一类：`acted/none`（`false_accept`）⇒ `refused/ok`（`refused_right`），并且批**不再早停**在那一题上。
+- 前台鼠标通道、**有判定**的题：**零改动** —— 点下去就有判定 ⇒ `v.get("result")` 非空 ⇒ 守卫 3 不成立。
+- 前台鼠标通道、`no_badge_fill` 族：**零改动** —— 它们的 `decision` 由 `control_visible` 决定（`acted` 或 `refused`），与「有没有反应」无关。
+- 前台鼠标通道、**无判定**的题 = 本次改动的**唯一**作用面，且分两类：
+
+| 无判定题的真相 | 改前 | 改后 | 通过率 |
+|---|---|---|---|
+| `must_refuse` | `false_accept`（`acted/none`） | **`refused_right`（`refused/ok`）** | **上升** ← 修复目标（批次 20 的 `task 21` 正是此类） |
+| `answerable` | `timeout`（`acted/none` 且无判定） | **`false_refusal`** | **不变**（两者都不过，变的只是标签与计数） |
+
+⇒ 本文件早先那句「正常题零改动」**作废**。准确写法：**有判定**的题零改动；**无判定**的题标签会变 —— 一类上升、一类不变。
+`must_refuse` 那一类还附带一个收益：同一批**不再早停**在那一题上。
+
+**记账（任务 5）**：新增 `stats["refuse_by_stall"]`，这条路径每真正发一次 F8 就 +1。
+理由：没有它，批后无从知道该路径触发了几次、落在哪一类题上（「没测过」与「测过了没事」不能混写）。
+它是本设计**唯一**新增的字段：驱动侧一个计数键，不写协议、不动靶子（`score.py` 见 §6 末 + §9）。
 
 ## 6. 判据（修后怎么算过关）
 
 1. 同一 seed、同 scenario 的鼠标 `t_trap2` 批跑到 **≥ 25 题**（越过 `task 21`）且**不早停**；
-2. `task_i 21` 的 `decision == "refused"`，`score.py` 不再出现 `false_accept`（该题记 `refused_right`）；
-3. 回归：同一批里 `swap_*` / `prose_with_button` 的判定与修前**逐题一致**；
-4. 回归（可选，约 3 分钟）：一个 `t_trap3` 鼠标批里 `nb065` / `nb100` 仍 `acted/ok`、`nb035` / `nb044` 仍 `refused/ok`。
+2. `task_i 21` 的 `decision == "refused"`、`refuse_why = "clicking the asked label changed nothing"`，
+   `score.py` 不再出现 `false_accept`（该题记 `refused_right`）；
+3. 回归：**有判定**的题与修前**逐题一致**（`swap_*` / `prose_with_button` 等同 seed 对照）；
+   **无判定**的 `answerable` 题**通过率不变**（只允许标签 `timeout` → `false_refusal`）；
+4. `false_refusal` 的**上升数 = 无判定 `answerable` 题数**，且逐题可解释（题号 + `refuse_by_stall` 计数）。
+   **不写**「`false_refusal` 不得上升」—— 那是**陷阱判据**：无判定的 `answerable` 题本来就不过，上升是标签迁移而非回归；
+   真正该盯的是「上升数是否恰好等于本来就没判定的题数」。
+5. 回退回归（可选，约 3 分钟）：一个 `t_trap3` 鼠标批里 `nb065` / `nb100` 仍 `acted/ok`、`nb035` / `nb044` 仍 `refused/ok`。
+
+**只裂哪个文件（任务 6）**：`score.py` 全文只有两处碰 `stats`（`:86`、`:387`），都是 `st = rep.get("stats", {})` 后按名取
+`keys` / `shots` / `ocr` —— 没有键集校验、没有遍历、没有拿 `stats` 与逐题行交叉核对（逐题对账在驱动/人工侧）
+⇒ **未知 stats 键对判定与计数零影响 ⇒ B 只裂 `gym_run.py`**（`gym_app.py` / `score.py` 不动）。
 
 ## 7. 回退
 
@@ -96,5 +123,16 @@
 - 本文件是**设计**：未改一行代码、未跑一批；行数是**净行数**（增 − 删，30 行闸口径）。
 - 路线②把"点了没反应"**当作**"这不是控件" —— 这是**推断**，不是读数：它不区分"这不是控件"与"控件点偏了"。
   误判代价 = 一道 `false_refusal`（可见、可补救），收益 = 整批不再死在一道题上。
+  ⇒ **每批需人工抽查**：事后逐题看该批所有 `false_refusal` 题（题号 + `refuse_by_stall`），确认每一道都落在「本来就没有判定」的题上；
+  只看总数会把 overclaim 藏起来（判据 4 就是为它写的）。
 - 只覆盖**前台**鼠标通道；`--bg` 鼠标通道仍是盲区 21。
 - 不涉及 #18（滚轮/拖拽进体系 = 靶子侧两处一行 + `score.py` 新桶），见 `DESIGN-18-scroll-drag.md` §9。
+
+## 9. 前置核查（第二十五段，只读）
+
+- **未知 `stats` 键对 `score.py` 无影响**（任务 6 答案）：`score.py` 全文只有两处碰 `stats`（`:86` 与 `:387`），
+  两次都是 `st = rep.get("stats", {})` 后按名取 `keys` / `shots` / `ocr`；**没有键集校验、没有遍历、没有与逐题行的交叉核对**
+  ⇒ 新增 `stats["refuse_by_stall"]` 既不进判定也不进计数 ⇒ **B 只裂 `gym_run.py`**（不是「连带裂 `score.py`」）。
+- 本段（第二十五段）仍未改任何 `.py`：三件套 sha 逐位与第二十四段一致
+  （`gym_app.py 66632d85eac81c12` / `gym_run.py 3fa0e4ba4b1b9679` / `score.py ef066713a03eb940`）。
+- 行号影响：本文件因本次补丁变长，`REPORT.md` 的行号口径随之改 **v0.13**；`scripts_sha` 与判定口径**均未变**。

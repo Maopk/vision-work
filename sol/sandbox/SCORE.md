@@ -1264,3 +1264,86 @@ app 侧（`t_trap2-w13-popup35-mouse-fix-state.json` / `-events.jsonl`）：stat
 4. **与批次 13-B 不可直接比**：13-B 是"一次都没点中"（`dialog_refused 28`），本批是"点中了 10 次、漏 1 次"。
 5. **`popup_seen / popup_dismissed / popup_dismiss_failed` 三个计数在本批进入鼠标分支**（键分支早就有）⇒ 以后凡说"鼠标分支没看见弹窗"必须给出这三个数。
 6. **`shot_window()` 的坐标原点坑与回退无关**：窗口 rect 与 client origin 实测差 **+11 / +45 px**，任何"窗口 rect + 帧内坐标"的点击都会偏 45 px（已写进 `HANDOFF.md` 盲区 23）。
+
+## 批次 15（2026-10-05 第十四段）—— 欠账 #20 第二次尝试（选项 b：漏点后降级 `key("Return")`）：**干跑即失败，未成批**
+
+### 15.0 一句话
+
+按 `STATE.md` §20.4 的三条候选选了 **(b) 降级 `key("Return")`**（净 **+24 行**，只落在非 bg 鼠标分支的"漏点处理"路径上），`py_compile` 与 `selftest 41/0` 都过；但**干跑 2 题就失败**（两题全 NONE、退出码 1、`popup_seen 13` 而 **`popup_dismissed` / `popup_key_dismissed` 键根本不存在 = 13 次发现、0 次清掉**）⇒ 按本段终止条件**立即回退**，**A 批 / B 批都没跑**（不试第二遍改动），`#20` **仍然开着**。
+
+### 15.1 改了什么（一处，只在"漏点处理"路径里）
+
+`dismiss_interference()`（`gym_run.py:900`）**非 bg 鼠标分支**：原"读 app 矩形帧 → 找候选 → 点 → 睡 0.3 s → 再看还有没有候选"的循环**原样保留**，循环之后新增：
+
+```python
+# the click loop can still miss (batch 14: 1 popup in 11 stayed up and that one
+# miss deadlocked the whole run), so fall back to the key the app itself binds
+# on the dialog button: no coordinates, no stacking, no pixel reading.
+if self.window_by_title("attention") is not None:
+    if seen == 0:
+        self.stats["popup_seen"] = self.stats.get("popup_seen", 0) + 1
+    for _ in range(tries):
+        self.key("Return")
+        seen += 1
+        self.stats["interferences"] += 1
+        time.sleep(0.35)
+        if self.window_by_title("attention") is None:
+            self.stats["popup_key_dismissed"] = self.stats.get("popup_key_dismissed", 0) + 1
+            self.stats["popup_dismissed"] = self.stats.get("popup_dismissed", 0) + 1
+            break
+    else:
+        self.stats["popup_dismiss_failed"] = self.stats.get("popup_dismiss_failed", 0) + 1
+```
+
+- `git diff --stat` = **24 insertions(+), 0 deletions(-)**（未触本段 30 行硬闸）。
+- **没碰**：`click()` / `_shot()` / `_button_candidates()` / `screen()` / 判定逻辑 / 匹配路径 / 阈值；`gym_app.py`、`score.py` 一行未动；批次文件未动。
+- 闸门：`py_compile` 通过；`score.py --selftest` = **41 checks, 0 failed**。
+- **sha 轨迹**：`gym_run.py 87470aaff5593330`（HEAD）→ **`178591e19c40c37f`**（本次改动）→ **`87470aaff5593330`**（回退后，与 `origin/main` 一致）；`gym_app.py 66632d85eac81c12` / `score.py ef066713a03eb940` 全程未动。
+- 补丁留档：`D:\DSH\dsh-actor\tmp\w16-popup-key-fallback.patch`（**35 行**）。
+
+### 15.2 干跑（`--tasks 2`，鼠标通道、`--chaos 1.0 --chaos-kind popup`、`--seed 20251007`）
+
+命令：`gym_run.py --scenario t_trap2 --tasks 2 --seed 20251007 --chaos 1.0 --chaos-ms 200,700 --chaos-kind popup --json-out D:\DSH\dsh-actor\tmp\w16-dry.json`（Windows 侧 `Start-Process -WindowStyle Normal`，日志 `D:\DSH\dsh-actor\tmp\w16_dry.log` / `.err`）。
+
+驱动输出（逐字）：
+
+```
+gym driver: window (316, 313, 1496, 1093)  actor port 8731  chaos 1.00
+foreground before: attention (hwnd 592176)
+task  0 t_trap2   click CEE a7                                         NONE   40320ms  {}
+task  1 t_trap2   click CEE a7                                         NONE   36352ms  {}
+
+score 0/2 ok  (0% of tasks)
+per task: 38336 ms avg  |  actor calls 0  shots 20  ocr 85  clicks 0  keys 45  drags 0
+asks read off the screen: 1  from the state file: 6  (2 task(s))
+disturbances: 39 fired over 2 task(s), 2 task(s) had >=1; verify calls 0, re-reads 0, give-ups 0, stale 0
+foreground after:  搜索 (hwnd 66100)  unchanged: False
+```
+
+`w16-dry.json`（逐字）：`exit_reason None`、`partial False`、`mode {bg false, keys false, chaos 1.0, chaos_kind popup, chaos_ms "200,700", max_tasks 2}`、`stats {clicks 0, keys 45, interferences 39, replans 66, popup_seen 13, popup_dismiss_failed 13, dialog_refused 1, refusals 6, ask_guard_runs 1, ask_moved 1, shots 20, ocr 85, ms_ocr 41943.9, ms_key 2331.1, ms_window 316.9}`。
+
+**判读**：`popup_dismissed` 与 `popup_key_dismissed` **两个键在 stats 里根本不存在** ⇒ 新增的降级路径**一次都没成功**（13 次发现弹窗、13 次记 `popup_dismiss_failed`、45 次 Return 全部落空）；两题都因"弹窗立着 ⇒ app 什么都不判分"而超时 NONE。
+
+### 15.3 判据（事前写死在 `STATE.md` §23.1）
+
+| 证伪条件 | 结果 |
+| --- | --- |
+| (i) 改后 `popup_seen > 0` 但 `dismissed < seen` | **成立（更强）**：`seen 13` / `dismissed` **键不存在 = 0** |
+| (ii) 改后 B 批（鼠标 48 题）核心 14 翻转 | **未测**（B 批没跑：干跑即证伪） |
+| (iii) 改动 > 30 行 | 不成立（**+24 行**） |
+| A 批判据：`popup_seen ≥ 5` 且 `dismissed == seen` 且不早停 | **未跑**（干跑 `dismissed == 0`，跑 60 题只是把同一失败重复 60 次） |
+
+### 15.4 机制结论（本段真正的产出）
+
+- `Driver.key()`（`gym_run.py:1175-1198`）**只在 `self.keys and self.bg` 时才加 `focus: True`**。非 bg 通道发的是**真实 SendInput 按键**，Windows 只把它交给**真前台窗口**；本机 DSH 会不断抢回前台（实测 `foreground after: 搜索 (hwnd 66100) unchanged: False`）⇒ **45 次 Return 全部没落到弹窗上**。
+- 对照：**鼠标点击是"按坐标"投递**的，弹窗又是 `-topmost` ⇒ 像素命中就一定命中它的窗口。⇒ **批次 14 的 `10/11` 不是"快好了"，而是"这条通道里唯一能到弹窗的机制"的副作用**；剩下的 `1/11` 不是调参能补的。
+- 键通道（`--keys --bg`）能 24/24、45/45 地关弹窗，靠的是**把按键直接投递给 app 窗口 + `focus=True` 做焦点交接**，**不是**"真实按键能到前台"。⇒ **(b) 这条方向不是"没写对"，而是结构上不成立**；要成立必须给鼠标通道加同等的托管投递（= `DESIGN-18-scroll-drag.md` §4 的 **B 方案**，裂 sha 且改动落在执行器侧、`scripts_sha` 覆盖不到），不属于"优先小改动"。
+
+### 15.5 引用这批时必须带上的边界
+
+1. **它不是批次**：只有 **2 题干跑**，`score 0/2`，**不进任何成绩**；`w16-dry.json` 是诊断证据。
+2. **不可复现**：它对应的驱动版本（`178591e19c40c37f`）**不在仓库里**（已回退）；补丁只在本机 `D:\DSH\dsh-actor\tmp\w16-popup-key-fallback.patch`。
+3. **不能与批次 13-B / 14 并列**：13-B = "一次没点中"（该支无计数），14 = "点中 10 次、漏 1 次"，15 = "点 0 次 + 按键 45 次全落空"。
+4. **`popup_seen / popup_dismissed / popup_dismiss_failed` 之外新增过 `popup_key_dismissed`**，回退后该键**不存在**（只有回退前的这次干跑记录里有）。
+5. **`#20` 仍然开着**：三条候选里 (b) 已被本段**实测否掉**（结构不成立），(a) 未试（对着未知原因再赌一次），(c) 未试且 `STATE.md` §23.1.1 已论证**单独修不好**；下一步只能在 A（前台鼠标批）/ B（加托管通道）/ C（接受边界）里选。
+6. **干跑前后的环境是干净的**：跑完 `uia what=windows max=200` 里没有任何 'GUI Gym' / 'attention' 窗口，Windows 侧 python 进程只剩 actor `12008` + `32248`。

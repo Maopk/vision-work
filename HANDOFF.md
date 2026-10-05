@@ -107,6 +107,10 @@ D:\DSH\.venvs\vision-ci\Scripts\python.exe score.py t_trap2-w17-popup70-mouse.js
 - PATH 里的 `python` 是 `C:\Python314`（没有 numpy/PIL），必须用 venv 里的那个。
 - **批次 7 起**：给了 `--json-out x.json` 时，app 的 state/events 自动写成 `x-state.json` / `x-events.jsonl`
   （留档、可事后 `score.py x.json` 复核）；不给 `--json-out` 时仍是 `gym-state.json` / `gym-events.jsonl` 老默认名。
+- **批次 17–19（第十九段：拆耦合实战，三批串行）**：
+  `gym_run.py --scenario t_trap2 --tasks 16 --seed <20251008|20251009|20251010> --chaos 0.70 --chaos-ms 200,700 --chaos-kind popup --max-repeat 3 --json-out t_trap2-w18-popup70-mouse-r<1|2|3>.json` + `score.py <同名>`；
+  每批 ≈ 70 s 前台、**必须串行**；判据**不看通过率**，看 **`interferences > popup_seen`（补点被触发）+ 该题仍 `OK` + 批不早停 + app 侧无 `blocked`**。
+- **跑任何前台批之前先核"靶窗口计数 = 1"**：驱动按 UIA `name` **子串**匹配 `"GUI Gym"`（`gym_run.py:3135–3150` 计数、`:3364–3370` 要求恰好 1 个），而**本机 DSH 的会话窗口标题里就含这四个字符** ⇒ 会数成 2 个靶而拒启动（`refusing to drive: 2 practice target window(s) …`、退出码 2）。处置 = 临时改名该窗口（原名存 `D:\DSH\dsh-actor\tmp\w18_harness_title.txt`）、**跑完还原**；**被拒的那一次还会留下残留靶窗口**（驱动只 kill 启动器 pid），下一批跑前先确认没有。
 
 ## 4. 已知盲区（引用结论时必须一起带上）
 
@@ -185,6 +189,8 @@ D:\DSH\.venvs\vision-ci\Scripts\python.exe score.py t_trap2-w17-popup70-mouse.js
 >
 > **⚠ 第十七段补记（回填段，纯文档、不跑批不裂 sha）：把这一条的口径收紧成三句。** ① **封存结论** = "**通道可用 + 未引入回归 + 跑满不早停（窄批口径）**" —— 原稿里"**补丁充分**"是**过度声明**：那条拆耦合**一次都没被触发** ⇒ 本批对它**零信息量**，能说的只有"没有引入回归"（已同步 `REPORT.md` §5.2 ④ / `SCORE.md` 16.5-3 + **16.6** / `STATE.md` 接续点 ⑤ + §25）。② **"漏点是否消除" = 【未决】** —— 单批 16 题在统计上区分不了"率降了"与"运气好"（量化见 `REPORT.md` 附录 B-7）；**唯一入口 = 再跑 3 批（每批 16 题）共 48 题**，本段不跑，将来要证也**只有这一条路**。③ 下一步可做 **(i) 什么都不动** 或 **(iii) 走出练习场**（把练习场外的东西拉进来测），二者**无依赖**、可任选其一或都不选。
 
+> ⚠ **2026-10-05 第十九段：那条保险被实战检验了一次 —— 补点被触发且救回；"漏点是否消除" 仍【未决】。** 19b 按上面写死的**唯一入口**跑了 **3 批 × 16 题**（鼠标前台通道、`popup@0.70`、seed 20251008/09/10，**代码一行未改**）：**批次 18 里 `interferences 9 > popup_seen 8`** ⇒ 恰有一次遭遇点了两发（第一发没打掉、重取帧后再点一发）、该遭遇最终被清掉（`popup_dismiss_failed 0`）、该批 **16/16**、无 `blocked`、无早停 ⇒ **补丁/拆耦合被触发且有效（在这一次上）**。三批合计：遭遇 **28**、清障点击 **29**、**补点 1**、`failed` **0**、app 侧 `chaos 28` 与驱动侧 `popup_seen` 逐批 1:1、题级 **47/48**（批次 19 的 `task 14` 是**已知 `swap_timer` 时序竞争类**、退出码 1 但**非早停**）。⇒ **死锁率 0/28 遭遇**、95% 单侧上限 ≈ **10.7%**（rule of three）、第一发失手率 1/28 ≈ 3.6%（与批次 14 的 1/11 同量级）⇒ **"漏点是否消除" 仍 =【未决】**。**能证明的**：这条通道在三次重复下都跑满、那条保险至少真的救过一次题、没有反例（`failed` 全 0）。**不能证明的**：漏点率已被消除（上限 10.7% 仍宽）、这条保险在别的通道/别的干扰下够用。数值与逐条边界见 `SCORE.md` 批次 17–19 节 + `STATE.md` §27。
+
 ## 5. 证据在哪
 
 - 运行 json：`sol/sandbox/t_trap4-*.json`（`-1` 批次 4；`-2`/`-3` 批次 5 两次中途批，判据各修正一次；
@@ -218,6 +224,13 @@ D:\DSH\.venvs\vision-ci\Scripts\python.exe score.py t_trap2-w17-popup70-mouse.js
   + 自带 `t_trap2-w17-popup70-mouse-state.json`（sha `3960503d930d027e`）/ `-events.jsonl`（sha `45b8b5d861e9a677`）；
   同段干跑 `D:\DSH\dsh-actor\tmp\w17-dry.json`（2/2，与批次 14 干跑逐项同构），日志 `w17_A.log` / `w17_scoreA.txt`。
   `gym_app.py` = `66632d85eac81c12`、`score.py` = `ef066713a03eb940` **未动**；**这是 #20 的定稿批（窄批口径）**，见 §4 盲区 17 第十六段 ⚠ 块 + `SCORE.md` 批次 16 节。
+- **批次 17–19**（`popup` 类，**鼠标通道、前台真实鼠标、非 `--bg`**，`scripts_sha 780adce4017e`，`gym_run.py` = **`3fa0e4ba4b1b9679`** = 与批次 16 同一版）：
+  `sol/sandbox/t_trap2-w18-popup70-mouse-r1.json`（json sha `987c90db02ade387`，16/16，`popup_seen 10 / interferences 10`）、
+  `-r2.json`（`ad655a1b3210d218`，**16/16，`popup_seen 8 / interferences 9` = 补点被触发且救回 ★**）、
+  `-r3.json`（`e44222614893713a`，15/16，`popup_seen 10 / interferences 10`、**退出码 1**，那一题是已知 `swap_timer` 竞争类）
+  + 各带 `-state.json`（`211aae967a92a50a` / `e63c98f4eaeb57e6` / `4eb532b6aa4f9074`）与 `-events.jsonl`（`d39b884685742cfc` / `5e497f046d9ed8d1` / `21b064f112d55692`）；
+  日志与打分输出 `D:\DSH\dsh-actor\tmp\w18_r{1,2,3}.log` / `w18_score_r{1,2,3}.txt`。
+  **这是"漏点是否消除"的唯一入口批次（3 × 16）**，也是**那条拆耦合第一次被真实触发**的证据。
 - 逐题守门字段都在行里：`ask_label_read`、`ask_cells`、`ask_delta`、`ask_word_from`、`ask_word_short`、
   `ask_word_noise`、`ask_moved`、`ask_moved_press`、`ask_guard_skipped`、`label_painted`、`label_text_like`、
   `label_alt_tried`、`gate_ms`。
@@ -257,4 +270,4 @@ D:\DSH\.venvs\vision-ci\Scripts\python.exe score.py t_trap2-w17-popup70-mouse.js
 > **2026-10-05 第十一段补测了 `STATE.md` §7 #19 的覆盖面**：**键通道的第二个强度档也成立**（`popup_seen/dismissed 45/45`、60 题无早停），但**鼠标通道仍不可测**（3 题早停、退出码 1）⇒ 覆盖面 = **2 档 1 通道**，#19 只关了一半，并**新开 #20**（鼠标通道下清障路径不生效，见 §4 盲区 17 与 `SCORE.md` 批次 13 节 13.2/13.5）。
 > **2026-10-05 第十二段只读探针 + 读码（不改一行代码、不裂 sha、不动批次文件）**：**#20 根因定案 = 两道独立门**（① 该通道读的那一帧里按钮从来不是候选 ② 点击带的 `front_title` 把 app 钉成 topmost；见 §4 盲区 23 与 `STATE.md` §20）；**#18 读码结论 = 覆盖缺口、不是功能缺陷**（滚轮与拖拽在键通道里都有键盘等价物、驱动已经在用；`--bg` 下的失效 = Tk 忽略 posted 鼠标消息，`gym_run.py:2329` 的注释早已写明）⇒ 三症状**不是**同一根因。
 > **2026-10-05 第十三～十六段**：D（第十三段）**试过 ⇒ 判据未过、已回退**；"漏点后降级按键"（第十四段）**干跑即证伪、已回退**；第十五段在通道层三选一里**选 C**（接受边界、A 按需、B 不做）；**第十六段用户选 (ii)「需要真凭据」⇒ 重落 D 补丁 + 拆耦合 + 16 题前台窄批 ⇒ 16/16、`popup_seen/dismissed 14/14`、无早停 ⇒ 判据达成**，`STATE.md` §7 **#20 收口为"还清"（窄批口径）**，驱动改动**保留为定稿**（`gym_run.py 3fa0e4ba4b1b9679`、`scripts_sha 780adce4017e`，净 +30 行）。
-> 下一件建议：**上面这张表仍是"全部已冻结、不再为此裂 sha"**；#4 / #5 / #12 / #16 / #17 / #19（键通道那半边）/ **#20（第十六段）** 都已还或已关闭，**不要再重开**；**#18** 已读清（键通道 8/8 可用，鼠标连续交互写进已知边界即可 —— 要真凭据才跑一次 12–16 题前台窄批）；非批次类的那一件是**报告正文**（`REPORT.md` = **v0.7**，2026-10-05 第十六段同步；框架 `vision-work/REPORT-draft.md`，不裂 sha）。
+> 下一件建议：**上面这张表仍是"全部已冻结、不再为此裂 sha"**；#4 / #5 / #12 / #16 / #17 / #19（键通道那半边）/ **#20（第十六段）** 都已还或已关闭，**不要再重开**；**#18** 已读清（键通道 8/8 可用，鼠标连续交互写进已知边界即可 —— 要真凭据才跑一次 12–16 题前台窄批）；非批次类的那一件是**报告正文**（`REPORT.md` = **v0.8**，2026-10-05 第十九段同步；框架 `vision-work/REPORT-draft.md`，不裂 sha）。**第十九段（19b）把 #20 的最后一块补上了**：3 批 × 16 题前台窄批让那条拆耦合**第一次被真实触发并救回**（批次 18），三批 **0/28 遭遇死锁** ⇒ 95% 单侧上限 ≈ **10.7%**；⇒ **#20 的"漏点是否消除"仍 =【未决】**（3 × 16 题仍宽），但它**不再"未受检验"**；**#18 不变**（滚轮/拖拽仍未覆盖）。

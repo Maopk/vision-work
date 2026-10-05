@@ -3505,6 +3505,15 @@ def main() -> int:
                     break                   # it moved on without a verdict: not a rebuild
                 d.stats["replans"] += 1
                 rec = _redo(d, rec, rec.get("ask") or "", "no verdict arrived")
+            # Debt #21: a click that produced no verdict is this channel's own "this is
+            # not a control" signal - prose is not clickable and a refusal is protocol.
+            # `--keys` refuses via `no_key_refuse`; `--bg` never gets a mouse event in.
+            if (not a.keys and not a.bg                     # foreground mouse channel
+                    and rec.get("act") == "click_label"     # the mouse really clicked
+                    and v.get("result") in (None, "", "none")   # and nothing came back
+                    and d.task_i() == task_i):              # still on the same task
+                d.refuse(rec, "clicking the asked label changed nothing")
+                d.stats["refuse_by_stall"] = int(d.stats.get("refuse_by_stall", 0)) + 1
             v = v if v.get("result") not in (None, "", "none") else d.wait_verdict(task_i, 1.5)
             res = v.get("result") or "none"
             if res != "none":

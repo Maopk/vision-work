@@ -71,7 +71,7 @@ so re-reads make them exceed the task count).
 | 20 | `t_trap2-w22-popup35-mouse.json` | `780adce4017e` | v2（标签） | 鼠标（前台真实鼠标，非 `--bg`）；**#19 第四格**（`popup@0.35`，seed 20251007，24 题）：`popup_seen/dismissed 10/10`、`popup_dismiss_failed` 键不存在（=0）、`interferences 11` ⇒ **补点 1 次**；`task_i 17` 有 1 次 app 侧 `blocked`（`by` 「modal」，2.18 s）后恢复、该题 `ok`。⚠ **21/24 早停、退出码 1** —— 早停题（`task_i 21`）是 `must_refuse`（`prose_only`）题，驱动**没走拒答、反而按了标签**（`score.py false_accept 1/1`），**与弹窗通道无关**（见 20.3 与 `STATE.md` §7 #21）；驱动与批次 16–19 同一版 |
 | profiling | `prof1` / `prof2` / `prof3` | 无 / `264a87d48d4c` / `264a87d48d4c` | 无 / v0 / v1 | 成本对照，不参与通过率 |
 
-**引用规则（按用户审计定死，缺一条就算引用越界）**：
+**引用规则（按用户审计定死，缺一条就算引用越界）**（第二十六段新增两批：`t_trap2-w26-popup35-mouse.json` = **批次 21**、`t_trap2-w26-popup35-mouse-rerun.json` = **批次 22**，同一版驱动 **`scripts_sha 586171888d39`**、`gym_run.py 3fa0e4ba4b1b9679 → d8594bff3738ca9b`（净 +9 行）；明细见本文件文末**批次 21 / 批次 22 节**。本行是**行内追加**——本表因此**不漂行号**）：
 
 1. `race` 与 `guard-blind` 的数字**必须带分母**，分母是"本批真正按了过期 ask 的次数"，**不是题数**
    （批次 4 的 `1/1` 与批次 3 的 `5/5`、`3/3` 不能并列成"改善了 5 倍"）；分母 < 5 时标"**非缓解**"。
@@ -1563,6 +1563,98 @@ chaos:popup    v2 21/22  95.5%  decided 100.0%  disturb 1   screen 15/22 replan 
 4. **同格另一档**（`popup@0.70` × 鼠标）在批次 16–19 节；两批协议相同（`t_trap2`、无 `--press-jitter`），差别 = 档位与题数。
 5. **占用前台**：24 题 ≈ 160 s（单批）。
 6. **`false_accept 1/1` 属 #21、不属这批的弹窗结论**：不要把 `21/22 95.5%` 读成「弹窗通道退化」，也不要用它算 `popup` 的通过率。
+
+## 批次 21 结果（2026-10-05 第二十六段）—— #21 修复主验证：批次 20 的同 seed / 同协议复跑（24 题 `popup@0.35` × 前台真鼠标）
+
+### 21.0 一句话
+`gym_run.py` 补上「鼠标点了没反应 ⇒ 走拒答」（`DESIGN-21` §4 路线②，净 **+9** 行、新 sha **`d8594bff3738ca9b`**）之后，**同一道题不再让批早停**：24/24 跑满、`task_i 21/22/23` 全部 `refused_right`；而 #21 之前那一版（批次 20）正是在 `task_i 21` 上写了三行 `acted/none` 后早停（21/24）。
+
+**本批 sha 三件套**：`gym_run.py d8594bff3738ca9b`（唯一变化）/ `gym_app.py 66632d85eac81c12` / `score.py ef066713a03eb940`；`scripts_sha 586171888d39`（本批 json 内记录）。
+
+### 21.1 命令（逐字）
+```
+gym_run.py --scenario t_trap2 --tasks 24 --seed 20251007 --chaos 0.35 --chaos-ms 200,700 --chaos-kind popup --max-repeat 3 --json-out t_trap2-w26-popup35-mouse.json
+```
+- 与批次 20 **逐字同参**，只换 `--json-out`；通道 = **前台真实鼠标**（非 `--bg`、非 `--keys`）。
+- `partial False` / `exit_reason None`；墙钟 ≈ **170 s**；日志 `D:\DSH\dsh-actor\tmp\w26_b21.log`。
+
+### 21.2 判据（跑前写死，见 `DESIGN-21` §6）
+| 判据 | 结果 |
+|---|---|
+| 跑到 ≥25 题不早停（`--tasks 24` ⇒ 24/24） | ✅ **24/24**、退出码 0、`partial False` |
+| `task_i 21`（那道 `prose_only` / `must_refuse`）记 `refused_right` | ✅ `decision refused` / `refuse_why "clicking the asked label changed nothing"` / `result ok`（`task_i 22/23` 同型） |
+| 新计数 `stats["refuse_by_stall"]` | ✅ **3**（= 3 道 `prose_only`；只在该路径 +1） |
+| 有判定题逐题一致（回归） | ✅ 与批次 20 **前 21 题逐题一致**（见 21.4） |
+| 无判定 `answerable` 题通过率不变 | ✅ `false_refusal 0/21 (0.0%)`（批次 20 同为 0/21） |
+
+### 21.3 打分（跑完立刻打，`score.py` 逐字）
+```
+chaos:popup        v2   24/24  100.0%  decided 100.0%  disturb 1   screen 17/24  replan 20  1990 ms/task  keys 3  shots 180  ocr 306
+answered_right=21  refused_right=3
+false_refusal 0/21 (0.0%)   false_accept 0/3 (0.0%)
+variant prose_only 3/3   prose_with_button 6/6   swap_after_press 10/10   swap_timer 5/5
+guard gate sample 44  P50 129 ms  P95 166 ms
+```
+逐题行（`task_i 21/22/23`）：`act click_label` / `decision refused` / `refuse_why "clicking the asked label changed nothing"` / `result ok` / `replanned 2`；整题含 stall ≈ **21 s**（单看这三题）。
+
+### 21.4 回归核（与批次 20 同 seed 同协议，逐题比）
+- **`task_i 0–20`：21/21 判定逐题一致**（`act click_label` / `decision acted` / `result ok`）。
+- **`task_i 21`：`acted/none` → `refused/ok`** —— 这正是修复目标（`false_accept` → `refused_right`）。
+- `task_i 22/23` 在批次 20 里不存在（那批停在第 21 题）。
+- **`replans` 两批都 = 23** ⇒ 修复**没有改变** stall 路径的重规划行为，只加了「最后那一下拒答」。
+
+### 21.5 引用这批时必须带上的边界
+1. **只覆盖前台真实鼠标通道**：`--bg` 鼠标通道（盲区 21）与滚轮/拖拽（#18）**不变**。
+2. **单批、单 seed**：批次 20 → 批次 21 是**同 seed 同协议的复跑**，不是重复批；"24/24 不早停"只在本题集（24 题、该 seed）上成立。
+3. **判据是「不再早停 + 该题 `refused_right`」**，不是「鼠标通道的拒答率」：本批 `must_refuse` 只有 3 题。
+4. **`refuse_by_stall` 是第二十六段新加的计数键**；旧批 json 里**没有**这个键，**不要跨 sha 比较它**。
+5. **占用前台**：24 题 ≈ 170 s。
+6. 本批**取代批次 20 的「未跑满」这一形态**；#19 第四格的**强度档证据仍取批次 20 的 fire 数**（20.5 六条边界照旧，`STATE.md` §19.7 第四格有补记）。
+
+## 批次 22 结果（2026-10-05 第二十六段）—— #21 修复的回归复跑：批次 14 的同参复跑（60 题 `popup@0.35` × 前台真鼠标）
+
+### 22.0 一句话
+批次 14 是「#21 之前、鼠标通道 `t_trap2` 上跑不完」的那一批（24 行里 3 行 `acted/none`、停在 `task_i 21`）；本批**同参复跑 60 题**（差别 = 驱动已含 #21 修复）⇒ **60/60 跑满**、`refused_right 14`、`false_accept 0/14`，而**与批次 14 相比唯一翻转的判定就是 `task_i 21` 本身**。⚠ 本批**只作回归验证、不是成绩**：`popup` 侧的引用**仍指批次 16–19 节**。
+
+**本批 sha 三件套**：`gym_run.py d8594bff3738ca9b` / `gym_app.py 66632d85eac81c12` / `score.py ef066713a03eb940`；`scripts_sha 586171888d39`。（对照：批次 14 的 `scripts_sha` = `871ed27ca066` ⇒ **两批不是同一版驱动**。）
+
+### 22.1 命令（逐字，与批次 14 同参）
+```
+gym_run.py --scenario t_trap2 --tasks 60 --seed 20251007 --chaos 0.35 --chaos-ms 200,700 --chaos-kind popup --json-out t_trap2-w26-popup35-mouse-rerun.json
+```
+- 通道 = **前台真实鼠标**；`partial False`；墙钟 ≈ **270 s**；日志 `D:\DSH\dsh-actor\tmp\w26_b22.log`。
+
+### 22.2 判据与结果
+| 判据 | 结果 |
+|---|---|
+| 跑满不早停 | ✅ **60/60**、退出码 0 |
+| `task_i 21` 从 `false_accept` 变 `refused_right` | ✅ `refused/ok`（`refuse_why "clicking the asked label changed nothing"`） |
+| `false_accept` | ✅ **0/14**（14 = 本批 `must_refuse` 题数） |
+| `false_refusal` 上升逐题可解释（= 无判定 `answerable` 题数） | ✅ **0/46 (0.0%)** —— 本批**没有**上升 |
+| 有判定题逐题一致（回归） | ✅ 与批次 14 相比**唯一翻转 = `task_i 21`**（见 22.4） |
+
+### 22.3 打分（跑完立刻打，`score.py` 逐字）
+```
+chaos:popup        v2   60/60  100.0%  decided 100.0%  disturb 3   screen 49/60  replan 24  1948 ms/task  keys 14  shots 334  ocr 616
+answered_right=46  refused_right=14
+false_refusal 0/46 (0.0%)   false_accept 0/14 (0.0%)
+variant prose_only 4/4   prose_with_button 6/6   swap_after_press 10/10   swap_timer 5/5   alpha020/030/035/050/065 各 2/2
+guard gate sample 74  P50 133 ms  P95 171 ms
+```
+**14 条拒答的路径分布**（「修复只动该动的那一类」的直接证据）：**4 条 `prose_only`（`task_i 21–24`）走新 stall 路径**（`refuse_why "clicking the asked label changed nothing"`、`stats["refuse_by_stall"] 4`）+ **10 条 `disabled` 族（`task_i 35–44`）走原有可见性路径**（`refuse_why "the control is painted below the visibility floor"`）—— 后者**不是**本修复的产物。
+
+### 22.4 回归核（与批次 14 逐题比：同 seed 同题集、驱动版本不同）
+- 批次 14 共 **24 行 / 22 个 `task_i`**（`task_i 21` 因三次尝试写了三行）。
+- **唯一翻转 = `task_i 21`**：`acted/none` → `refused/ok`；其余 20 个 `task_i` 判定逐题一致。
+- 与批次 21 的对照（同 seed、**同驱动版本**）见 21.4：前 21 题逐题一致 ⇒ 修复**只**改变了「没有判定时的收尾动作」。
+
+### 22.5 引用这批时必须带上的边界
+1. **本批不是成绩批**：`popup` 侧引用一律回到批次 16–19 节；本批的弹窗计数只用于说明「同协议下不再早停」。
+2. **与批次 14 不是同一版驱动**（`871ed27ca066` vs `586171888d39`）⇒ 逐题比只作回归对照，**不可**当 A/B 效果量。
+3. **只覆盖前台真实鼠标通道**；`--bg` 鼠标通道与滚轮/拖拽（#18）不变。
+4. 单批、单 seed（60 题、`popup@0.35`）。
+5. `refuse_by_stall` 是本段新增键 ⇒ **不要与其他 sha 的批跨比**。
+6. **占用前台**：60 题 ≈ 270 s。
 
 > **#20 = 收口（决定不追加）**；依据见 `STATE.md` §28.3；本文件为数字源，**有意不载决策** —— 上面 16.6 与 17.5 的
 > "**【未决】**"是**那时的历史记录**，保留不动；"收口"是**决定**（不再投入），不是结论改变。

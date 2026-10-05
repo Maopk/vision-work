@@ -73,6 +73,12 @@
 一旦 app 在此期间判过并前进，F8 就落到**下一题**上。靶子侧另有两道兜底（`finish()` 在 `result != "none"` 或 `_pending` 挂起时直接 return；`_commit()` 末尾整表清空 `keymap`），
 但兜底不能替代次序约束。
 
+**前置核查（第二十六段，只读）：`rec` 是引用还是快照？** —— 都不是"驱动持有的实时引用"：`rec` 是**每一次尝试各自的对象**。
+`_redo()`（`gym_run.py:261-263`）里 `again = d.do_task(...)` **新建**记录并返回，`rec = _redo(...)` 直接**换掉**旧对象；`refuse()`（`:1816-1831`）只改**交给它的那个 dict**。
+⇒ 落点必须在这行 `_redo` **之后**（本节原本就是这样），否则 `decision` / `refuse_why` 会写进**被丢弃的记录** —— 这是**错位**（记录连同计数一起消失），
+**不是"记错归属"**：`do_task` 每题每次尝试各建一条记录，`rec` 永远不会是**别题**的记录。同类事故有档：`_redo` 自己的 docstring（`:265-271`）写着"调用方先自增的
+`replanned` 落在被丢弃的记录上 ⇒ swap 批报了 replan 0"，批次 9 又把 #10/#11 的逐题记账丢失**全部**归因到 "this function replacing the record"。
+
 动作：`d.refuse(rec, "clicking the asked label changed nothing")` —— 只写 `decision="refused"` / `refuse_why` / `stats["refusals"]` 并按键；
 紧接着那一行 `d.wait_verdict(task_i, 1.5)` 会取回 app 的 `refused` 判定 ⇒ 行的 `result` 变 `ok`（真相 = `must_refuse` ⇒ `score.py` 判 `refused_right`）。
 **不需要**新增任何字段、协议或靶子改动。
@@ -136,3 +142,15 @@
 - 本段（第二十五段）仍未改任何 `.py`：三件套 sha 逐位与第二十四段一致
   （`gym_app.py 66632d85eac81c12` / `gym_run.py 3fa0e4ba4b1b9679` / `score.py ef066713a03eb940`）。
 - 行号影响：本文件因本次补丁变长，`REPORT.md` 的行号口径随之改 **v0.13**；`scripts_sha` 与判定口径**均未变**。
+
+## 10. 实施记录（第二十六段，2026-10-05）
+
+- **落点**：`gym_run.py:3507` 之后（`rec = _redo(...)` 之后、第二次 `wait_verdict` 之前）—— 与 §4 写死的位置一致。
+- **实现**：+9 行 = 3 行注释 + 4 行守卫（`not a.keys` / `not a.bg` / `act == "click_label"` 且 `result in (None, "", "none")` / `d.task_i() == task_i`）+ `d.refuse(rec, "clicking the asked label changed nothing")` + `stats["refuse_by_stall"] += 1`；守卫读取与 `refuse()` 之间**无插入操作**（§4 的次序硬约束）。
+- **前置核查（本轮实测）**：`rec` **不是**驱动的实时引用 —— `_redo()`（`:261`）里 `again = d.do_task(...)` **新建**记录并返回 ⇒ 落点必须在 `_redo` **之后**；否则 `decision` / `refuse_why` 写进被丢弃的记录（记账错位，同类事故见 `_redo` docstring `:265-271` 与批次 9 的 #10/#11）。§4 已补这一段。
+- **sha / 行数**：`gym_run.py 3fa0e4ba4b1b9679 → **d8594bff3738ca9b**`、`scripts_sha 586171888d39`、净 **+9** 行（< 30 行闸）；`gym_app.py 66632d85eac81c12` / `score.py ef066713a03eb940` **逐位未变**；`py_compile` 通过。
+- **验证（两批前台真实鼠标）**：**批次 21**（`popup@0.35`、24 题、批次 20 的同 seed 同协议复跑）= **24/24 不早停**、`task_i 21/22/23` 全 `refused_right`、`false_accept 0/3`、`refuse_by_stall 3`；**批次 22**（60 题、批次 14 的同参复跑）= **60/60**、`refused_right 14`、`false_accept 0/14`、`false_refusal 0/46`、`refuse_by_stall 4`（= 4 道 `prose_only`；另 10 条 `disabled` 族仍走原有可见性路径）。
+- **回归**：与批次 20 相比前 21 题判定**逐题一致**、`replans` 同为 23（改动只落在收尾动作）；与批次 14 相比**唯一翻转 = `task_i 21`**（正是修复目标）。
+- **残留风险（照 §6 / §8 执行）**：点偏会被记成 `false_refusal` —— 本段两批均为 **0**；将来上升就逐题抽查该批 `false_refusal` 行（题号 + `refuse_by_stall`）。
+- **回退**：单文件 `git checkout <旧 commit> -- sol/sandbox/gym_run.py`（或 `git revert`）⇒ `scripts_sha` 回到 `3fa0e4ba4b1b9679`。
+- **未覆盖**：`--bg` 鼠标通道（盲区 21）、滚轮 / 拖拽（#18）；「鼠标通道拒答率」未测。

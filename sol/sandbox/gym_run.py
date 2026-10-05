@@ -885,11 +885,17 @@ class Driver:
         step = {"op": "shot", "path": tmp, "hwnd": hwnd}
         if region:
             step["region"] = [int(v) for v in region]
-        rep = self.a.run([step])
+        rep = self.a.run([step], results=True)
         if not rep.get("ok"):
             return None
         self.stats["shots"] += 1
-        return Image.open(tmp).convert("RGB"), rect[0], rect[1]
+        # the capture is the window's *client* surface, so the origin has to be the client
+        # origin the actor hands back - the window rect adds the border and the title bar
+        # (measured +11 px left, +45 px above on the practice dialog, which put the click
+        # 45 px above the button it aimed at)
+        st = (rep.get("trace") or [{}])[-1]
+        org = st.get("origin") or (st.get("data") or {}).get("origin") or rect
+        return Image.open(tmp).convert("RGB"), int(org[0]), int(org[1])
 
     def click_hwnd(self, hwnd: int, x, y) -> None:
         """Post a click straight to one window (not the app's main window)."""
@@ -960,24 +966,45 @@ class Driver:
         img = img if img is not None else self.shot()
         seen, tried = 0, []
         for _ in range(tries):
+            # read the dialog's *own* window, not the app-sized frame: over that frame no
+            # pass ever returns a short bold label like DISMISS (measured: the block pass
+            # gives no candidate inside the dialog at all, and the word pass only finds
+            # the same word in the prose, which the veto then drops), while the dialog's
+            # own frame returns it as one clean block
+            if self.window_by_title("attention") is None:
+                break                              # no dialog up any more
+            cap = self.shot_window("attention")
+            if cap is None:
+                break
+            wimg, ox, oy = cap
+            if seen == 0:                          # the gate opened: the dialog was found
+                self.stats["popup_seen"] = int(self.stats.get("popup_seen") or 0) + 1
             pick = None
-            for h in self._button_candidates(img, "DISMISS"):
+            for h in self._button_candidates(wimg, "DISMISS"):
                 c = h["word"]["center"]
-                if any(abs(c[0] - t[0]) < 8 and abs(c[1] - t[1]) < 8 for t in tried):
-                    continue                       # already clicked, still there
-                pick = h["word"]
+                missed = sum(1 for t in tried if abs(c[0] - t[0]) < 8 and abs(c[1] - t[1]) < 8)
+                if missed >= 2:                    # one makeup click per spot (batch 14 §14.5a)
+                    continue                       # clicked twice already, still there
+                pick = c
                 break
-            if not pick:
+            if pick is None:
                 break
-            tried.append(pick["center"])
-            x, y = self.screen(pick["center"])
-            self.click(x, y)
+            tried.append(pick)
+            # click without asking for the app to be brought forward: `click()` sends
+            # front_title, which pins the app *above* the dialog being dismissed
+            # (measured: the same spot clears the dialog without the pin and does
+            # nothing at all with it)
+            self.a.run([self.act_step({"op": "click",
+                                       "target": {"xy": [ox + pick[0], oy + pick[1]]}})])
+            self.stats["clicks"] += 1
             seen += 1
             self.stats["interferences"] += 1
             time.sleep(0.3)
             img = self.shot()
-            if not self._button_candidates(img, "DISMISS"):
-                break                              # it is gone
+        if seen:                                   # did the click actually clear it?
+            key = ("popup_dismiss_failed" if self.window_by_title("attention")
+                   else "popup_dismissed")
+            self.stats[key] = int(self.stats.get(key) or 0) + 1
         return img, seen
 
     def words(self, img: Image.Image, invert=False, region=None, psm="11",
@@ -3462,7 +3489,10 @@ def main() -> int:
                             rec["interferences"] = rec.get("interferences", 0) + n
                             # the dialog is gone, but the press it swallowed was never
                             # scored: stop waiting and answer again (replan below)
-                            break
+                            # ... and only when it really went: `n` counts clicks, not
+                            # dismissals (batch 14 §14.5③ - one miss deadlocked a task)
+                            if d.window_by_title("attention") is None:
+                                break
                 if v.get("result") not in (None, "", "none") or nxt != task_i:
                     break
                 if attempt == tries - 1:

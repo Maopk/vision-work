@@ -92,6 +92,13 @@ D:\DSH\.venvs\vision-ci\Scripts\python.exe score.py t_trap7-1.json
 #   ⚠ 退出码：0 = 完整批；1 = 一题都没完成（不写 json）；3 = **partial**（靶子中途没了 ⇒ json 带 `partial: true` + `exit_reason`）
 #   ⚠ partial 批的成绩**不与完整批并列**（引用规则 §2 第 8 条）；空帧构造手法与两条产物见 SCORE.md 批次 11 节 ③
 #   ⚠ `--max-repeat N` 同时是"连续 N 题 task_i 没前进就早停"的阈值：N=1 会让**第一题就早停**（提示语 `stopping early: task 0 failed 1 times` 有误导性，实测题本身是 OK 的）
+# 批次 16（**`popup` 类·鼠标通道定稿（窄批口径）**：重落第十三段选项 D 补丁 + 拆"漏一次点 ⇒ 整题死锁"耦合；`gym_run.py` = `3fa0e4ba4b1b9679`）
+#   ⚠ 只跑 16 题、单批单档；跑前跑后都要确认只有一个 gym 窗口（驱动要求 == 1）；会占用前台 ≈ 72 s
+#   ⚠ 必须从 Windows 侧启动、显式 -WindowStyle Normal（同批次 9 的两条 ⚠）
+D:\DSH\.venvs\vision-ci\Scripts\python.exe gym_run.py --scenario t_trap2 --tasks 16 --seed 20251007 --chaos 0.70 --chaos-ms 200,700 --chaos-kind popup --max-repeat 3 --json-out t_trap2-w17-popup70-mouse.json
+D:\DSH\.venvs\vision-ci\Scripts\python.exe score.py t_trap2-w17-popup70-mouse.json
+#   ⚠ 用 0.70 而不是 0.35：0.35 档在 16 题窄批里期望弹窗数 ≈3 < 5 ⇒ 判据 `popup_seen >= 5` 在那个组合下不可达
+#   ⚠ 判据三条：跑满 16 题不早停 且 `popup_seen >= 5` 且 `popup_dismissed == popup_seen`（三项全过 = 还清 #20）
 ```
 
 - 鼠标通道与批次 4/5/6 可比；`--keys --bg` 与它们**不可比**（通道不同），只用于 chaos 对照。
@@ -173,6 +180,8 @@ D:\DSH\.venvs\vision-ci\Scripts\python.exe score.py t_trap7-1.json
 
 > ⚠ **2026-10-05 第十五段：通道层三选一 —— 决定走 C（接受边界），A 按需、B 不做。** 依据 = `STATE.md` §24（三处逐条读到的证据：§23.4 的投递机制结论；`gym_run.py:3458-3465` 的耦合 `if n: … break` —— `n` 只表示"点了一下"、不表示"弹窗没了"，**漏一次点就早停**；`actor.py:1665 _maybe_front()` 是鼠标/按键**共用**的输入前处理）。**C 的含义（写死在文档里才算数）**：鼠标通道 `popup` 这一组合**显式记为不可测边界**（键通道两个强度档的成绩不变、仍有效），欠账 **#20 保持开着、不改"已关闭"** —— 采用的是该行判据栏的第二个分支"明确宣告不支持并划掉该组合"。**A 若日后要跑**：必须先重新落地第十三段选项 D 的补丁（否则连按钮都读不到）、**先拆上面那条耦合**（否则一次漏点白占前台），再跑 60 题前台批并显式声明通道。**B 不做**：改 `dsh-vision-kit\actor` 落在 `scripts_sha` 覆盖不到的层 ⇒ 读数不可核对（与 `DESIGN-18-scroll-drag.md` §7.4 同根）。**别再试第三条坐标/按键变体。**
 
+> ⚠ **2026-10-05 第十六段：判据达成 —— #20 还清；改动保留为定稿（不回退）。** 用户选 (ii)「需要真凭据」⇒ 按第十五段写死的两个前置条件**一次做完**：先 `git apply` 重落第十三段选项 D 的补丁（应用后 sha = `85893817760a3be5`，与批次 14 的被测版本**逐位相同**），再拆掉"漏一次点 ⇒ 整题死锁"的耦合（非 bg 分支同一落点 ±8 px 已点过两次即不再当候选 ⇒ **允许补点一次**；调用方**只有 `window_by_title("attention") is None` 才 `break`**，原来 `if n:` 里 `n` 只表示"点了一下"）。净 **+30 行**（闸写的是"改动 **> 30 行** ⇒ 停手"⇒ **未触发，但与阈值相等**），两个调用点都在 `--chaos` 之下（`gym_run.py:2035 if self.expect_chaos:` 与等判定循环的 `if a.chaos:`）⇒ **非 chaos 批逐字未变、不需要回归批**。正式批 = **鼠标通道 `popup@0.70` / 16 题**（`t_trap2-w17-popup70-mouse.json`，json sha `c6c41590cb5ef192`，`scripts_sha 780adce4017e`，`gym_run.py 3fa0e4ba4b1b9679`）：**16/16 `OK`、退出码 0、无早停**、**`popup_seen 14 / popup_dismissed 14`（`failed` 键不存在）**、`interferences 14`（= 每次发现只点一下）、app 侧 `chaos_planned 14 / chaos 14` 一一对应、**无 `blocked` 事件**；`score.py` = `v2 16/16 100.0%`、`answered_right=16`、`guard P50 125 / P95 168 ms`、`foreground after … unchanged: True`。⇒ **`STATE.md` §7 #20 与本文件 §6 表的 #13 收口为"还清"**（窄批口径）。**为什么是 0.70 而不是 §24.2 写的 0.35**：0.35 档在 16 题窄批里期望弹窗数 ≈ 3 `< 5` ⇒ **判据本身的 `popup_seen ≥ 5` 在那个组合下不可达**。**⚠ 边界（未变的部分）**：**拆耦合一次都没被触发**（`interferences == popup_seen == 14` 可证）⇒ 它是**未被检验的保险**；批次 14 的 `1/11` 漏点**未复现**，14 次样本区分不了"率降了"与"运气好"；**`--bg` 鼠标通道整条不生效（盲区 21）不在本批范围、仍未测**；单批单档、无重复批。逐条边界见 `SCORE.md` 批次 16 节 **16.5** + `STATE.md` §25。
+
 ## 5. 证据在哪
 
 - 运行 json：`sol/sandbox/t_trap4-*.json`（`-1` 批次 4；`-2`/`-3` 批次 5 两次中途批，判据各修正一次；
@@ -201,6 +210,11 @@ D:\DSH\.venvs\vision-ci\Scripts\python.exe score.py t_trap7-1.json
   `sol/sandbox/t_trap2-w13-popup70.json`（`0.70` 档，**60/60**、`45/45/0`、`interferences 45`、无早停）+ 各自的 `-state.json` / `-events.jsonl`。
 - **批次 13 的鼠标通道失败产物**：`sol/sandbox/t_trap5-w13-popup35.json`（+ `-state.json` / `-events.jsonl`）—— 3 题早停、退出码 1、`disturbances: 0 fired`、app 侧 `event blocked by modal`；
   **不进任何成绩**，只作欠账 #20 的证据（见 §4 盲区 17 与 `SCORE.md` 批次 13 节 13.2）。
+- **批次 16**（`popup` 类，**鼠标通道、前台真实鼠标、非 `--bg`**，`scripts_sha 780adce4017e`，`gym_run.py` = **`3fa0e4ba4b1b9679`**）：
+  `sol/sandbox/t_trap2-w17-popup70-mouse.json`（json sha `c6c41590cb5ef192`，**16/16**、`popup_seen/dismissed 14/14`、`interferences 14`、无早停、退出码 0）
+  + 自带 `t_trap2-w17-popup70-mouse-state.json`（sha `3960503d930d027e`）/ `-events.jsonl`（sha `45b8b5d861e9a677`）；
+  同段干跑 `D:\DSH\dsh-actor\tmp\w17-dry.json`（2/2，与批次 14 干跑逐项同构），日志 `w17_A.log` / `w17_scoreA.txt`。
+  `gym_app.py` = `66632d85eac81c12`、`score.py` = `ef066713a03eb940` **未动**；**这是 #20 的定稿批（窄批口径）**，见 §4 盲区 17 第十六段 ⚠ 块 + `SCORE.md` 批次 16 节。
 - 逐题守门字段都在行里：`ask_label_read`、`ask_cells`、`ask_delta`、`ask_word_from`、`ask_word_short`、
   `ask_word_noise`、`ask_moved`、`ask_moved_press`、`ask_guard_skipped`、`label_painted`、`label_text_like`、
   `label_alt_tried`、`gate_ms`。
@@ -239,4 +253,5 @@ D:\DSH\.venvs\vision-ci\Scripts\python.exe score.py t_trap7-1.json
 > **2026-10-05 第十段还掉了 `STATE.md` §7 #16**（`popup` 类：批次 12 `popup_seen 24 / popup_dismissed 24 / failed 0`、60/60 无早停；根因更正 = **actor 折叠截断 `data.windows`**，不是"枚举看不见"；见 §4 盲区 17 与 `SCORE.md` 批次 12 节）。
 > **2026-10-05 第十一段补测了 `STATE.md` §7 #19 的覆盖面**：**键通道的第二个强度档也成立**（`popup_seen/dismissed 45/45`、60 题无早停），但**鼠标通道仍不可测**（3 题早停、退出码 1）⇒ 覆盖面 = **2 档 1 通道**，#19 只关了一半，并**新开 #20**（鼠标通道下清障路径不生效，见 §4 盲区 17 与 `SCORE.md` 批次 13 节 13.2/13.5）。
 > **2026-10-05 第十二段只读探针 + 读码（不改一行代码、不裂 sha、不动批次文件）**：**#20 根因定案 = 两道独立门**（① 该通道读的那一帧里按钮从来不是候选 ② 点击带的 `front_title` 把 app 钉成 topmost；见 §4 盲区 23 与 `STATE.md` §20）；**#18 读码结论 = 覆盖缺口、不是功能缺陷**（滚轮与拖拽在键通道里都有键盘等价物、驱动已经在用；`--bg` 下的失效 = Tk 忽略 posted 鼠标消息，`gym_run.py:2329` 的注释早已写明）⇒ 三症状**不是**同一根因。
-> 下一批建议顺序：在 `STATE.md` §20.4 的 **A/B/C/D 四个选项里选一个**（本段建议**先评估 D** = 非 bg 鼠标分支照抄隔壁 `if self.bg` 分支：读弹窗自己的窗口 + 点击别钉 topmost，约 10–15 行，**会裂 `gym_run.py` 的 sha**）—— **#4 / #12 / #16 / #17 都已还或已关闭，不要再重开**；**#18** 已读清（键通道 8/8 可用，鼠标通道写进已知边界即可）；非批次类的那一件是**报告正文**（`REPORT.md` = **v0.3，465 行，2026-10-05 第十一段已提交推送**；框架 `vision-work/REPORT-draft.md`，不裂 sha）。
+> **2026-10-05 第十三～十六段**：D（第十三段）**试过 ⇒ 判据未过、已回退**；"漏点后降级按键"（第十四段）**干跑即证伪、已回退**；第十五段在通道层三选一里**选 C**（接受边界、A 按需、B 不做）；**第十六段用户选 (ii)「需要真凭据」⇒ 重落 D 补丁 + 拆耦合 + 16 题前台窄批 ⇒ 16/16、`popup_seen/dismissed 14/14`、无早停 ⇒ 判据达成**，`STATE.md` §7 **#20 收口为"还清"（窄批口径）**，驱动改动**保留为定稿**（`gym_run.py 3fa0e4ba4b1b9679`、`scripts_sha 780adce4017e`，净 +30 行）。
+> 下一件建议：**上面这张表仍是"全部已冻结、不再为此裂 sha"**；#4 / #5 / #12 / #16 / #17 / #19（键通道那半边）/ **#20（第十六段）** 都已还或已关闭，**不要再重开**；**#18** 已读清（键通道 8/8 可用，鼠标连续交互写进已知边界即可 —— 要真凭据才跑一次 12–16 题前台窄批）；非批次类的那一件是**报告正文**（`REPORT.md` = **v0.7**，2026-10-05 第十六段同步；框架 `vision-work/REPORT-draft.md`，不裂 sha）。

@@ -199,3 +199,74 @@
 
 - `t_rows` / `t_chips` 题**不声明 `truth_class`**（`gym_app.py:737` / `:962-964` 的返回值里没有该键）⇒ 它们**不进 `score.py` 的判定分母**：覆盖只能按**题级通过 + 动作计数（`scrolls` / `drags`）+ 屏幕读题率**记，**不能**说成「五判定覆盖了滚轮/拖拽」。
 - 前台批的既有约束全部适用：靶窗口计数必须 = 1、同一时刻只有一个 gym 窗口、Windows 侧 `-WindowStyle Normal` 启动、先干跑 `--tasks 2`。
+
+## 9. 进成绩体系（第二十三段设计 · **只设计不实施**）
+
+> 目标：把 `t_rows`（滚轮）与 `t_chips`（拖拽）从「未声明题」变成**可引用的一类成绩**，同时**不破坏批次 1–20 的主线可比性**。
+> 本节只写设计；**本段没有改任何 `.py`**。下面的行号都是当前 HEAD 的行号，实施时会漂。
+
+### 9.1 现状（2a 只读核查）
+
+| 问题 | 答案 |
+|---|---|
+| 这两类题为什么不声明 `truth_class`？ | 它们的 `truth` 字典装的是**自用几何真值**（`t_rows` = `{id, rows, row_height}`、`t_chips` = `{chip, slot, slots, chips}`），当初按「给驱动/人工核对」设计、没有进计分协议。`truth_class` 是 **`ready` 事件的字段**：`gym_app.py:536-537` 只在 `tr.get("truth_class")` 存在时才发。 |
+| 它们到底有没有「对错」？ | **有，而且是靶子自己判的**：`t_rows` 每行的 `<Button-1>` 绑 `self.finish(rid == target, {"selected": rid, "want": target})`；`t_chips` 的 `drop()` 里 `self.finish(hit == want_slot and v == chips[pair], {...})` ⇒ 逐题行里的 `result` 已经是 `ok`/`wrong`。 |
+| `score.py` 怎么认 `truth_class`？ | 真值来自 **`ready` 事件**（`score.py:133`），`join_truth`（`:162`）按 `task_i` 写进逐题行；**分母 = `r.get("truth_class") in ("answerable", "must_refuse")`**（`v1_counts`，`:267`）。注意 `:110-112` 的 `VERDICTS` 是**判定名**（answered_right…），不是真值类名。 |
+| 现有真值类全集 | **只有 `answerable` / `must_refuse` 两个**（`score.py:211-221` 的 `v1_verdict` 分支也穷举了这两类）⇒ 没有现成类可复用。 |
+| 新增类名会怎样？ | 不被 `:267` 收 ⇒ 算 `undeclared`（`:347` 单列，不进分母）⇒ **要进成绩体系，`score.py` 必改**。 |
+| 历史批里这两类题的现状 | 全部 run json 里 **`t_rows` 149 行 / `t_chips` 311 行**（跨多批，一直是**未声明题**）⇒ 主分母里从来没有它们。 |
+| `gates` 标签 | **不是** `score.py` 按场景名推的，而是 `gym_run.py:3658` 写进 json 顶层的（`t_trap5*` → `v3`，否则按默认）⇒ 新场景跑批前要**显式确认**落到哪一档。 |
+
+### 9.2 设计（2b）
+
+**决定：新增真值类 `viewport`（两类共用），`score.py` 做最小改动，靶子只改两处一行。**
+
+**靶子侧改动清单（逐条）**
+
+1. `gym_app.py:737`（`t_rows` 的 `return`）：`truth` 里加 `"truth_class": "viewport"`，并加 `"variant": "rows"`。
+2. `gym_app.py:962-964`（`t_chips` 的 `return`）：`truth` 里加 `"truth_class": "viewport"`，并加 `"variant": "chips"`。
+3. `gym_app.py:536` **不用改**（已经是「有 `truth_class` 就发」）—— 加键即生效，`ready` 事件会带上它。
+4. 任何 `finish(...)` 的判定逻辑**不动**（`ok` 的真值语义一字不改）。
+
+**`score.py` 改动（必改，最小）**
+
+1. 新增常量 `VIEWPORT = "viewport"`。
+2. `v1_counts`（`:267` 附近）里给 `viewport` 行一个**独立桶**：`viewport_n` / `viewport_pass`（`result == "ok"` 记通过）—— **不进** `declared`、**不进** `n`、**不进** `answerable`/`must_refuse`。
+3. 打印行加**独立一行**（形如 `viewport n/m (x%)`），与 `pass_rate` 那行分开。
+4. `--selftest` 加两条：viewport 不计入主分母；viewport 的 ok/wrong 计数正确。
+
+⇒ 五判定、`pass_rate`、`false_refusal_rate`、`false_accept_rate` 的**定义与分母一字不动**，批次 1–20 的读数不受影响。
+
+**判据设计（#18 关掉的判据；进体系后升级为机器可读）**
+
+| # | 判据 | 说明 |
+|---|---|---|
+| 1 | **viewport 通过率**（`result == ok` 的比例） | 进体系后由 `score.py` 单列输出；首次跑只报**原始计数**（n 小，不设阈值） |
+| 2 | **`stats["scrolls"] > 0`**（滚轮）与 **`stats["drags"] > 0`**（拖拽） | 证明动作真的发出去了（`gym_run.py:360-361` 的计数器；与 `clicks` 同源） |
+| 3 | **`asks_from_file == 0`**（屏幕读题率） | 与主线同一条诚实线 |
+| 4 | **不早停 / 跑满**（`partial False`、`exit_reason None`） | 与主线同一条 |
+| 5 | `score.py` 正常打印（无 `!! PARTIAL RUN`） | 与主线同一条 |
+
+**历史可比性**
+
+- **明确写死：批次 1–20 与之后的任何「混池批」在主分母口径上不可直接比。** 具体只在两点上：(a) `rows_total` / `undeclared` 的构成变了（多了 viewport 题）；(b) 若有人把 viewport 通过率与主通过率并排引用，那是错的。
+- **主分母不受影响**：`viewport` 不进 `answerable`/`must_refuse` ⇒ **主线通过率仍与批次 1–20 同源**。这正是选「新类名」而不是「复用 `answerable`」的**全部理由**。
+- **补偿方式**：报告里**另开一节**（视口类进度），不并入主线；引用时写「含 viewport 题的混池批」。
+- **旧 json 不受影响**：`truth_class` 来自各批自己的 `events.jsonl`（`score.py:133`），靶子改动**不回溯**。
+
+### 9.3 风险与回退（2c）
+
+| 风险 | 处置 |
+|---|---|
+| `gym_app.py` **首次裂 sha**（`66632d85eac81c12` → 新）⇒ 靶子不再是「批次 1–20 的靶子」 | **回退 = 单文件 revert**：`git revert <commit>` 或 `git checkout <旧 commit> -- sol/sandbox/gym_app.py` ⇒ sha 回到 `66632d85eac81c12`。改动只在两个 `return` 的字典里加键，**无状态、无副作用** ⇒ revert 干净。 |
+| 已跑批次还能复现吗？ | **能**：题池与题序由 `--seed` 决定（`gym_app.py:504-526`），新键**不参与**任何绘制或判定（`finish()` 的 `ok` 一字不改）⇒ 同 seed + 同 scenario 下**题与判定逐题不变**，只有 `ready` 事件多一个字段。 |
+| 新类名漏进某处统计？ | 由 `--selftest` 新增的两条兜住（viewport 不进主分母）。 |
+| 与 #20「不改 actor」的决定冲突吗？ | **不冲突**：本次只改靶子；`D:\DSH\dsh-vision-kit\actor` 一字不动 ⇒ 不触碰 #20 B 案的否决理由。 |
+| 新场景的 `gates` 档？ | 跑前先确认 `gym_run.py:3658` 对该 scenario 写到哪一档（落默认档也要**写明**，别让读者以为与 `t_trap*` 同档）。 |
+
+### 9.4 本设计的诚实边界
+
+- **只设计、未实施**：第二十三段没有改任何 `.py`；本节行号会随实施漂。
+- `viewport` 的通过率**不是**五判定，**不与**主报告线的通过率可比（这是设计目标，不是缺陷）。
+- 仍未定义的东西：`t_rows` 的「滚一格」连续量、`t_chips` 的落点公差阈值 —— 首次跑**只报原始计数**。
+- `--bg` 鼠标通道**仍然不可用**（盲区 21）⇒ 本设计覆盖的只是**前台真鼠标**路径；滚轮的「键通道」半边**已经**在第十一段探针里跑过（rows 8/8、24 题 22/24、chips 8/8）。

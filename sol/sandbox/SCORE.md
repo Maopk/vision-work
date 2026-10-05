@@ -1177,3 +1177,90 @@ chaos:popup    v3  0/1    0.0%  decided 100.0%  disturb 0   screen  1/1  replan 
 **鼠标通道下 `popup` 清障路径不生效。** 证据 = 13.2；该分支没有 `popup_*` 计数、候选走默认 veto。
 **判据（怎么算还清）**：鼠标通道的 `popup` 批跑满题数且 `popup_dismissed == popup_seen ≥ 5`；**或**明确宣告"鼠标通道不支持清障"并把该组合从覆盖面里划掉。
 **出处**：本节 13.2 / 13.5 + `STATE.md` §19 + `HANDOFF.md` 盲区 17。
+
+---
+
+## 批次 14 尝试（2026-10-05 第十三段）—— 欠账 #20 修复（`STATE.md` §20.4 选项 D）：**未通过判据，已回退**
+
+### 14.0 一句话
+
+按 §20.4 的**选项 D** 改了 `dismiss_interference()` 的**非 bg 鼠标分支**（照抄隔壁 `if self.bg` 分支：读弹窗自己的窗口帧 + 点击不带 `front_title`），并修掉 `shot_window()` 的**坐标原点**问题；**干跑通过**（`--tasks 2`：2/2、`popup_seen 2 / dismissed 2`、5.3 s/题），但**正式批在 task 21 早停**（连续 3 次失败、退出码 1）⇒ 按规格的终止条件**回退改动**，`gym_run.py` 回到 `87470aaff559`。本批**不进成绩**，只作为"选项 D 的方向被验证有效、但仍有残留竞态"的证据。
+
+### 14.1 改了什么（两处，都在弹窗清理路径内）
+
+| # | 位置 | 改动 |
+| --- | --- | --- |
+| 1 | `dismiss_interference()` 非 bg 鼠标分支 | 改为 `window_by_title("attention")` 判在不在 → `shot_window("attention")` 取**弹窗自己的帧** → 候选取自该帧 → 用一条**不带 front 请求**的 `click` 直投 |
+| 2 | `shot_window()` | 屏幕原点改用回包的 **client origin**（`origin`），不再用**窗口 rect** |
+
+- **影响范围判定 = 只影响弹窗清理**：`shot_window()` 的调用点只有 `dismiss_interference()` 里的两条（`if self.bg` 分支 + 非 bg 分支）—— 共享的 `click()` / `_shot()` / `_button_candidates()` / `screen()` **一行未动**。
+- **规模**：净 **+26 行**（adds 36 / dels 10，其中注释 20 行）；未超 30 行硬闸。
+- **中间 sha**：第一版（只改分支）= `gym_run.py 6690c1038c7f42f7`；加上原点修复后 = **`85893817760a3be5`（本批跑的版本）**；`gym_app.py 66632d85eac81c12` / `score.py ef066713a03eb940` 全程未动。
+- `py_compile` 通过；`score.py --selftest` = **41 checks, 0 failed**。
+
+### 14.2 干跑（`--tasks 2`，鼠标通道、`--chaos 1.0 --chaos-kind popup`）
+
+```
+task  0 t_trap2   click the button labelled GAMM.                      OK      5326ms
+task  1 t_trap2   click the button labelled INDIGO                     OK      5372ms
+
+score 2/2 ok (100% of tasks) | per task 5349 ms avg | shots 14 ocr 28 clicks 6
+disturbances: 2 fired over 2 task(s)
+```
+
+stats = `popup_seen 2 / popup_dismissed 2`（`popup_dismiss_failed` 键不存在）、`clicks 6`、`interferences 2`。⇒ 修好原点后清障路径**当场生效**；第一版（用窗口 rect）时是 `popup_seen 13 / popup_dismiss_failed 13`、两题全 NONE（点击落在按钮**上方 45 px**）。
+
+### 14.3 正式批 A（唯一一次，跑完立刻打分）
+
+命令（Windows 侧 `Start-Process -WindowStyle Normal`，工作目录 `sol/sandbox`）：
+
+```
+gym_run.py --scenario t_trap2 --tasks 60 --seed 20251007 --chaos 0.35 --chaos-ms 200,700 --chaos-kind popup --json-out t_trap2-w13-popup35-mouse-fix.json
+```
+
+结果：**exit 1**、墙钟 **161.2 s**、`stopping early: task 21 failed 3 times in a row`；驱动摘要 `score 21/24 ok (88% of tasks)`、`per task 6551 ms avg`、`shots 179 ocr 306 clicks 52 keys 0 drags 0`、`asks read off the screen 37 / from the state file 7`、`disturbances: 11 fired over 24 task(s), 1 task(s) had >=1`、`foreground after: GUI Gym (hwnd 10029804) unchanged: True`；run json `scripts_sha 871ed27ca066`、`partial False`、`exit_reason None`。
+
+判据相关计数：`popup_seen 11`、`popup_dismissed 10`、`popup_dismiss_failed 1`、`interferences 11`、`replans 23`、`ask_moved 3`。
+
+`score.py` 定稿输出（**逐字**）：
+
+```
+chaos:popup    v2 21/22  95.5%  decided 100.0%  disturb 1   screen 15/22 replan 16    2029 ms/task  keys 0     shots 179  ocr 306
+               answered_right=21 false_accept=1   extra_attempts 2 (rows collapsed to one per task)
+               false_refusal 0/21 (0.0%)  false_accept 1/1 (100.0%)  stale 0  wasted 0  verify_giveup 0  re-reads 0
+               fired-task pass 1/1 (100.0%)  quiet 20/21 (95.2%)  swapped 15  a_hit 10  a_hit_but_failed 0  (wrong_target 0 / twin 0)
+               variant prose_only 0/1  variant prose_with_button 6/6  variant swap_after_press 10/10  variant swap_timer 5/5
+               swap by variant  swap_after_press n=10 a_hit=10 wrong=0  swap_timer n=5 a_hit=0 wrong=0   race(pressed the replaced ask) 0/0
+               guard gate sample 38  P50 148 ms  P95 174 ms  (criterion P50<=240, P95<=320)
+               false_accept  #21  truth=must_refuse dec=acted   act=click_label    result=none clicked=null
+```
+
+app 侧（`t_trap2-w13-popup35-mouse-fix-state.json` / `-events.jsonl`）：state = `task_i 21 / result none / variant prose_only / event ready`；events = `ready 22 / trap_a_hit 10 / trap_swap 15 / done 21 / chaos_planned 10 / chaos 10 / blocked 1`。
+
+**B 批（回归）未跑**：改动已按终止条件回退，被测代码回到 HEAD ⇒ 没有可回归的对象。
+
+### 14.4 判据
+
+| 判据 | 结果 |
+| --- | --- |
+| `popup_seen ≥ 5` | ✅ **11** |
+| `popup_dismissed == popup_seen` | ❌ **10 / 11** |
+| 不早停 | ❌ **task 21 连续 3 次失败、退出码 1** |
+| 改动 ≤ 30 行、只碰弹窗清理路径 | ✅ 净 +26 行、两处都在清障路径内 |
+
+⇒ **未通过** ⇒ 按规格：回退 + 写欠账 + 跳第三步（报告 v0.4）。
+
+### 14.5 残留失败机制（证据 + 下一步假设）
+
+- 现象：11 次清障 **10 次成功、1 次失败**；失败之后**没有任何重试**（`popup_seen` 不再增长），题目卡在"被弹窗挡住"（app 侧 `blocked 1`），驱动连续 3 次拿不到判定 ⇒ 早停。
+- 代码层候选：① 那一次点击**没命中**（弹窗刚创建、帧与点击之间的竞态）；② **同一点不会重试** —— 清障循环用 `tried` 去重，而弹窗自己的帧上默认 veto 只给**一个**候选 ⇒ 一旦这一下没中，**同一个调用内不会补点**；③ 调用方 `gym_run.py:3460` 在清障计数 ≠ 0 时直接 **break 去 replan**，此后**再没有人回到这个弹窗** ⇒ 一次未命中 = 整题死锁。
+- 下一步（明天可做，代价从小到大）：**(a)** "清障后弹窗仍在"时**允许对同一点再点一次**（≤2 次）；**(b)** 清障失败时**降级**用 `key("Return")`（app 自己绑定：主窗收到该键就关掉自己的对话框）；**(c)** 先把 ③ 的"break 去 replan"改成"再清一次再 replan"。
+
+### 14.6 引用这批时必须带上的边界
+
+1. **本批不进任何成绩**：早停、退出码 1；`false_accept 1` 来自被弹窗卡住的那道题，不是驱动判错。
+2. **它对应的驱动版本不在仓库里**（`85893817760a3be5` 已回退）⇒ **不可复现、不可与任何批次并列**；补丁留档 `D:\DSH\dsh-actor\tmp\w15-popup-fix.patch`（77 行）。
+3. **结论只能说到这一步**：选项 D 的**方向被验证有效**（清障 0 → 10/11），但**判据未达成**；**#20 仍然开着**。
+4. **与批次 13-B 不可直接比**：13-B 是"一次都没点中"（`dialog_refused 28`），本批是"点中了 10 次、漏 1 次"。
+5. **`popup_seen / popup_dismissed / popup_dismiss_failed` 三个计数在本批进入鼠标分支**（键分支早就有）⇒ 以后凡说"鼠标分支没看见弹窗"必须给出这三个数。
+6. **`shot_window()` 的坐标原点坑与回退无关**：窗口 rect 与 client origin 实测差 **+11 / +45 px**，任何"窗口 rect + 帧内坐标"的点击都会偏 45 px（已写进 `HANDOFF.md` 盲区 23）。

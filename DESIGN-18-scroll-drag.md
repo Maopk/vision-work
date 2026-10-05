@@ -152,3 +152,50 @@
 - 改动落在 `D:\DSH\dsh-vision-kit\actor`（执行器侧）：`scripts_sha` 只覆盖 `sol/sandbox` 三件套 ⇒ 以此跑出的读数**在留档里不可核对**（第十段 #16 的根因就在 actor 侧）。
 - actor 的 `_maybe_front()`（`actor.py:1665`）是**鼠标与按键两种 op 共用**的输入前处理（逐字："raise (and pin) the target first, so DSH stealing the foreground cannot eat the keystrokes"）：改它等于改所有输入 op 的语义，且**必然要动前台** ⇒ 与本线 `--bg` 通道"不抢前台"的性质冲突。
 - 即便改成功，收益也只是"把一条**已被键通道覆盖**的能力搬到鼠标通道上再测一遍" ⇒ 边际收益低，代价却是动全机共用的常驻件。
+
+---
+
+## 8. 2026-10-05 第二十二段：**实现前核查**（只读；actor 能力 + 两条路径 + 方案与推荐）
+
+> 前提变化：第十五段选 C（接受边界）的理由是「**鼠标通道不可测**」。**这个理由已不成立** —— `popup` 的鼠标通道在第十六段打通、第十九段保险被实战检验、第二十二段补齐第四格 ⇒ **原地重新核查 #18 的实现前提**（本段只读代码、不跑批、不改任何 `.py`）。
+
+### 8.1 actor 能力（**结论：不用改 actor**）
+
+| 问题 | 证据 | 结论 |
+|---|---|---|
+| actor 能发滚轮事件吗？ | `actor.py:15` 的 ops 清单里 **`scroll` 是一等 op**；`:1189` 注释「Post wheel messages. dy/dx are raw deltas (one notch = 120)」 | ✅ 能 |
+| actor 能发拖拽（按下-移动-释放）吗？ | `actor.py:15` 的 ops 里有 **`drag`**；`:304 def drag(self, x1, y1, x2, y2, steps=30, ms=240, button='left')`（SendInput 手）；`:1104 def post_drag(...)`（bg 版，「Press, move, release - all posted, **so a drag needs no foreground**」）；`:1300-1317 @op('drag') o_drag`（`bg` 走 `post_drag`，否则 `A.hands.drag`） | ✅ 能 |
+
+⇒ **不重蹈 #20 的 B 案否决理由**（那条否决是「要改 actor ⇒ 读数落在 `scripts_sha` 覆盖不到的层、不可核对」；这里不需要改 actor）。
+
+### 8.2 驱动侧现状（两条路径都在，只差「排进计划」）
+
+- `gym_run.py:1235-1239 Driver.drag(x0,y0,x1,y1)`（`stats["drags"] += 1`）、`gym_run.py:1241-1252 Driver.wheel(notches,x,y)`（`stats["scrolls"] += 1`）。
+- 调用点：**滚轮** `gym_run.py:2356`（t_rows 处理器）、**拖拽** `gym_run.py:2900-2904`（t_chips 处理器）。
+- **滚轮已有键通道分支且已实现**：`gym_run.py:2349-2353` 注释「the wheel is a mouse message and Tk ignores those while it is not focused (measured: 63 posted wheel steps moved nothing at all), so turn the page with the key the app binds for exactly that」→ `self.key("Next")`；否则 `self.wheel(-3, img.width // 2, ...)`。
+- **拖拽只有鼠标一条路**：`gym_run.py:2900-2904` 无条件 `self.drag(...)`。
+- 计划表在**靶子**侧：`gym_app.py:504 next_task`、`:524-526 pool = [t_button, t_rows, t_form, t_toggle, t_menu, t_chips]` + `build = getattr(self, self.fixed_scenario) if self.fixed_scenario else self.rng.choice(pool)` ⇒ **`--scenario t_rows` / `--scenario t_chips` 只发该场景**（`gym_app.py:1451` 的 help 就是这几个名字）；`gym_run.py` 自己没有计划表 ⇒ **方案①零代码改动**。
+
+### 8.3 靶子侧等价物
+
+| 交互 | 键通道等价物 | 是否与原语义一致 |
+|---|---|---|
+| 滚轮（`t_rows`） | **有**：`gym_app.py:728 keymap["Next"] = lambda: self._page(1)`、`:729 keymap["Prior"] = lambda: self._page(-1)`（= Page Down / Page Up；另有 `Up` 细滚、`End` 到底） | 基本一致（都是「翻页后重新读行」）；但**「滚一格」的连续量**没有等价物 ⇒ 只能测「翻页」，不能测「滚轮步进」 |
+| 拖拽（`t_chips`） | **没有**：`gym_app.py:960-962` 的 `t_chips` 只绑 `<ButtonPress-1>` / `<B1-Motion>` / `<ButtonRelease-1>` | 无 |
+
+### 8.4 两方案（二选一 + 推荐）
+
+| | 方案 ①：前台鼠标批 | 方案 ②：键通道等价物 |
+|---|---|---|
+| 改什么 | **零代码改动**（`--scenario t_rows` / `--scenario t_chips`，前台真鼠标） | 滚轮：**已实现**（`self.key("Next")`，无需改）；拖拽：**没有等价物**，要造就得改**靶子**（裂 `gym_app.py` 的 sha）⇒ 不做 |
+| 覆盖 | **滚轮 + 拖拽都能量**（两条路径都在驱动里） | 只有滚轮的「翻页」半边 |
+| 成本 | 一次前台窄批（24 题量级；须串行、占前台 ≈2–3 分钟） | ≈0（键通道现成；第十一段探针已跑过 rows 8/8、24 题 22/24、chips 8/8） |
+| 判据 | 题级通过 + `stats["scrolls"]`/`["drags"]` > 0 + 屏幕读题率 + 不早停 | 同上（但只有 scrolls 的键路径） |
+| 诚实边界 | 只覆盖**前台**鼠标通道；`--bg` 鼠标通道仍不可用（盲区 21） | 只覆盖滚轮；**「滚一格」的连续量测不到** |
+
+**推荐：①（主）+ ② 当滚轮的轻量补测。** 理由：①是唯一能覆盖**拖拽**的路径，而且零代码改动 ⇒ 读数仍在 `scripts_sha` 之内、不触碰 #20 的否决理由；②已经跑过、只能补滚轮那半边。
+
+### 8.5 跑之前必须知道的限制
+
+- `t_rows` / `t_chips` 题**不声明 `truth_class`**（`gym_app.py:737` / `:962-964` 的返回值里没有该键）⇒ 它们**不进 `score.py` 的判定分母**：覆盖只能按**题级通过 + 动作计数（`scrolls` / `drags`）+ 屏幕读题率**记，**不能**说成「五判定覆盖了滚轮/拖拽」。
+- 前台批的既有约束全部适用：靶窗口计数必须 = 1、同一时刻只有一个 gym 窗口、Windows 侧 `-WindowStyle Normal` 启动、先干跑 `--tasks 2`。

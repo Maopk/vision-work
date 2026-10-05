@@ -68,6 +68,7 @@ so re-reads make them exceed the task count).
 | 17 | `t_trap2-w18-popup70-mouse-r1.json` | `780adce4017e` | v2（标签） | 鼠标（前台真实鼠标，非 `--bg`）；**拆耦合实战第 1 批**（seed 20251008，16 题 `popup@0.70`）：`popup_seen 10 / dismissed 10 / failed 0 / interferences 10` ⇒ **补点 0**；16/16、退出码 0；**1 次 app 侧 `blocked`**（task 12，`swap_timer`，该题最终 `ok`）。驱动与批次 16 同一版（`gym_run.py 3fa0e4ba4b1b9679`） |
 | 18 | `t_trap2-w18-popup70-mouse-r2.json` | `780adce4017e` | v2（标签） | 同一版驱动；**拆耦合被实战触发的那一批**（seed 20251009）：`popup_seen 8 / dismissed 8 / failed 0 / interferences **9**` ⇒ **同一遭遇点了两发并被清掉**（补点 1 次）、**16/16**、退出码 0、无 `blocked` |
 | 19 | `t_trap2-w18-popup70-mouse-r3.json` | `780adce4017e` | v2（标签） | 同一版驱动（seed 20251010）：`popup_seen 10 / dismissed 10 / failed 0 / interferences 10` ⇒ 补点 0；**15/16、退出码 1** —— 那一题落在**已知的 `swap_timer` 时序竞争类**（`race 1/1`、`wrong_target 1`），**不是弹窗通道问题、也非早停**（`partial False`、`exit_reason None`） |
+| 20 | `t_trap2-w22-popup35-mouse.json` | `780adce4017e` | v2（标签） | 鼠标（前台真实鼠标，非 `--bg`）；**#19 第四格**（`popup@0.35`，seed 20251007，24 题）：`popup_seen/dismissed 10/10`、`popup_dismiss_failed` 键不存在（=0）、`interferences 11` ⇒ **补点 1 次**；`task_i 17` 有 1 次 app 侧 `blocked`（`by` 「modal」，2.18 s）后恢复、该题 `ok`。⚠ **21/24 早停、退出码 1** —— 早停题（`task_i 21`）是 `must_refuse`（`prose_only`）题，驱动**没走拒答、反而按了标签**（`score.py false_accept 1/1`），**与弹窗通道无关**（见 20.3 与 `STATE.md` §7 #21）；驱动与批次 16–19 同一版 |
 | profiling | `prof1` / `prof2` / `prof3` | 无 / `264a87d48d4c` / `264a87d48d4c` | 无 / v0 / v1 | 成本对照，不参与通过率 |
 
 **引用规则（按用户审计定死，缺一条就算引用越界）**：
@@ -1511,6 +1512,57 @@ chaos:popup    v2 16/16 100.0%  decided 100.0%  disturb 0   screen 10/16 replan 
 5. **批次 17 有 1 次 app 侧 `blocked`**（task 12，`swap_timer`，该题最终 `ok`）：**不要**读成"通道失败"，批次 18/19 未再出现。
 6. **占用前台**：每批 ≈ 70 s（16 题）、三批合计 ≈ 3.6 分钟；跑批前必须确认**靶窗口计数 = 1**（见 17.2）。
 7. **"补丁/保险有效"的适用范围**：只在这 1 次触发（批次 18）上成立；**不能**外推成"任何情况下都够"（批次 14 拿同一份补丁只做到 10/11），也**不能**用它关闭"漏点是否消除"。
+
+## 批次 20 结果（2026-10-05 第二十二段）—— #19 的第四格：`popup@0.35` × 前台真鼠标（**弹窗侧达标；批次本身 21/24 早停，原因不在弹窗通道**）
+
+### 20.0 一句话
+
+第四格（`popup@0.35` × 鼠标前台）拿到了**弹窗侧的完整证据**：fire **10 ≥ 5**、`popup_seen/dismissed/failed 10/10/0`、**补点 1 次**、`task_i 17` 被 modal 挡住 2.18 s 后恢复且该题 `ok`。但**该批在 `task_i 21` 早停**（21/24、退出码 1）—— 早停题是 `must_refuse`（`prose_only`）题，驱动**没有走拒答路径、反而按了一个标签**（`score.py` 记成 `false_accept 1/1`），**与弹窗通道无关**（该题事件序列只有 `ready`；同 seed 键通道批次 12 的同一题 `refused: true`）。⇒ 另记 `STATE.md` §7 **#21**。
+
+### 20.1 命令（逐字）
+
+`gym_run.py --scenario t_trap2 --tasks 24 --seed 20251007 --chaos 0.35 --chaos-ms 200,700 --chaos-kind popup --max-repeat 3 --json-out t_trap2-w22-popup35-mouse.json`
+（**前台真实鼠标，非 `--bg`**；`scripts_sha 780adce4017e`、`gym_run.py 3fa0e4ba4b1b9679`（与批次 16–19 同一版）；`gates v2`；同一时刻只有 1 个 gym 窗口；干跑 `--tasks 2` 先行：2/2、`popup_seen/dismissed 2/2`）
+
+### 20.2 判据
+
+| 判据 | 结果 |
+|---|---|
+| **fire ≥ 5** | ✅ **10**（app 侧 `chaos 10 == chaos_planned 10`；驱动侧 `popup_seen 10`） |
+| **清障成对** | ✅ `popup_seen 10 / popup_dismissed 10 / popup_dismiss_failed` 键不存在（=0） |
+| 补点被触发 | ✅ **1 次**（`interferences 11 > popup_seen 10`；同一遭遇两发、该遭遇最终 `dismissed`） |
+| 被挡住时能恢复 | ✅ `task_i 17`：app 侧 `blocked`（`by` 「modal」、`elapsed_ms 2184.0`）→ 该题最终 `ok 6803ms` |
+| 跑满 24 题 / 不早停 | ❌ **21/24、退出码 1**（`stopping early: task 21 failed 3 times in a row`） |
+| `partial` / `exit_reason` | `False` / `None`（**不是** partial 批） |
+
+### 20.3 早停的归因（**不是弹窗通道**）
+
+- 停住的是 `task_i 21`：ask = `click the button labelled XENON`，app 侧真值 `truth_class = must_refuse`、variant `prose_only`；
+- 该题**事件序列只有 `ready`**（没有 `chaos_planned` / `chaos`）⇒ 弹窗没有参与；
+- 驱动**没有走拒答**：三次尝试的逐题行 `detail` 只有 `{"ask_box_recomputed": 3, "ask_box_shift_px": [0,0]}`、**没有 `refused` / `refuse_why`**；`score.py` 把它记成 **`false_accept 1/1`**（`dec=acted act=click_label result=none clicked=null`）；
+- **对照**：同 seed、同场景的**键通道批次 12** 在同一 `task_i 21`（XENON）与 `task_i 22`（ONYX）都是 `detail {"refused": true, …}`、`result ok` ⇒ 缺口在**鼠标通道的候选/标签选择与拒答判定**（`gym_run.py:1816 refuse()`、`:2207-2210` 那条「no control carries the asked label」没被走到），**机制尚未定案**，已记为 `STATE.md` §7 **#21**；
+- 该批 `disturbances: 11 fired over 24 task(s), 1 task(s) had >=1`（这个数是**清障点击**，与 `interferences 11` 同源、不是题数）。
+
+### 20.4 打分（跑完立刻打，`score.py` 逐字）
+
+```
+chaos:popup    v2 21/22  95.5%  decided 100.0%  disturb 1   screen 15/22 replan 16    1998 ms/task  keys 0     shots 178  ocr 304
+               answered_right=21 false_accept=1   extra_attempts 2 (rows collapsed to one per task)
+               false_refusal 0/21 (0.0%)  false_accept 1/1 (100.0%)  stale 0  wasted 0  verify_giveup 0  re-reads 0
+               fired-task pass 1/1 (100.0%)  quiet 20/21 (95.2%)  swapped 15  a_hit 10  a_hit_but_failed 0  (wrong_target 0 / twin 0)
+               variant prose_only 0/1  variant prose_with_button 6/6  variant swap_after_press 10/10  variant swap_timer 5/5
+               guard gate sample 38  P50 128 ms  P95 173 ms  (criterion P50<=240, P95<=320)
+               false_accept  #21  truth=must_refuse dec=acted   act=click_label    result=none clicked=null
+```
+
+### 20.5 引用这批时必须带上的边界
+
+1. **弹窗侧达标 ≠ 批次达标**：引用第四格时必须同时说「该批 **21/24 早停**，早停由 `must_refuse` 题触发、**与弹窗通道无关**（另记 #21）」。
+2. **只覆盖前台真实鼠标通道**：`--bg` 鼠标通道（盲区 21）与滚轮/拖拽（#18）**不变**。
+3. **单批、单档**：无重复批；补点只触发 1 次（与批次 18 同型，**不可外推比例**）。
+4. **同格另一档**（`popup@0.70` × 鼠标）在批次 16–19 节；两批协议相同（`t_trap2`、无 `--press-jitter`），差别 = 档位与题数。
+5. **占用前台**：24 题 ≈ 160 s（单批）。
+6. **`false_accept 1/1` 属 #21、不属这批的弹窗结论**：不要把 `21/22 95.5%` 读成「弹窗通道退化」，也不要用它算 `popup` 的通过率。
 
 > **#20 = 收口（决定不追加）**；依据见 `STATE.md` §28.3；本文件为数字源，**有意不载决策** —— 上面 16.6 与 17.5 的
 > "**【未决】**"是**那时的历史记录**，保留不动；"收口"是**决定**（不再投入），不是结论改变。

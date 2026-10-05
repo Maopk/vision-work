@@ -3,7 +3,7 @@
 > 从这里继续。所有路径都在 `D:\DSH\vision-work\sol\sandbox\`（下称 `sandbox\`）。
 > 计分板：`sandbox\SCORE.md`；分表工具 `sandbox\score.py`。
 
-## 接续点（2026-10-05 收工：探路日 + 技能落盘 + 批次 9 + 第三段三件 + 第四段（#4 改完、批次 10 定稿）+ **第五段（#17 改完、批次 11 定稿、#18 已量）+ 第六段（#12 关闭）+ 第七段（报告正文初稿）**；开工先读这几行）
+## 接续点（2026-10-05 收工：探路日 + 技能落盘 + 批次 9 + 第三段三件 + 第四段（#4 改完、批次 10 定稿）+ **第五段（#17 改完、批次 11 定稿、#18 已量）+ 第六段（#12 关闭）+ 第七段（报告正文初稿）+ 第八段（独立仓库已推送）**；开工先读这几行）
 
 - **上一批定稿**：**批次 11**，`sandbox\t_trap7-1.json`（**鼠标通道 48 题**，**35/48**、`decided 100%`、口径 v3，`scripts_sha` **`8da029edccbc`**，json sha `dd77abc08e911794`）—— 欠账 **#17「`shot` 空帧零容忍」还清**：
   只改抓帧失败的处理（`ShotFailed` + `_shot` 重试 3 次 + main `try` ⇒ **已完成的题写成 partial run json** + 退出码 **3**），**判定路径一字未动**（`score.py` 只加两行 `!! PARTIAL RUN` 警示）；
@@ -44,12 +44,20 @@
   正文遵守五条原则：**数字一律指向 `SCORE.md`（不复制任何通过率/分母/毫秒——`grep` 校验只命中章节引用）、口径版本集中定义并逐行标注、每章带"诚实边界"、做到与没做到各写一半、每章首句回答"本章回答什么问题"**；六条可引用结论各带"成立工况"，21 条盲区归纳为五族（感知与文本 / 竞态与时序 / 记账与仪器 / 能力缺口 / 环境与几何）并逐族标"对主结论的影响"，第 6.3 节用三个例子说明"盲区可以被量到结论"（修好了 / 量到它不存在 / 把丢证据改成留证据）。
 - **第六段新增欠账 / 旧账（未冻结）**：① #12 的结论**只在键通道量过**（鼠标通道共用 `press_guard`，但受 `--bg` 鼠标缺口限制未复测）；② 样本只 1 批 20 题（家族 5 题），未重复；③ **§7 #16（`popup`）与 #18（滚轮 + 拖拽）仍未动**；④ `ask_box_shift_px` 只记每题"**首次**"重算 ⇒ 仪器局限（§14.7 ②）；⑤ B 路线坐标映射只做定性（§11.3）；⑥ 技能目录注入待新会话验证；⑦ 批次 9 判据 i 边缘未达（`gate_ms` P50 与独立口径差 **10.58 ms**）。
 - **第七段新增欠账 / 旧账（未冻结）**：① **第 2 章（相关工作）没有任何外部引用**——规格要求"不引未核对文献"，故留作待办；② 附录 A 的"数字索引"只到**节名**不到行号/锚点（引用仍需人工对齐）；③ 报告正文**未做同侪复核**（自检表是自己填的）；④ 上述第六段 ④–⑦ 四条全部照旧。
+- **第八段：`vision-work` 建了独立公开仓库并推送完成**（只加文件；未改三件套、未删任何文件、未动任何批次文件）—— 仓库 **https://github.com/Maopk/vision-work**（public，默认分支 `main`，MIT 已被 GitHub 识别），首次 commit **`9bc567d297fcf95854264a92e6d5f0d9447b4df9`**（信息 `initial: GUI audit gym (batches 1-11, 口径 v0-v3)`；**102 个文件 / 5.3 MB**）。
+  格式**对齐参考** `dsh-vision-kit`（分支 `main`、MIT、双版 README、Keep a Changelog、小写 `scope: 祈使句` 的 commit 风格）与 `dsh-termux-kit`（本地副本 `D:\DSH\dsh-termux-kit-copy`，远端默认分支 `master`）；**不对齐**：CI 工作流、`mypy.ini`、`ruff.toml`、`CONTRIBUTING.md`、`requirements-dev.txt`（应用层不引入工具层）。
+  入库 = 三件套 + `gui_see.py` + `loop.py`（`gym_run.py` 里 `from loop import Actor`，不带它跑不起来）+ 42 个 `probe_*.py` + **43 个批次证据 `t_trap*.json`** + 四份文档（`SCORE.md` `STATE.md` `HANDOFF.md` `DESIGN-refusal-scoring.md`）+ 报告三件（`REPORT.md` `REPORT-draft.md` `SCORE-history.md`）+ `README.md`/`README.zh-CN.md`/`CHANGELOG.md`/`LICENSE`/`.gitignore`；
+  **排除** = `*-events.jsonl`（最大 12 MB）/ `*-state.json` / `*.png`（含本机 UI 截图）/ `*.log`·`*-out.txt`·`*.err` + 与判分线无关的历史材料（蜘蛛纸牌、QQ、爱心、几何实验等；**只在 `.gitignore` 里声明，未删除任何文件**）。`.gitignore` 以**显式路径**为主；sandbox 那段 = 先忽略 `sol/sandbox/*.json` → `!sol/sandbox/t_trap*.json` 放行批次证据 → 最后重新排除 `t_trap*-state.json`。
+  **脱敏**（本段唯一的文字改动，共 3 处）：`STATE.md` 两处 + `sol/sandbox/SCORE.md` 一处，把"前台窗口标题 = 具体页面标题"改成通用描述（"用户前台窗口" / "另一个应用的窗口"）；hwnd、数字、结论一字未改；验证 `grep -n "Chrome|浏览器|DeepSeek 窗口" STATE.md HANDOFF.md sol/sandbox/SCORE.md` ⇒ **0 命中**。
+  推送细节：`~/.ssh` 为空 ⇒ remote 用 **HTTPS**（`https://github.com/Maopk/vision-work.git`；规格里写的 `git@github.com:` 无密钥必然失败）；WSL 里 `127.0.0.1:7897` **不通**（那是 Windows 侧监听，进程 = verge-mihomo pid 29176），可达的是 **WSL 默认网关 `172.31.96.1:7897`** ⇒ 仍按规格**走代理**，只是换了地址；token 走 `http.extraheader` 逐次传入，**未写进 `.git/config`**。
+  推送后核验：远端 blob **102 == 本地 102**、`raw` 取回的 `gym_app.py`/`gym_run.py`/`score.py`/`gui_see.py`/`loop.py` 的 sha256 与本地**逐字节一致**、`.png`/`.jsonl`/`-state.json`/`.log`/`.txt`/`__pycache__` **0 命中**、无关历史材料 **0 命中**、12 个顶层文件与文档全部 HTTP 200、远端 `refs/heads/main` = 本地 HEAD、GitHub 页面认定 `README.md` 为仓库 README（5283 B）。
+- **第八段新增欠账 / 旧账（未冻结）**：① **报告打磨未做**（第 2 章外部引用 / 附录 A 升级为带行号 / 按附录 B 四问复查）⇒ `REPORT.md` 仍是 **v0.1**；② 仓库**有意不配 CI**（应用层决策）；③ 后续推送仍需带 token 头（**未做凭据持久化**，避免把 token 落盘）；④ 上述第七段 ①–③ 与第六段 ④–⑦ 全部照旧。
 - **主线仍悬着的那一件**：从 `HANDOFF.md` §6 挑一条（**#4 / #17 已还清、#12 已量完关闭，都跳过**）—— 现在只剩两条：**§7 #16 `popup` 打不掉**（驱动能力缺口，最难：`--keys --bg` 下没有可用的窗口标题，弹窗留屏、按键被吃）→ **§7 #18 滚轮 + 拖拽**（新题型 + `--bg` 鼠标通道缺口，用户明示排在所有欠账之后）。
   非批次类的那一件是**报告正文**（初稿 `REPORT.md` 已成 **353 行**；框架 `REPORT-draft.md` **129 行**，取材顺序在它的附录；写它不裂 sha、不动三件套）。
-- **开工前必读**：本文件开头 + `HANDOFF.md` §2（口径）与 §4（已知盲区 **21** 条）；动报告时再读 `REPORT-draft.md` **§0 写作原则** + `REPORT.md`（初稿）+ 它的附录 B 自检表。
+- **开工前必读**：本文件开头 + `HANDOFF.md` §2（口径）与 §4（已知盲区 **21** 条）；动报告时再读 `REPORT-draft.md` **§0 写作原则** + `REPORT.md`（初稿）+ 它的附录 B 自检表。**仓库已在 https://github.com/Maopk/vision-work**（公开，首 commit `9bc567d`，2026-10-05 推送；README 双版 + `CHANGELOG.md` + `LICENSE` + `.gitignore` 都在仓库根）。
 - **开工前必查**：venv `D:\DSH\.venvs\vision-ci\Scripts\python.exe` 可用；actor 守护进程在（`:8731`，**第五段收工时 pid 12008、uptime 5066 s**；`act.py ping` 一句话可查）；
   `foreground` 当前状态（收工时未锁屏；**同一时刻只能有 1 个 gym 窗口 ⇒ 各批串行**）。
-- **本日状态（2026-10-05 收工）**：第七段**已收工** —— 报告正文初稿 `D:\DSH\vision-work\REPORT.md`（**353 行**：8 章 + 附录 A 数字索引 + 附录 B 逐章自检）完成；数字一律指向 `SCORE.md`（未复制任何通过率/分母/毫秒），**未裂 sha、未动三件套、未动任何批次文件**；**三件套 sha 与第六段收工完全一致**（`gym_app.py 66632d85eac81c12` / `gym_run.py 105cf6cb679eea10` / `score.py ef066713a03eb940`）；
+- **本日状态（2026-10-05 收工）**：**第八段已收工** —— `vision-work` 已推成独立公开仓库 **https://github.com/Maopk/vision-work**（首 commit `9bc567d297fcf95854264a92e6d5f0d9447b4df9`，102 文件 / 5.3 MB，MIT；未删任何文件、未改三件套、未动任何批次文件）；第七段 —— 报告正文初稿 `D:\DSH\vision-work\REPORT.md`（**353 行**：8 章 + 附录 A 数字索引 + 附录 B 逐章自检）完成；数字一律指向 `SCORE.md`（未复制任何通过率/分母/毫秒），**未裂 sha、未动三件套、未动任何批次文件**；**三件套 sha 与第六段收工完全一致**（`gym_app.py 66632d85eac81c12` / `gym_run.py 105cf6cb679eea10` / `score.py ef066713a03eb940`）；
   此前：第六段 #12（`guard-blind` 分母）量完并**关闭**（探针批 `D:\DSH\dsh-actor\tmp\w12-trap5-keys20.json` + 留档 `w12-events-archive.json`；`SCORE.md` 未动）；批次 11 定稿（`gym_run.py` `105cf6cb679eea10`、`score.py` `ef066713a03eb940`）、#17 还清、#18 只量不改（探针产物全在 `D:\DSH\dsh-actor\tmp\`）；
   批次 8 的四类 chaos 结果已入 `SCORE.md` 与本文 §10.4；`popup` 类不可测（欠账 #16）、`a_hit` 未达标如实记录（不硬推）、`shot` 空帧零容忍（#17 已还）。
 

@@ -189,6 +189,12 @@ python tools/check-counts.py --list   # 打印登记表（每个家族的真源 
 - **加一个宣称点** = 脚本里该家族下加一个元组；**加一个家族** = 加一个 dict（文件头部有注释）。清单口径是"只数 `*.md`、`.git` 除外"，写进宣称点旁边。
 - 可选的 pre-commit（**未启用**，要你明确同意才装）：`git config core.hooksPath .githooks` + 一个调本脚本的 `pre-commit`。本仓库没有 CI，闸靠这条规程 + 自觉。
 
+### 3.6 CHANGELOG 末尾追加条目的前缀标签
+
+`CHANGELOG.md` 的最后一个分节是 `### Fixed`，所以「追加到文件末尾」≠「追加到 Fixed 分节」：
+末尾追加的条目若**不属**上一分节，首句须带 `Changed --` / `Fixed --` / `Added --` 前缀标签；
+若属分节，则按 `### Added / ### Changed / ### Fixed` 归位（现行例子 = `CHANGELOG.md` 末尾那条 `Changed --`）。
+
 ## 4. 这个规程不做的事
 
 - 不做通用 GUI 驱动（那是另一个技能的领域：UIA 优先、`wait_for` 不是 sleep、一次 `run` 串完）。

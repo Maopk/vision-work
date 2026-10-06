@@ -187,7 +187,7 @@
 - v1.0 之后**不再加 scenario 类**；新想法走 **v1.x** 或另开仓库。
 - **"冻结" = 接口冻结**（run json `schema: 1` + 文档 + 引用纪律），**不是停止开发**。
 - **声明口径**：`vision-work` 的 v1.0 = §4 八条里 **(a)(b)(c)(d)(d 配套)(e)(f)(g) 七条全过**；**(h) 计数与清单单一化明确不在声明内**（依据见 (h) 节末）。
-- **v1.x 清单（仍开着的欠账）**：① #18 = **部分覆盖**（前台真鼠标、批次 23 / 24 各 8 题、`viewport` 桶；仍不覆盖 `--bg` 鼠标通道与滚轮 / 拖拽的连续交互公差）；② ~~`scripts_sha` 覆盖面缺口（只哈希三件套，漏 `gui_see.py` / `loop.py`）~~ **已还（阶段 3.6）**：六文件定义 + `scripts_sha_files`（值 `7051c259fa05`），旧值不回溯、两种定义不可互比（`SCORE-history.md` §1.1）；③ actor 自身 sha **不记**（`ping` 无版本 op；只记 `env.actor_py` / `env.actor_pid`，跨 session 不可追溯）；④ ~~**manifest v1 实现**（3.6）~~ **已做（阶段 3.6，commit A `1c1a9b8`）**：题序搬进 `sol/sandbox/plans.v1.json`，266 元组逐元组等价、题序逐字未变；⑤ ~~计数闸扩展（3.7）~~ **已做（阶段 3.7）**：普查 + 真源 + `tools/check-counts.py`（`STATE.md` §36、规程 `docs/OPERATING.md` §3.5）；⑥ `dsh-termux-kit` 侧 5 处计数漂移（§8 已记，未做）。
+- **v1.x 清单（仍开着的欠账）**：**3** 项 = ①③⑥（②④⑤ 已划掉，理由见各项）：① #18 = **部分覆盖**（前台真鼠标、批次 23 / 24 各 8 题、`viewport` 桶；仍不覆盖 `--bg` 鼠标通道与滚轮 / 拖拽的连续交互公差）；② ~~`scripts_sha` 覆盖面缺口（只哈希三件套，漏 `gui_see.py` / `loop.py`）~~ **已还（阶段 3.6）**：六文件定义 + `scripts_sha_files`（值 `7051c259fa05`），旧值不回溯、两种定义不可互比（`SCORE-history.md` §1.1）；③ actor 自身 sha **不记**（`ping` 无版本 op；只记 `env.actor_py` / `env.actor_pid`，跨 session 不可追溯）；④ ~~**manifest v1 实现**（3.6）~~ **已做（阶段 3.6，commit A `1c1a9b8`）**：题序搬进 `sol/sandbox/plans.v1.json`，266 元组逐元组等价、题序逐字未变；⑤ ~~计数闸扩展（3.7）~~ **已做（阶段 3.7）**：普查 + 真源 + `tools/check-counts.py`（`STATE.md` §36、规程 `docs/OPERATING.md` §3.5）；⑥ `dsh-termux-kit` 侧 5 处计数漂移（§8 已记，未做）。
 - **已关闭 / 已还清**（归档、不再投入）：#4 / #12 / #17 / #19 / #20（窄批口径）/ #21（已修 + 回归）。
 
 ## 7. 红线（v1 写作段与 v1.1 回灌段共同适用）

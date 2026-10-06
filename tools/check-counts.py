@@ -175,6 +175,27 @@ def src_topdirs() -> list[str]:
     return sorted({p.split("/")[0] for p in out.splitlines() if "/" in p})
 
 
+def src_v1xopen() -> int:
+    """`v1.x` 仍开着的项数 = 清单行里**没有被划掉**的条目数。
+
+    自洽检查：这一行自己报一个数，条目就在同一行 —— 数错或忘了划掉都会失败。
+    行内条目总是「记号 + 空格」；标题里的 `①③⑥` 不带空格，不当作条目。
+    """
+    line = next((ln for ln in lines("OPENSOURCE-READINESS.md")
+                 if "v1.x 清单（仍开着的欠账" in ln), "")
+    if not line:
+        _fail("OPENSOURCE-READINESS.md: the v1.x list line is gone")
+        return 0
+    rows = re.split(r"(?<=[：；。])(?=[①②③④⑤⑥⑦⑧⑨⑩]\s)", line)[1:]
+    return sum(1 for r in rows if "~~" not in r)
+
+
+def src_censusrows() -> int:
+    """`§36.2` 普查表里【可变量】家族的行数（同表行数 vs 三处散文里自称的数）。"""
+    body = section("audit/STATE.md", "**36.2 普查表**", "**36.3 分类判据**")
+    return len(re.findall(r"^\| V\d+ \|", body, re.M))
+
+
 # --------------------------------------------------------------- the registry ---
 CHECKS: list[dict] = [
     {
@@ -288,6 +309,22 @@ CHECKS: list[dict] = [
         "value": src_topdirs,
         "claims": [],
         "also": ["layout"],
+    },
+    {
+        "id": "v1x-open-items",
+        "what": "`v1.x` 仍开着的项数（自称数 vs 同一条目行里未划掉的行数；一致性检查）",
+        "value": src_v1xopen,
+        "claims": [("OPENSOURCE-READINESS.md", "v1.x 清单（仍开着的欠账", "**{n}** 项")],
+    },
+    {
+        "id": "census-rows",
+        "what": "`§36.2` 普查表里【可变量】家族的行数（三处散文自称的数必须等于表里的行数）",
+        "value": src_censusrows,
+        "claims": [
+            ("audit/STATE.md", "**36.1 一句话**", "**{n}** 个【可变量】家族"),
+            ("audit/STATE.md", "只覆盖 §36.2 表里登记的", "**{n}** 个【可变量】家族"),
+            ("docs/OPERATING.md", "- **管什么**", "**{n}** 个【可变量】家族"),
+        ],
     },
 ]
 

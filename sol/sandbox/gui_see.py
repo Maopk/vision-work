@@ -15,7 +15,22 @@ import tempfile
 import numpy as np
 from PIL import Image
 
-TESS = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+# The tesseract binary.  $TESS (or $TESSERACT) wins; the author's install path is the
+# last resort so an old checkout still runs here.  Callers go through `tess_bin()`:
+# a missing OCR engine should name the variable to set, not surface as a
+# FileNotFoundError from a subprocess three layers down.
+_TESS_DEFAULT = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+TESS = os.environ.get("TESS") or os.environ.get("TESSERACT") or _TESS_DEFAULT
+
+
+def tess_bin() -> str:
+    """The tesseract executable, checked, with the fix in the message."""
+    p = os.environ.get("TESS") or os.environ.get("TESSERACT") or _TESS_DEFAULT
+    if not os.path.exists(p):
+        raise SystemExit("tesseract not found at %s\n"
+                         "  set TESS=<full path to tesseract(.exe)> - e.g. TESS=%s\n"
+                         "  or install it at that default path" % (p, _TESS_DEFAULT))
+    return p
 
 
 # ---------------------------------------------------------------- OCR --------
@@ -32,7 +47,7 @@ def ocr_words(im: Image.Image, lang: str = "eng", psm: str = "11",
     os.close(fd)
     try:
         im.save(tmp)
-        cmd = [TESS, tmp, "stdout", "-l", lang, "--psm", psm, "tsv"]
+        cmd = [tess_bin(), tmp, "stdout", "-l", lang, "--psm", psm, "tsv"]
         if whitelist:
             cmd += ["-c", "tessedit_char_whitelist=" + whitelist]
         r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8")
@@ -67,7 +82,7 @@ def read_box(im: Image.Image, box, whitelist: str | None = None,
     os.close(fd)
     try:
         crop.save(tmp)
-        cmd = [TESS, tmp, "stdout", "-l", lang, "--psm", psm]
+        cmd = [tess_bin(), tmp, "stdout", "-l", lang, "--psm", psm]
         if whitelist:
             cmd += ["-c", "tessedit_char_whitelist=" + whitelist]
         r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8")
@@ -97,7 +112,7 @@ def char_boxes(im: Image.Image, lang: str = "eng", psm: str = "7",
     rows: list[dict] = []
     try:
         im.save(tmp)
-        cmd = [TESS, tmp, base, "-l", lang, "--psm", psm, "batch.nochop", "makebox"]
+        cmd = [tess_bin(), tmp, base, "-l", lang, "--psm", psm, "batch.nochop", "makebox"]
         if whitelist:
             cmd += ["-c", "tessedit_char_whitelist=" + whitelist]
         subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8")

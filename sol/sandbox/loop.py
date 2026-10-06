@@ -36,7 +36,13 @@ import spider_sandbox as SB      # noqa: E402
 import spider_solve as S         # noqa: E402
 import spider_table as T         # noqa: E402
 
-ACTOR_HOME = os.environ.get("ACTOR_HOME", r"D:\DSH\dsh-actor")
+# Where the actor keeps its state (port.txt, logs).  $ACTOR_HOME wins; the author's
+# path is only a fallback, and `actor_port()` prints which one it used and what to set
+# instead of quietly talking to whatever happens to answer on the default port.
+ACTOR_HOME_ENV = "ACTOR_HOME"
+ACTOR_HOME_DEFAULT = r"D:\DSH\dsh-actor"
+ACTOR_HOME = os.environ.get(ACTOR_HOME_ENV) or ACTOR_HOME_DEFAULT
+ACTOR_PORT_DEFAULT = 8731
 TITLE = "Spider Practice Table"
 PITCH = T.PITCH
 STEP_UP = T.STEP_UP
@@ -50,7 +56,13 @@ def actor_port() -> int:
         with open(os.path.join(ACTOR_HOME, "port.txt")) as fh:
             return int(fh.read().strip())
     except OSError:
-        return 8731
+        where = ("%s=%s has no port.txt" % (ACTOR_HOME_ENV, ACTOR_HOME)
+                 if os.environ.get(ACTOR_HOME_ENV) else
+                 "%s is not set and the author's default %s has no port.txt"
+                 % (ACTOR_HOME_ENV, ACTOR_HOME))
+        print("%s - falling back to port %d; set %s=<the actor's state dir>"
+              % (where, ACTOR_PORT_DEFAULT, ACTOR_HOME_ENV), file=sys.stderr)
+        return ACTOR_PORT_DEFAULT
 
 
 class Actor:

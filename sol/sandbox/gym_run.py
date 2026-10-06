@@ -19,6 +19,7 @@ import sys
 import time
 
 import numpy as np
+import PIL
 from PIL import Image, ImageChops, ImageDraw, ImageFont, ImageOps
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -3252,6 +3253,32 @@ def wait_until_unlocked(timeout: float, poll: float = 5.0, note=print) -> bool:
     return False
 
 
+def run_env(act: Actor) -> dict:
+    """What a run's numbers were produced on - recorded, never guessed.
+
+    Anything unavailable is null; the run's own code identity is the sibling `scripts_sha`.
+    """
+    def _line1(cmd: list) -> "str | None":
+        try:
+            o = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
+            return ((o.stdout or "") + (o.stderr or "")).splitlines()[0].strip() or None
+        except Exception:
+            return None
+
+    try:
+        tess = _line1([G.tess_bin(), "--version"])
+    except SystemExit:
+        tess = None
+    try:
+        info = act.call({"op": "ping"}, timeout=20.0)
+    except Exception:
+        info = {}
+    return {"python": sys.version.split()[0], "numpy": np.__version__,
+            "pillow": PIL.__version__, "tesseract": tess,
+            "screen": {"geom": info.get("geom"), "dpi": info.get("dpi")},
+            "actor_py": info.get("py"), "actor_pid": info.get("pid")}
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--seed", type=int, default=None)
@@ -3678,6 +3705,7 @@ def main() -> int:
                        "scripts_sha": _sha([os.path.join(here, "gym_run.py"),
                                             os.path.join(here, "gym_app.py"),
                                             os.path.join(here, "score.py")]),
+                       "env": run_env(d.a),
                        "app_args": app_args,
                        "mode": {
                            "bg": bool(a.bg), "keys": bool(a.keys), "chaos": a.chaos,

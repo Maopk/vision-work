@@ -1,0 +1,17 @@
+# What the audit sandbox runs on.
+#
+# Two third-party imports sit on the measurement path: numpy (the image maths behind
+# the reader) and Pillow (every screenshot, crop and diff).  They are pinned because a
+# release that changes resampling, dtype promotion or PNG handling can move a measured
+# number with no line of this repository changing.
+#
+# The interpreter is deliberately not pinned by pip: the recorded batches ran on
+# CPython 3.12 (3.12.14).  Run 3.12 if you want to compare against numbers in
+# REPORT.md or sol/sandbox/SCORE.md.
+numpy==2.3.5
+pillow==12.3.0
+
+# Tesseract is not a pip package, so it cannot be pinned here.  Its version is recorded
+# per run instead - every run json written from now on carries an `env` block with the
+# tesseract version, the interpreter, numpy/Pillow and the screen geometry/DPI.  The
+# binary comes from $TESS; see sol/sandbox/gui_see.py:tess_bin.

@@ -33,6 +33,12 @@ sol/sandbox/*.json
 !sol/sandbox/t_trap*.json
 # 放行之后再把批次的 state 重新排除（最后命中的规则生效）
 sol/sandbox/t_trap*-state.json
+# 阶段 3.5：viewport 两批（t_rows / t_chips）的证据 json 也要入库 —— 桶的通过率只有在
+# 证据进仓库时才可核对；其 state 仍排除（同 t_trap 的写法）。
+!sol/sandbox/t_rows*.json
+!sol/sandbox/t_chips*.json
+sol/sandbox/t_rows*-state.json
+sol/sandbox/t_chips*-state.json
 sol/sandbox/*.txt
 sol/sandbox/*.out
 sol/sandbox/*.box

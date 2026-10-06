@@ -754,17 +754,24 @@ def main(argv: list[str]) -> int:
         # which 口径 produced it, so a v2 table is never mistaken for a v1 one.
         gate = (V3 if gates == V3 else V2 if gates == V2
                 else V1 if (force_v1 or gates == V1) else V0)
+        # 3.5 / B3 2.3.3: the join is a read of the target's *own* declaration, not a
+        # scoring口径, so it runs before the branch.  `t_rows`/`t_chips` keep the v0 gate
+        # (gym_run.py:3694); with the join inside the v1+ branch only, their viewport
+        # bucket could never be printed at all.
+        n = join_truth(rep, events)
         if gate in (V1, V2, V3):
-            n = join_truth(rep, events)
             if n:
                 print("               joined %d task(s) to the target's declared truth" % n)
             print(v1_row(path, rep, tag=gate))
         else:
             print("[口径 v0 不可比] %s" % v0_row(path, rep))
+            vp = vp_line(rep.get("runs") or [])
+            if vp:
+                print("               " + vp)
     return rc
 
 
-# --------------------------------------------------------- viewport bucket (3.4)
+# --------------------------------------------- viewport bucket (3.4; v0 print 3.5)
 # Design: audit/DESIGN-18-scroll-drag.md §9.  `t_rows` and `t_chips` are the two
 # scenarios whose verdicts the target has always scored itself (a click on the wrong
 # row, a chip dropped in the wrong slot), yet which never *declared* a truth class, so
@@ -774,6 +781,16 @@ def main(argv: list[str]) -> int:
 # `selftest` all resolve them at call time, so the v1 section above keeps the exact line
 # structure it had when batches 1-20 were scored against it.
 VIEWPORT = "viewport"
+
+
+def vp_line(runs) -> str | None:
+    """The bucket's own line, for a gate whose table has no room for it (v0, 3.5)."""
+    vp = [r for r in runs if r.get("truth_class") == VIEWPORT]
+    if not vp:
+        return None
+    ok = sum(1 for r in vp if r.get("result") == "ok")
+    return ("viewport %d/%d (%.1f%%)  [own bucket: not in the rates above]"
+            % (ok, len(vp), 100.0 * ok / len(vp)))
 
 
 def vp_checks(check, counts, task) -> int:

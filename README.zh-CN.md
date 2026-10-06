@@ -4,6 +4,8 @@
 
 **定位**：审计与测量 · **不是**：通过率排行榜，也不是对任何模型能力的断言
 
+**状态**：**v1.0** —— 接口已冻结（run json 的 `schema: 1`、引用纪律、计分板的口径门）。"冻结"指**接口**，不是停止开发：新的场景族走 v1.x 或另开仓库 —— 见 [OPENSOURCE-READINESS.md](OPENSOURCE-READINESS.md) §6。
+
 > 本仓库的每个数字都来自脚本化运行、由 `score.py` 打分。分数本身在 [`sol/sandbox/SCORE.md`](sol/sandbox/SCORE.md) —— 这份 README 故意一个都不写。
 
 [English](README.md) · **中文**

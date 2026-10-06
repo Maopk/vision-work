@@ -4,6 +4,8 @@ A **behaviour audit range for GUI agents** — a self-built target, a fully blin
 
 **Scope**: audit and measurement · **Not**: a pass-rate leaderboard, or a claim about any model's ability
 
+**Status**: **v1.0** — the interfaces are frozen (run json `schema: 1`, the citation rules, the scoreboard's measurement gate). "Frozen" means the interfaces, **not** development: new scenario families go to v1.x or to another repository — see [OPENSOURCE-READINESS.md](OPENSOURCE-READINESS.md) §6.
+
 > Every number in this repository comes from a scripted run and is scored by `score.py`. The scores themselves live in [`sol/sandbox/SCORE.md`](sol/sandbox/SCORE.md) — this README deliberately states none of them.
 
 **English** · [中文](README.zh-CN.md)

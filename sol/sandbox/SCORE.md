@@ -44,7 +44,7 @@ so re-reads make them exceed the task count).
 | **v2** | v1 定义**一字不改**，只把 `a_hit_but_failed` 拆成 `_wrong_target`/`_twin`，行标签改 `v2` | `v2` | 批次 5（`t_trap*` 场景） | 与 v1 的 `pass/decided/false_*` **逐列可比**（拆分只是把一个合计列展开成两列） |
 | **v3** | v2 定义**一字不改**，加两样：race 的 variant 集合纳入 `swap_race_timer` 并拆出 `race_press_after_guard`（"**守门抓帧之后**才发生的过期按压"），以及守门逐门样本分位 `gate_samples`/`gate_p50`/`gate_p95` | `v3` | 批次 6（`t_trap5` 场景） | 与 v2 的 `pass/decided/false_*`/`a_hit_but_failed_*` **逐列可比**；**race 分母不可与批次 5 的 `0/0` 并列解读**（批次 5 的 `swap_timer` 定时 600–1000 ms 落在守门帧之前，机制上不可能产生过期按压，见批次 6 一节） |
 
-各批 `scripts_sha`（sha256/12，覆盖 `gym_run.py` + `gym_app.py` + `score.py`；**sha 相同才是同一版驱动**）：
+各批 `scripts_sha`（sha256/12，覆盖 `gym_run.py` + `gym_app.py` + `score.py`；**sha 相同才是同一版驱动**）：**阶段 3.5 的两批（23 / 24）= `4fc217c37901`**（`score.py` 在跑批前补了 v0 打印 ⇒ `e80a646c63de8075`；**表体不加行**以免全表之后的行号整体漂移，逐条见文末「批次 23 / 24」两节）：
 
 | 批次 | 文件 | `scripts_sha` | 口径 | 通道 / 备注 |
 |---|---|---|---|---|
@@ -1655,6 +1655,112 @@ guard gate sample 74  P50 133 ms  P95 171 ms
 4. 单批、单 seed（60 题、`popup@0.35`）。
 5. `refuse_by_stall` 是本段新增键 ⇒ **不要与其他 sha 的批跨比**。
 6. **占用前台**：60 题 ≈ 270 s。
+
+## 批次 23 结果（2026-10-06 阶段 3.5）—— `viewport` 桶首次真取数 · `t_rows`（滚轮）8 题 · 前台真鼠标 · 无 chaos
+
+### 23.0 一句话
+`viewport` 类进体系（阶段 3.4）之后的**第一批真取数**：8 题全部走完（`partial False` / `exit_reason None` / 退出码 0），
+滚轮路径真的被用到（`stats.scrolls = 1`），靶子声明 8 行 `truth_class = "viewport"`，打分器把它们全部收进**自己的桶**、
+**没有**混进五判定或分母（见 23.3）。⚠ 本批是**通道验证批，不是成绩批**：8 题、单 seed、只覆盖前台真鼠标通道。
+
+**本批 sha 三件套**：`gym_run.py 2ba26b608cf7ec18` / `gym_app.py 17b6a59cb831dafa` / `score.py e80a646c63de8075`；`scripts_sha 4fc217c37901`。（`score.py` 在跑批前按用户裁决补了 v0 打印，见 23.6。）
+
+### 23.1 命令（逐字）
+```
+gym_run.py --scenario t_rows --tasks 8 --seed 20251007 --max-repeat 3 --json-out t_rows-w23-mouse8.json
+```
+- 通道 = **前台真实鼠标**（无 `--bg`、无 `--keys`、无 chaos）；退出码 **0**；日志 `D:\DSH\dsh-actor\tmp\stage35\b23.log`。
+- 启动前：actor `ping` 正常、屏上靶窗口计数 == 1、无残留窗口；跑完 `foreground after … unchanged: True`、无残留窗口。
+
+### 23.2 判据与结果（跑前写死，见 B3 §1.4；J5 由静态论证 + 干跑承担）
+| 判据 | 结果 |
+|---|---|
+| J1 跑满不早停 | ✅ **8/8**、`partial False`、`exit_reason None`、退出码 0 |
+| J2 滚轮路径被用到 | ✅ `stats.scrolls = 1`（task 2 的 `rec.scrolls = 1`；其余 7 题没滚动） |
+| J3 桶单列、`--v1` 主分母为 0 | ✅ 见 23.3（桶 `8/8`；`--v1` = `0/0` + `no declared tasks`） |
+| J4 读数来自屏幕 | ✅ `asks_from_file = 0`，8/8 `ask_source = screen` |
+| 逐题结果 | 8 行全 `result = ok` |
+
+### 23.3 打分（跑完立刻打，`score.py` 逐字）
+```
+[口径 v0 不可比] t_rows 8/8 100.0% 1507 ms/task keys 0 shots 9 ocr 42
+               viewport 8/8 (100.0%)  [own bucket: not in the rates above]
+```
+- 同一 json 加 `--v1`：`t_rows v1 0/0 0.0% … no declared tasks` + `viewport 8/8` ⇒ **主分母 n = 0**（本批没有 `answerable` / `must_refuse` 题），桶仍单列 —— 这就是"桶不进主分母"的直接证据。
+- 用 `score.py` 自己的 `join_truth` / `v1_counts` 实测：joined 8 / viewport 行 8 / ok 8 / `undeclared` 0 / `variants = ['rows']`。
+- **`gates` 落 `v0`**：`gym_run.py:3694` 按场景名分流（`t_trap5→v3`、`t_trap*→v2`、其余 `→v0`），`t_rows` 不是 `t_trap*` ⇒ v0 分支的 viewport 行是**阶段 3.5 新加的**（见 23.6）。
+
+### 23.4 落档
+- json `t_rows-w23-mouse8.json`（17473 B）`sha256/16 = f2d7dec6c975d096`；state `49cd44e018e93839`；events `47143e90c045ec26`（39032 B）。
+- `env` 块：`python 3.12.14` / `numpy 2.3.5` / `pillow 12.3.0` / `tesseract v5.4.0.20240606` / `screen geom [0,0,2560,1600] dpi per-monitor` / `actor_py 3.12.14` / `actor_pid 31824`。
+
+### 23.5 引用这批时必须带上的边界
+1. **只覆盖前台真鼠标通道**；`--bg` 鼠标通道与 `--keys` 键通道**都不适用**（本场景的滚轮在键通道没有等价物）。
+2. 8 题、单 seed（20251007）、单批；**滚轮只被触发 1 次**（task 2）⇒ 这条路径的样本量是 **1 次**，不是 8 次。
+3. **桶的通过率不得与主线通过率并列引用**（不进五判定、不进分母）。
+4. 与批次 1–20 在 `rows_total` / `undeclared` 构成上不同 ⇒ **不可直接比**。
+5. 引用本批时写明 `scripts_sha`（`4fc217c37901`）：它是 `score.py` 补丁后的第一版。
+
+### 23.6 跑前的打分器补丁（属于本段，必须与本批一起读）
+B3 §2.3 第 3 项要求「v0 分支也打 viewport 行」，而阶段 3.4 只把桶放进了 v1 路径 ⇒ `t_rows` / `t_chips` 的桶**在默认输出里根本打不出来**（它们的 `gates` 恒为 v0）。本段按用户裁决**先补再跑**：`main()` 里 `join_truth` 移到 gate 分支之前无条件执行、v0 分支追加 `vp_line(...)` 一行、尾块新增 `vp_line()`。
+⇒ `score.py` `c1a251a248a029c7` → **`e80a646c63de8075`**、`scripts_sha` `0c2c420e4d40` → **`4fc217c37901`**；离线回归 = 新旧打分器在**54 个既有 run json × 2 模式（默认 + `--v1`）= 108 次调用上输出 0 处不同**，`--selftest` 仍 43/43。
+
+## 批次 24 结果（2026-10-06 阶段 3.5）—— `viewport` 桶首次真取数 · `t_chips`（拖拽）8 题 · 前台真鼠标 · 无 chaos
+
+### 24.0 一句话
+与批次 23 同协议、同 seed 的第二批（拖拽侧）：8 题全部走完，**每一题都走了拖拽路径**（8 行 `act = drag_chip`、`stats.drags = 8`），桶 `8/8`、主分母同样为 0。⚠ 同样是**通道验证批，不是成绩批**。
+
+**本批 sha 三件套**：`gym_run.py 2ba26b608cf7ec18` / `gym_app.py 17b6a59cb831dafa` / `score.py e80a646c63de8075`；`scripts_sha 4fc217c37901`（与批次 23 同版驱动 ⇒ 两批可互比）。
+
+### 24.1 命令（逐字，与批次 23 同参、只换场景）
+```
+gym_run.py --scenario t_chips --tasks 8 --seed 20251007 --max-repeat 3 --json-out t_chips-w24-mouse8.json
+```
+- 通道 = **前台真实鼠标**；退出码 **0**；驱动侧 `2988 ms/task avg | shots 8 ocr 56 drags 8`；日志 `D:\DSH\dsh-actor\tmp\stage35\b24.log`。
+- 跑完 `foreground after … unchanged: True`、无残留窗口。
+
+### 24.2 判据与结果
+| 判据 | 结果 |
+|---|---|
+| J1 跑满不早停 | ✅ **8/8**、`partial False`、`exit_reason None`、退出码 0 |
+| J2 拖拽路径被用到 | ✅ `stats.drags = 8`，8 行 `act = drag_chip` |
+| J3 桶单列、`--v1` 主分母为 0 | ✅ 见 24.3 |
+| J4 读数来自屏幕 | ✅ `asks_from_file = 0`，8/8 `ask_source = screen` |
+| 逐题结果 | 8 行全 `result = ok` |
+
+### 24.3 打分（跑完立刻打，`score.py` 逐字）
+```
+[口径 v0 不可比] t_chips 8/8 100.0% 2353 ms/task keys 0 shots 8 ocr 56
+               viewport 8/8 (100.0%)  [own bucket: not in the rates above]
+```
+- `--v1`：`t_chips v1 0/0 0.0% … no declared tasks` + `viewport 8/8` ⇒ 主分母 0。
+- `join_truth` / `v1_counts` 实测：joined 8 / viewport 行 8 / ok 8 / `undeclared` 0 / `variants = ['chips']`。
+
+### 24.4 落档
+- json `t_chips-w24-mouse8.json`（24542 B）`sha256/16 = 4a83a217bb17f09b`；state `e073f5f85a6c50bc`；events `54bf4fd43a6543ac`（41960 B）。
+- `env` 块与批次 23 相同（同一台机、同一 actor 会话）。
+
+### 24.5 引用这批时必须带上的边界
+1. **只覆盖前台真鼠标通道**（`t_chips` 的拖拽在键通道没有等价物）。
+2. 8 题、单 seed、单批；拖拽 8 次 = 每题一次，**不是** 8 次独立重复。
+3. **桶的通过率不得与主线通过率并列引用**。
+4. 与批次 1–20 的 `rows_total` / `undeclared` 构成不同 ⇒ 不可直接比。
+5. 与批次 23 **同版驱动**（`4fc217c37901`）⇒ 两批之间可比；与阶段 3.4 之前任何批不可比。
+
+## 阶段 3.5 · `viewport` 桶首次取数（批次 23 + 24 合并表）
+
+| 批次 | 场景 | 题数 | 桶 `n/m` | `--v1` 主分母 | 路径证据 | 逐题 |
+|---|---|---|---|---|---|---|
+| 23 | `t_rows`（滚轮） | 8 | **8/8 (100.0%)** | **0**（`no declared tasks`） | `stats.scrolls = 1`（task 2） | 8 行全 `ok` |
+| 24 | `t_chips`（拖拽） | 8 | **8/8 (100.0%)** | **0** | `stats.drags = 8`（8 行 `act = drag_chip`） | 8 行全 `ok` |
+
+读法：`n/m` 里 `m` = 被靶子声明为 `viewport` 的行数，`n` = 其中 `result == ok`。两批都**没有** `answerable` / `must_refuse` 题 ⇒ `--v1` 主分母是 0，这正是"桶不进主分母"的直接证据。
+
+**引用这组数字时的边界**（与两节各自相同，此处再写一次 —— 这是唯一会被合并引用的表）：
+1. 只覆盖**前台真鼠标**通道；两批各 8 题、单 seed、单批。
+2. 滚轮只被触发 **1 次**；拖拽 8 次（每题一次）。
+3. **不得与主线通过率并列**；也**不得**当作 v1.0 的能力声明 —— v1.0 声明的是**接口与标准**（见 `../../audit/STATE.md` §34.5），不是通过率。
+4. 与批次 1–20 不可直接比。
 
 > **#20 = 收口（决定不追加）**；依据见 `../../audit/STATE.md` §28.3；本文件为数字源，**有意不载决策** —— 上面 16.6 与 17.5 的
 > "**【未决】**"是**那时的历史记录**，保留不动；"收口"是**决定**（不再投入），不是结论改变。

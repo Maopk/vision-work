@@ -1,0 +1,115 @@
+{
+ "schema": 1,
+ "what": "manifest v1 - the practice target's five plan tables, as data.  Loaded by `gym_app.py` at import; the flat pair list it expands to is the same list the old literals spelled out (verified tuple-for-tuple in stage 3.6).",
+ "adding_a_family": [
+  "append runs to an existing plan, or add a new plan object under `plans` (optionally `base` + `runs` to derive it), and register it in `gym_app.py` with one line: `TRAP_PLANn = _load_plans()[\"name\"]` plus a `t_trapN` method that slices it - no other code change is needed to get a scored batch.",
+  "the renderers are shared: a run's `variant` string is what `_trap_*` builders switch on, so a family that reuses an existing shape needs no new painting."
+ ],
+ "not_a_plugin_system": "This is a data file for *task order*, scenario choice and variant combination - not a plugin system.  A new *visual* shape (a new control, a new failure mode of seeing) still needs its `_trap_*` builder and a `t_trapN` scenario method in `gym_app.py`: the manifest cannot paint anything.  Deliberate boundary - see `docs/TASK-AUTHORING.md` section 5.",
+ "plans": {
+  "trap": {
+   "note": "Batch 1 (t_trap) - the smoke-test batch: 8 classes x 3 tasks = 24.  Variants are laid out explicitly (2+1 for prose_same_word and synonym, three alphas for half_transparent) so a finished run can never be read as one blended rate for two different questions.",
+   "runs": [
+    [["prose_same_word", "prose_with_button"], 2],
+    [["prose_same_word", "prose_only"], 1],
+    [["two_close_names", ""], 3],
+    [["disabled", ""], 3],
+    [["half_transparent", "alpha035"], 1],
+    [["half_transparent", "alpha050"], 1],
+    [["half_transparent", "alpha065"], 1],
+    [["flat_button", ""], 3],
+    [["synonym", "synonym_button"], 2],
+    [["synonym", "synonym_only"], 1],
+    [["bold_prose", ""], 3],
+    [["swap_mid_task", ""], 3]
+   ]
+  },
+  "trap2": {
+   "note": "Batch 2 (t_trap2) - written after batch 1 went 24/24 five runs in a row.  Five clean sweeps are a statement about the batch, not about the driver, so every class gets >= 10 tasks here and the two blind spots keep their own variants.  The swap class leads on purpose: it is the headline measurement, and an early stop anywhere later must not be able to hide it.  swap_after_press is the only shape in which a_hit can be 1; alpha020/alpha030 go below prose's own 0.213.",
+   "runs": [
+    [["swap_mid_task", "swap_after_press"], 10],
+    [["swap_mid_task", "swap_timer"], 5],
+    [["prose_same_word", "prose_with_button"], 6],
+    [["prose_same_word", "prose_only"], 4],
+    [["two_close_names", ""], 10],
+    [["disabled", ""], 10],
+    [["half_transparent", "alpha020"], 1],
+    [["half_transparent", "alpha030"], 1],
+    [["half_transparent", "alpha035"], 1],
+    [["half_transparent", "alpha050"], 1],
+    [["half_transparent", "alpha065"], 1],
+    [["half_transparent", "alpha020"], 1],
+    [["half_transparent", "alpha030"], 1],
+    [["half_transparent", "alpha035"], 1],
+    [["half_transparent", "alpha050"], 1],
+    [["half_transparent", "alpha065"], 1],
+    [["flat_button", ""], 10],
+    [["synonym", "synonym_button"], 6],
+    [["synonym", "synonym_only"], 4],
+    [["bold_prose", ""], 10]
+   ]
+  },
+  "trap3": {
+   "note": "Batch 3 (t_trap3) - the *mouse-channel* batch.  Only classes whose question is answerable from pixels alone are in it: the faded no-badge control (the visibility boundary - the headline measurement, so it leads), the two hard-swap shapes, the two batch-2 swap shapes re-run on the real mouse, the five half-transparent alphas and the synonyms.  The five badge-judged must_refuse classes stay in the keyboard batches on purpose: their verdict comes from 'is there a [k] badge', which a mouse run does not ask.",
+   "runs": [
+    [["no_badge_fill", "nb020"], 1],
+    [["no_badge_fill", "nb030"], 1],
+    [["no_badge_fill", "nb035"], 1],
+    [["no_badge_fill", "nb050"], 1],
+    [["no_badge_fill", "nb065"], 1],
+    [["no_badge_fill", "nb100"], 1],
+    [["no_badge_fill", "nb020"], 1],
+    [["no_badge_fill", "nb030"], 1],
+    [["no_badge_fill", "nb035"], 1],
+    [["no_badge_fill", "nb050"], 1],
+    [["no_badge_fill", "nb065"], 1],
+    [["no_badge_fill", "nb100"], 1],
+    [["no_badge_fill", "nb020"], 1],
+    [["no_badge_fill", "nb030"], 1],
+    [["no_badge_fill", "nb035"], 1],
+    [["no_badge_fill", "nb050"], 1],
+    [["no_badge_fill", "nb065"], 1],
+    [["no_badge_fill", "nb100"], 1],
+    [["no_badge_fill", "nb044"], 5],
+    [["no_badge_fill", "nb046"], 5],
+    [["swap_mid_task", "swap_hard_press"], 5],
+    [["swap_mid_task", "swap_hard_timer"], 3],
+    [["swap_mid_task", "swap_after_press"], 10],
+    [["swap_mid_task", "swap_timer"], 5],
+    [["half_transparent", "alpha020"], 1],
+    [["half_transparent", "alpha030"], 1],
+    [["half_transparent", "alpha035"], 1],
+    [["half_transparent", "alpha050"], 1],
+    [["half_transparent", "alpha065"], 1],
+    [["half_transparent", "alpha020"], 1],
+    [["half_transparent", "alpha030"], 1],
+    [["half_transparent", "alpha035"], 1],
+    [["half_transparent", "alpha050"], 1],
+    [["half_transparent", "alpha065"], 1],
+    [["synonym", "synonym_button"], 6],
+    [["synonym", "synonym_only"], 4]
+   ]
+  },
+  "trap4": {
+   "note": "Batch 4 (t_trap4) - the 'self-believed correct' batch.  Headline class is swap_twin_press: after a correct press on A the ask moves to B, B's button stays on screen for the whole episode, and B's word also sits in a heading above the grid, so a driver that trusts text over controls clicks the heading and the target scores the task wrong.",
+   "runs": [
+    [["swap_mid_task", "swap_twin_press"], 8],
+    [["swap_mid_task", "swap_hard_press"], 5],
+    [["swap_mid_task", "swap_hard_timer"], 5],
+    [["no_badge_fill", "nb046"], 3],
+    [["no_badge_fill", "nb050"], 3],
+    [["no_badge_fill", "nb065"], 2],
+    [["no_badge_fill", "nb100"], 2],
+    [["swap_mid_task", "swap_after_press"], 5],
+    [["swap_mid_task", "swap_timer"], 5]
+   ]
+  },
+  "trap5": {
+   "note": "Batch 5 (t_trap5) = batch 4's plan with the post-guard race appended.  The first 38 entries are copied verbatim, so under the same seed tasks 0-37 are byte-identical to t_trap4 and the frozen core-14 subset meets the same words instead of a re-roll.  The ten new tasks are the one race shape batch 5 could not produce: swap_race_timer fires late enough to land between the driver's pre-press guard frame and the click itself.",
+   "base": "trap4",
+   "runs": [
+    [["swap_mid_task", "swap_race_timer"], 10]
+   ]
+  }
+ }
+}

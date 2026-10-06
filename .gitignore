@@ -39,6 +39,10 @@ sol/sandbox/t_trap*-state.json
 !sol/sandbox/t_chips*.json
 sol/sandbox/t_rows*-state.json
 sol/sandbox/t_chips*-state.json
+# 阶段 3.6：manifest v1（`plans.v1.json`）是题序的真源，必须入库 —— 它决定每批的题与
+# 顺序，run json 的 `scripts_sha_files` 把它算进覆盖清单；不入库就会出现"同一个
+# scripts_sha 对应两套题序"。
+!sol/sandbox/plans.v1.json
 sol/sandbox/*.txt
 sol/sandbox/*.out
 sol/sandbox/*.box

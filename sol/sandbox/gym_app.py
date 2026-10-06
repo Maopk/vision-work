@@ -72,20 +72,42 @@ TRAP_FILL_ALPHAS = {"nb020": 0.20, "nb030": 0.30, "nb035": 0.35, "nb044": 0.44,
 # from "the guard could not see the change", which the 600-1000 ms timer alone cannot.
 HARD_PAIRS = (("XENON", "XENOM"), ("TANGO", "TANGQ"), ("KILO", "KILQ"),
               ("HARBOR", "HARBOP"), ("GAMMA", "GAMMB"))
+# ------------------------------------------------ manifest v1: plans as data ---
+# The five plan tables below used to be literals here.  From stage 3.6 they are data
+# (`plans.v1.json`, this directory): a plan is a list of runs, a run is `[[class,
+# variant], n]` - n consecutive identical entries - and a plan may start from another
+# one (`base`).  Adding a family is then a data edit plus two lines in this file: a
+# name and a `t_trapN` scenario method that slices it.
+# What it is *not*: a plugin system.  A new *visual* shape still needs its `_trap_*`
+# builder and its scenario method here - the manifest cannot paint anything, and the
+# renderers stay shared.  Boundary + worked example: `docs/TASK-AUTHORING.md` section 5.
+_PLANS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "plans.v1.json")
+
+
+def _load_plans(path: str = _PLANS_PATH) -> dict[str, list[tuple[str, str]]]:
+    """Read the manifest and expand every plan's runs into the flat pair list.
+
+    A run `[[cls, variant], n]` means n consecutive identical entries; `base` copies
+    another plan first.  The result is the same list the old literals spelled out -
+    checked tuple-for-tuple when the manifest landed (stage 3.6).
+    """
+    with open(path, "r", encoding="utf-8") as fh:
+        manifest = json.load(fh)
+    plans: dict[str, list[tuple[str, str]]] = {}
+    for name, spec in manifest["plans"].items():
+        seq = list(plans[spec["base"]]) if spec.get("base") else []
+        for pair, n in spec["runs"]:
+            seq += [(pair[0], pair[1])] * int(n)
+        plans[name] = seq
+    return plans
+
+
+_PLANS = _load_plans()
+
 # 8 classes x 3 tasks = 24 = the smoke-test batch.  Variants are laid out explicitly
 # (2+1 for `prose_same_word` and `synonym`, three alphas for `half_transparent`) so a
 # finished run can never be read as one blended rate for two different questions.
-TRAP_PLAN: list[tuple[str, str]] = (
-    [("prose_same_word", "prose_with_button")] * 2 + [("prose_same_word", "prose_only")]
-    + [("two_close_names", "")] * 3
-    + [("disabled", "")] * 3
-    + [("half_transparent", "alpha035"), ("half_transparent", "alpha050"),
-       ("half_transparent", "alpha065")]
-    + [("flat_button", "")] * 3
-    + [("synonym", "synonym_button")] * 2 + [("synonym", "synonym_only")]
-    + [("bold_prose", "")] * 3
-    + [("swap_mid_task", "")] * 3
-)
+TRAP_PLAN: list[tuple[str, str]] = _PLANS["trap"]        # 24: manifest plans.trap
 
 # `t_trap2` = batch 2 ("t_trap++"), written after batch 1 went 24/24 five runs in a row.
 # Five clean sweeps are a statement about the batch, not about the driver, so every class
@@ -96,20 +118,7 @@ TRAP_PLAN: list[tuple[str, str]] = (
 #     pressed, which is the only shape in which a_hit can be 1.
 #   * 0.35/0.50/0.65 all got clicked, so the low end was untested; 0.20/0.30 go below
 #     prose's own 0.213.
-TRAP_PLAN2: list[tuple[str, str]] = (
-    # the swap class leads on purpose: it is the headline measurement of batch 2, and an
-    # early stop anywhere later in the batch must not be able to hide it
-    [("swap_mid_task", "swap_after_press")] * 10
-    + [("swap_mid_task", "swap_timer")] * 5
-    + [("prose_same_word", "prose_with_button")] * 6 + [("prose_same_word", "prose_only")] * 4
-    + [("two_close_names", "")] * 10
-    + [("disabled", "")] * 10
-    + [("half_transparent", a) for a in ("alpha020", "alpha030", "alpha035",
-                                         "alpha050", "alpha065")] * 2
-    + [("flat_button", "")] * 10
-    + [("synonym", "synonym_button")] * 6 + [("synonym", "synonym_only")] * 4
-    + [("bold_prose", "")] * 10
-)
+TRAP_PLAN2: list[tuple[str, str]] = _PLANS["trap2"]      # 85: manifest plans.trap2
 
 # Batch 3 (`t_trap3`) = the *mouse-channel* batch.  Only classes whose question is
 # answerable from pixels alone are in it: the faded no-badge control (the visibility
@@ -119,19 +128,7 @@ TRAP_PLAN2: list[tuple[str, str]] = (
 # The five badge-judged must_refuse classes (prose_only / two_close_names / disabled /
 # flat_button / bold_prose, 50 tasks) stay in the keyboard batches on purpose: their
 # verdict comes from "is there a [k] badge", which a mouse run does not ask.
-TRAP_PLAN3: list[tuple[str, str]] = (
-    [("no_badge_fill", v) for v in ("nb020", "nb030", "nb035",
-                                    "nb050", "nb065", "nb100")] * 3
-    + [("no_badge_fill", "nb044")] * 5
-    + [("no_badge_fill", "nb046")] * 5
-    + [("swap_mid_task", "swap_hard_press")] * 5
-    + [("swap_mid_task", "swap_hard_timer")] * 3
-    + [("swap_mid_task", "swap_after_press")] * 10
-    + [("swap_mid_task", "swap_timer")] * 5
-    + [("half_transparent", a) for a in ("alpha020", "alpha030", "alpha035",
-                                         "alpha050", "alpha065")] * 2
-    + [("synonym", "synonym_button")] * 6 + [("synonym", "synonym_only")] * 4
-)
+TRAP_PLAN3: list[tuple[str, str]] = _PLANS["trap3"]      # 71: manifest plans.trap3
 
 # Batch 4 (`t_trap4`) = the "self-believed correct" batch.  Its headline class is
 # `swap_twin_press`: after a correct press on A the ask moves to B, B's button is on
@@ -144,22 +141,14 @@ TRAP_PLAN3: list[tuple[str, str]] = (
 # re-roll it presses A again and is judged wrong.  The twin family leads the plan, the
 # two hard-swap shapes then verify the guard fix, the visibility slice is the unchanged
 # reference, and the two batch-2 swap shapes are the race regression.
-TRAP_PLAN4: list[tuple[str, str]] = (
-    [("swap_mid_task", "swap_twin_press")] * 8
-    + [("swap_mid_task", "swap_hard_press")] * 5
-    + [("swap_mid_task", "swap_hard_timer")] * 5
-    + [("no_badge_fill", v) for v in ("nb046",) * 3 + ("nb050",) * 3
-                                 + ("nb065",) * 2 + ("nb100",) * 2]
-    + [("swap_mid_task", "swap_after_press")] * 5
-    + [("swap_mid_task", "swap_timer")] * 5
-)
+TRAP_PLAN4: list[tuple[str, str]] = _PLANS["trap4"]      # 38: manifest plans.trap4
 
 # Batch 5 (`t_trap5`) = batch 4's plan with the post-guard race appended.  The first 38
 # entries are copied verbatim, so under the same seed tasks 0-37 are byte-identical to
 # `t_trap4` and the frozen core-14 subset meets the same words instead of a re-roll.  The
 # ten new tasks are the one race shape batch 5 could not produce: `swap_race_timer` fires
 # late enough to land between the driver's pre-press guard frame and the click itself.
-TRAP_PLAN5: list[tuple[str, str]] = TRAP_PLAN4 + [("swap_mid_task", "swap_race_timer")] * 10
+TRAP_PLAN5: list[tuple[str, str]] = _PLANS["trap5"]      # 48: trap4 + 10 races
 
 
 def code(rng: random.Random, n: int = 4) -> str:

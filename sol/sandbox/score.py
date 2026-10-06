@@ -265,6 +265,10 @@ def v1_counts(runs: list[dict]) -> dict:
     rows_total = len(runs)
     runs, extra_attempts = collapse_attempts(runs)
     declared = [r for r in runs if r.get("truth_class") in ("answerable", "must_refuse")]
+    # 3.4 / design §9: rows declaring the `viewport` class are scored on their own
+    # denominator - deliberately not in `declared`, so the five verdicts, `n` and every
+    # rate below keep the definition batches 1-20 were scored under.
+    viewport = [r for r in runs if r.get("truth_class") == VIEWPORT]
     c = Counter(v1_verdict(r) for r in declared)
     n = len(declared)
     ans = sum(1 for r in declared if r.get("truth_class") == "answerable")
@@ -344,7 +348,8 @@ def v1_counts(runs: list[dict]) -> dict:
         cell["n"] += 1
         cell[v1_verdict(r)] += 1
     return {
-        "n": n, "undeclared": len(runs) - n, "answerable": ans, "must_refuse": mus,
+        "n": n, "undeclared": len(runs) - n - len(viewport), "answerable": ans,
+        "must_refuse": mus,
         "counts": {k: c[k] for k in VERDICTS},
         "pass": passed,
         "pass_rate": passed / n if n else 0.0,
@@ -373,7 +378,8 @@ def v1_counts(runs: list[dict]) -> dict:
         "blind_wrong_target": len(blind_wrong), "blind_seen": len(blind),
         "by_alpha": by_alpha,
         "extra_attempts": extra_attempts,
-        "rows": rows_total,
+        "rows": rows_total, "viewport_n": len(viewport),
+        "viewport_pass": sum(1 for r in viewport if r.get("result") == "ok"),
         "gate_samples": len(gates), "gate_p50": pct(gates, 50), "gate_p95": pct(gates, 95),
     }
 
@@ -393,6 +399,17 @@ def v1_row(path: str, rep: dict, tag: str = V1) -> str:
                 st.get("ocr", "?")))
     hist = " ".join("%s=%d" % (v, k["counts"][v]) for v in VERDICTS if k["counts"][v])
     line += "\n               %s" % (hist or "no declared tasks")
+    if k["viewport_n"]:
+        # 3.4 / design §9: the viewport class is reported on its own line with its own
+        # denominator - never folded into the v1 rates above, and never into the main one.
+        line += ("\n               viewport %d/%d (%.1f%%)  [own bucket: not in the rates above]"
+                 % (k["viewport_pass"], k["viewport_n"],
+                    100.0 * k["viewport_pass"] / k["viewport_n"]))
+        for r in [x for x in task_rows if x.get("truth_class") == VIEWPORT
+                  and x.get("result") != "ok"][:4]:
+            line += ("\n               viewport #%-3s result=%s detail=%s"
+                     % (r.get("task_i"), r.get("result"),
+                        json.dumps(r.get("detail") or {}, ensure_ascii=False)[:44]))
     if k["extra_attempts"]:
         line += "   extra_attempts %d (rows collapsed to one per task)" % k["extra_attempts"]
     line += ("\n               false_refusal %d/%d (%.1f%%)  false_accept %d/%d (%.1f%%)"
@@ -442,7 +459,8 @@ def v1_row(path: str, rep: dict, tag: str = V1) -> str:
         line += "  UNDECLARED %d" % k["undeclared"]
     if k["mismatch"]:
         line += "  MISMATCH %d" % k["mismatch"]
-    bad = [r for r in task_rows if v1_verdict(r) not in PASSING]
+    bad = [r for r in task_rows if v1_verdict(r) not in PASSING
+           and r.get("truth_class") != VIEWPORT]
     line += "\n" + "\n".join(
         "               %-13s #%-3s truth=%-11s dec=%-7s act=%-14s result=%s clicked=%s" % (
             v1_verdict(r), r.get("task_i"), r.get("truth_class"), decision_of(r),
@@ -684,6 +702,8 @@ def selftest() -> int:
           "per-gate samples give nearest-rank P50/P95 rather than a mean",
           (k12["gate_samples"], k12["gate_p50"], k12["gate_p95"]))
 
+    n_checks += vp_checks(check, v1_counts, _task)
+
     print("selftest: %d checks, %d failed" % (n_checks, len(fails)))
     for f in fails:
         print("  FAIL %s" % f)
@@ -742,6 +762,33 @@ def main(argv: list[str]) -> int:
         else:
             print("[口径 v0 不可比] %s" % v0_row(path, rep))
     return rc
+
+
+# --------------------------------------------------------- viewport bucket (3.4)
+# Design: audit/DESIGN-18-scroll-drag.md §9.  `t_rows` and `t_chips` are the two
+# scenarios whose verdicts the target has always scored itself (a click on the wrong
+# row, a chip dropped in the wrong slot), yet which never *declared* a truth class, so
+# they could not enter the v1 table at all.  They now declare `viewport`, scored in its
+# own bucket: a capability boundary being measured, not a sixth verdict.
+# The constant and its helpers live down here on purpose - `v1_counts`, `v1_row` and
+# `selftest` all resolve them at call time, so the v1 section above keeps the exact line
+# structure it had when batches 1-20 were scored against it.
+VIEWPORT = "viewport"
+
+
+def vp_checks(check, counts, task) -> int:
+    """The two viewport selftest cases.  `check`/`counts`/`task` come from `selftest`."""
+    ok = task(task_i=0, truth_class=VIEWPORT, decision="acted", result="ok")
+    wrong = task(task_i=1, truth_class=VIEWPORT, decision="acted", result="wrong",
+                 detail={"selected": 7, "want": 3})
+    k = counts([ok, wrong] + [task(task_i=2, truth_class="answerable", result="ok")])
+    check((k["n"], k["pass"], k["undeclared"]) == (1, 1, 0),
+          "a viewport row is neither in the v1 denominator nor undeclared",
+          (k["n"], k["pass"], k["undeclared"]))
+    check((k["viewport_n"], k["viewport_pass"]) == (2, 1),
+          "the viewport bucket counts its own rows and its own passes",
+          (k["viewport_n"], k["viewport_pass"]))
+    return 2
 
 
 if __name__ == "__main__":

@@ -74,7 +74,7 @@
 |---|---|---|---|
 | 发布/修改 `actor.py`（单元 A 上游） | vision-work：运行时 **+** 14 引用行 / 12 个字面量 | 行为变 ⇒ 旧批读数不可比（**文档行号不再随上游漂移**：3.2 已把 11 处 `actor.py:NNNN` 改成名字锚） | 上游发布单独成段；发布后**逐条核 14 引用行**（模板第 4 格） |
 | vision-work 搬迁审计档案（`audit/`） | 自身 **714 引用点 / 457 行 / 735 行（表内）** 交叉引用 + README/HANDOFF 指向 | 路径/行号漂移 | ✅ **已搬迁（3.2）**：搬迁**前**先列失效清单 **412** 处（入站 55 + 跨边界出站 202 + 跨边界入站 38 + 出站路径 68 + 仓库外 50 = 仓内 362 + 仓外 50；仍成立 381）；`git mv` 逐 blob 相同、**行数零漂移**；逐类改写与计数口径见 `audit/README.md` |
-| vision-work 改三件套 | 自身 sha 表、跨批可比性、`scripts_sha` | 一次 sha 裂 = 一次可比性代价 | 合并成**一次**（manifest v1 + A 的 viewport） |
+| vision-work 改三件套 | 自身 sha 表、跨批可比性、`scripts_sha` | 一次 sha 裂 = 一次可比性代价 | **原计划"合并成一次"（manifest v1 + A）已改为只落 A（阶段 3.4）**：A 是**语义**变更（新真值类 `viewport`），manifest 是**结构**变更而它的验收判据恰是"题序一字未变" —— 同批会让两类变化都不可归因，且本段不许跑批 ⇒ manifest v1 只设计（`docs/TASK-AUTHORING.md` §5），实现另起一段并**接受第二次 `gym_app.py` sha 裂** |
 | 调整 vision-kit 插件目录 / README 结构 | 它自己指向 termux 的 4 处信用引用 | 被引用目标改名 ⇒ 空指针 | 动 vision-kit 前先确认 termux 侧路径稳定 |
 | 改 termux-kit 的 `ui/controls.json` | 面板 + 控制台 + 桥 + 12 widget + `dsh-kit-update` | 单源改动三面同变（**优点**，也是"改一处动三面"） | 试点段只动**前门**，不碰 `controls.json` |
 | 三仓库共同约定（双语对 / CHANGELOG / commit 前缀 / MIT） | 三仓库 | 缺一项就不齐 | 写进标准 (g) 与模板第 2 格 |
@@ -116,9 +116,11 @@
 | `dsh-vision-kit` | 本地 git 直推 `main` | 有 | 本地 commit sha（推完 = 远端 HEAD，可核） | `仓库@<commit sha>:路径:行` |
 | `vision-work` | 本地 git 直推 `main` | 有 | 同上 | 同上 |
 
-配套两条判据：
+配套四条判据：
 1. **发布前后各记一次**：发布前记"本地 vs 远端差异"（阶段 1 实测 = 160 项里恰好 2 create + 3 push，其余 `skip (same)`），发布后记远端 commit + 逐文件 blob sha。只记一边 = 没记。
 2. **通道自身的闸也要点名**：`publish.ps1` 有一步"有文件变了而 `CHANGELOG.md` 没变 ⇒ 拒绝推送"，这是**门禁**；两个 git 直推仓库没有这道闸 ⇒ 靠发布纪律（每次 push 必须有 CHANGELOG 条目）自律。
+3. **`scripts_sha` 必须写清"覆盖了哪些文件"**（阶段 3.1 发现的口径缺口）：`vision-work` 的 `scripts_sha` = 三件套字节拼接的前 12 位，**不含** driver 的 import 依赖（`sol/sandbox/gui_see.py` 的 OCR、`sol/sandbox/loop.py` 的 actor 客户端）⇒ 那两处改动**不会**让 `scripts_sha` 变。阶段 3.4 的处置 = **不扩**（扩容点在 `gym_run.py:_sha()`，而 3.4 明令该文件冻结；且 3.4 的 sha 变化必须可归因到靶子/打分器）。要扩时按**一次口径变更**办：在 `SCORE-history.md` 记新定义、run json 里**同时**写 `scripts_sha_files`（参与哈希的文件名清单）让数值自描述、**旧值不改写**（旧批按旧定义仍可比）。**本段明确留待 3.6（manifest v1 实现）同批做** —— 那一段本来就要裂 `gym_app.py`，"口径变更 + 新字段"一次做完最省。
+4. **取不到的版本写成边界，不要猜**：`actor` 自身代码的 sha **取不到** —— `ping` 只回 `pid` / `py` / `geom` / `dpi` / `uptime`，没有版本或哈希 op，要取得先在 `dsh-vision-kit/actor/actor.py` 加一个 op（跨仓库改动）。阶段 3.4 的处置 = **不记**，只记 `env.actor_py` / `env.actor_pid`（同一 session 内可辨认，**跨 session 不可追溯**），并把它写成已知边界。
 
 ### (e) 手册在 repo 内
 
@@ -177,7 +179,7 @@
 
 - **1.x `dsh-termux-kit`（试点）**：1.1 ✅ 前门补第 ③ 问（新增 `docs/TASK-AUTHORING.md`：加 widget / 加命令的路径）；1.2 ✅ 标准落地对照表成文并**已回灌本文档 §4**（v1.1，独立提交）。**未做**：版本号 bump（该仓库 §六：纯文档 commit 不 bump）与该仓库内部 5 处计数漂移（§8）。
 - **2.x `dsh-vision-kit`（上游）**：2.1 发布上游（commit + CHANGELOG + 记下可被引用的 sha）；2.2 前门三代整理（Generation 1 / 1.5 降到 `docs/` 或明确标"历史"，当前路线提到最前）；2.3 下游引用核（`vision-work` 那 14 引用行 / 12 字面量逐条）。
-- **3.x `vision-work`（下游）**：3.1 ✅ 参数化（`TESS` / `ACTOR_HOME`）+ `requirements.txt` + run json `env` 块；3.2 ✅ `audit/` 搬迁 + `audit/README.md` + **714 引用点 / 457 行**内容锚定核验（搬迁前失效清单 412 处 = 仓内 362 + 仓外 50）；3.3 ✅ 前门重写（`## Why this exists` 三条动机 + `## Ten minutes to a scored run` + 前置清单移到路径之后 + `docs/` 四篇 = `QUICKSTART`/`TROUBLESHOOTING`/`TASK-AUTHORING`/`OPERATING` + 规程正本入库、仓库外技能降为指针 + `STATE.md` §14.6 的 `/mnt/d/` 判定为合法路径；三件套 sha 未动）；3.4 manifest v1 + viewport（**一次** sha 裂）+ 验证批（占前台，同时是 #18 的首次真取数）；3.5 v1.0 声明 + 冻结条款 + 欠账分流；**3.6（待办）**计数闸扩展 —— 设计已在仓库外成文（`D:\DSH\dsh-actor\tmp\stage2\C3-checkcounts-design.md`；本轮只落文、不改 `dsh-vision-kit`）：op 数已有闸（`tools/check-skill-ops.py`，`ci-static.ps1` 第 6 阶段），真缺口 = 踩坑条数单一化 / 双语数字一致性 / 清单完整性 ⇒ 建议 `tools/check-counts.py` 接第 7 阶段。
+- **3.x `vision-work`（下游）**：3.1 ✅ 参数化（`TESS` / `ACTOR_HOME`）+ `requirements.txt` + run json `env` 块；3.2 ✅ `audit/` 搬迁 + `audit/README.md` + **714 引用点 / 457 行**内容锚定核验（搬迁前失效清单 412 处 = 仓内 362 + 仓外 50）；3.3 ✅ 前门重写（`## Why this exists` 三条动机 + `## Ten minutes to a scored run` + 前置清单移到路径之后 + `docs/` 四篇 = `QUICKSTART`/`TROUBLESHOOTING`/`TASK-AUTHORING`/`OPERATING` + 规程正本入库、仓库外技能降为指针 + `STATE.md` §14.6 的 `/mnt/d/` 判定为合法路径；三件套 sha 未动）；3.4 ✅ **viewport 进体系（A 已实施，靶子首次裂 sha）+ manifest v1 只设计**（设计见 `docs/TASK-AUTHORING.md` §5，改判理由见 §3 影响清单该行）：靶子两处 `return` 各加一行声明、判定逻辑零改动；`score.py` 加独立桶 `viewport_n` / `viewport_pass`（**不进五判定、不进主分母**）并单打一行，`--selftest` 41 → 43 项；新 sha `gym_app.py` **`17b6a59cb831dafa`**（← `66632d85eac81c12`）/ `score.py` **`c1a251a248a029c7`**（← `ef066713a03eb940`）/ `scripts_sha` **`0c2c420e4d40`**（← `b8f83571f650`），`gym_run.py 2ba26b608cf7ec18` **未动**；**离线回归 = 新旧打分器在 5 个既有 run json 上输出逐字节相同**（批次 1–20 读数不受影响的硬证据）；`scripts_sha` 覆盖面缺口与 actor sha 两条处置落 §4(d 配套) 判据 3 / 4；**本段未跑批**（验证批仍在 3.5）；3.5 v1.0 声明 + 冻结条款 + 欠账分流；**3.6（待办）manifest v1 实现** —— 设计见 `docs/TASK-AUTHORING.md` §5（**能力边界**：只把「题序 / 场景 / 变体组合」外置成数据，**不是插件系统**；新增**视觉形态**仍要写 `_trap_*` 方法与 `t_trapN` 场景），闸 = 与上一 commit 冻结字面量的**离线逐元组等价核**（不是再跑一批），代价 = **第二次裂 `gym_app.py` sha**，并把 `scripts_sha` 覆盖面扩容 + run json 新增 `scripts_sha_files` 一并做掉；**3.7（待办）**计数闸扩展 —— 设计已在仓库外成文（`D:\DSH\dsh-actor\tmp\stage2\C3-checkcounts-design.md`；本轮只落文、不改 `dsh-vision-kit`）：op 数已有闸（`tools/check-skill-ops.py`，`ci-static.ps1` 第 6 阶段），真缺口 = 踩坑条数单一化 / 双语数字一致性 / 清单完整性 ⇒ 建议 `tools/check-counts.py` 接第 7 阶段。
 
 ## 7. 红线（v1 写作段与 v1.1 回灌段共同适用）
 

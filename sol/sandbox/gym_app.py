@@ -735,7 +735,8 @@ class Gym(tk.Tk):
         self.keymap["End"] = lambda: (canvas.yview_moveto(1.0), self._row_keys())
         self.after(60, self._row_keys)
         return {"scenario": "t_rows", "ask": "select the row whose id is %d" % target,
-                "truth": {"id": target, "rows": n, "row_height": row_h}}
+                "truth": {"truth_class": "viewport", "variant": "rows", "id": target, "rows": n,
+                          "row_height": row_h}}
 
     def t_form(self) -> dict:
         """Fill the named fields, then press GO."""
@@ -961,8 +962,8 @@ class Gym(tk.Tk):
         c.bind("<ButtonRelease-1>", drop)
         return {"scenario": "t_chips",
                 "ask": "drag chip %d into slot %s" % (chips[pair], slots[pair]),
-                "truth": {"chip": chips[pair], "slot": slots[pair],
-                          "slots": slot_boxes, "chips": chip_xy}}
+                "truth": {"truth_class": "viewport", "variant": "chips", "chip": chips[pair],
+                          "slot": slots[pair], "slots": slot_boxes, "chips": chip_xy}}
 
 
     # ------------------------------------------------------------- traps ----

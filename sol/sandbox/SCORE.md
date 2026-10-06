@@ -12,7 +12,7 @@ rows below only gained annotations.
 | gate | verdict | denominator | appears in |
 |---|---|---|---|
 | **v0** | the target's own `result == ok` | every task the run got through | every run before 2026-10-04 18:30 |
-| **v1** | five verdicts (below) | every task whose `truth_class` is `answerable`/`must_refuse`; undeclared tasks are listed separately and stay out | `t_trap` runs onward |
+| **v1** | five verdicts (below) | every task whose `truth_class` is `answerable`/`must_refuse`; undeclared tasks are listed separately and stay out. **Since stage 3.4** `t_rows` / `t_chips` declare `truth_class = "viewport"`: they are counted in **their own bucket** (`viewport n/m`, printed on its own line), stay out of the five verdicts and their denominators, and stay out of `undeclared` — never quote a viewport rate next to a main-line rate | `t_trap` runs onward |
 
 v0 knows only answerable tasks: refusing always scored wrong, there was no `must_refuse`
 class, and an early-exit run shrinks its own denominator silently. v1 pins the denominator,

@@ -94,3 +94,38 @@ when they do not, suspect the events file (see
   [`../audit/DESIGN-refusal-scoring.md`](../audit/DESIGN-refusal-scoring.md).
 - Not a way to reproduce the author's numbers: the numbers are single-machine, and the
   method — not the figures — is what travels.
+
+## 5. Manifest v1 — designed, not implemented
+
+The five plan tables are literals inside the target (`TRAP_PLAN`, `PLAN2`, `PLAN3`,
+`PLAN4`, `PLAN5` in `sol/sandbox/gym_app.py`). The planned v1 moves them into a
+JSON manifest beside the scripts, so that a new family becomes a **data** edit. This
+section records the design; **as of stage 3.4 nothing loads a manifest.**
+
+*What it buys*: a new family that reuses an existing renderer becomes one manifest entry
+plus a scenario name that points at it — no `.py` edit, therefore no `scripts_sha` break.
+*What it does not buy*: a family with a new **visual form** still needs a `_trap_*`
+builder and a `t_trapN` scenario method. The manifest carries data, not rendering.
+
+Schema sketch:
+
+```json
+{"plans": {"trap": [["prose_same_word", "same_word"], ...], "trap2": [...]},
+ "scenarios": [{"name": "t_trap5", "plan": "trap4", "append": ["swap_mid_task", "swap_race_timer"], "repeat": 10}]}
+```
+
+The `plan` + `append` + `repeat` form is deliberate: `t_trap5` is defined today as
+`TRAP_PLAN4 + [("swap_mid_task", "swap_race_timer")] * 10`, and the manifest has to express
+that derivation instead of duplicating 48 tuples.
+
+*The gate is an offline equivalence check, not a batch*: for every scenario, the loaded
+manifest must equal the literals frozen in the previous commit (`git show <old-commit>:
+sol/sandbox/gym_app.py`), tuple for tuple, before any batch runs. A same-seed batch is not
+a usable equivalence test here — a sequence drift would surface as *a different batch*, not
+as a failing assertion.
+
+*Why stage 3.4 did not implement it*: 3.4 landed the `viewport` truth class (a change of
+meaning) and the manifest is a change of structure whose acceptance criterion is precisely
+"the task sequences did not move". Landing both in one commit would make the two
+unattributable, and 3.4 forbids batch runs, so the end-to-end check would have to wait.
+The cost of splitting is one more `gym_app.py` sha break — accepted, recorded here.

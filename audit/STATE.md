@@ -1405,7 +1405,7 @@ foreground after:  搜索 (hwnd 66100)  unchanged: False
 
 ### 28.1 任务 1：技能全量扫（**可变事实 20 条 + 绝对措辞 11 句**，逐条对源）
 
-**源** = `HANDOFF.md` §2/§3/§4 + 本文件现行节 + `../sol/sandbox/SCORE.md`。**已核一致 = 16 条（可变事实）**：`gym_app.py` **1493** 行 ✓ / `gym_run.py` **3687** 行 ✓；`gym_app.py` CLI **11 个开关逐字一致** ✓；`gym_run.py` CLI **17 个开关逐字一致** ✓；"`gym_app.py` 只依赖 stdlib + tkinter" ✓（import 实测）；`score.py --selftest` ✓；判定集合 = `score.py:110-112` ✓；`join_truth` = `score.py:162-169` ✓；本文件 §0 用户铁律 / §7 欠账 / §11 WSL 决策 = `:102/:285/:526` ✓；`HANDOFF.md` §4 已知盲区 **23 条** ✓；§4 #12（前台被抢 ⇒ 该批作废）✓；#15（`a_hit` 是读出量）✓；#16（chaos 探索性、引 app 侧事件）✓；v0/v1/v2/v3 四版定义与批次归属 ✓；引用规则 **1–7** 逐条 ✓；"不适用"引的两支（全局技能 `drive-a-windows-gui`、`univer/office`）✓。
+**源** = `HANDOFF.md` §2/§3/§4 + 本文件现行节 + `../sol/sandbox/SCORE.md`。**已核一致 = 16 条（可变事实）**：`gym_app.py` **1494** 行 ✓ / `gym_run.py` **3724** 行 ✓（**阶段 3.4 复核**：前者因 `viewport` 声明 +1；后者 3687 → **3724** 的两步是第二十六段 #21 修复 +9 与阶段 3.1 参数化 +28 —— 本行两个数在第二十段那次核之后已各漂过一次，凡引用以当次 sha 为准）；`gym_app.py` CLI **11 个开关逐字一致** ✓；`gym_run.py` CLI **17 个开关逐字一致** ✓；"`gym_app.py` 只依赖 stdlib + tkinter" ✓（import 实测）；`score.py --selftest` ✓；判定集合 = `score.py:110-112` ✓；`join_truth` = `score.py:162-169` ✓；本文件 §0 用户铁律 / §7 欠账 / §11 WSL 决策 = `:102/:285/:526` ✓；`HANDOFF.md` §4 已知盲区 **23 条** ✓；§4 #12（前台被抢 ⇒ 该批作废）✓；#15（`a_hit` 是读出量）✓；#16（chaos 探索性、引 app 侧事件）✓；v0/v1/v2/v3 四版定义与批次归属 ✓；引用规则 **1–7** 逐条 ✓；"不适用"引的两支（全局技能 `drive-a-windows-gui`、`univer/office`）✓。
 **绝对措辞 11 句**逐句对源：解释器（`:32`）、通道不可比（`:58`）、事件错联（`:64`）、主指标与读题率（`:77`）、synonym 鼠标不引用（`:82`）、`_code`/`_plain`（`:84`）、chaos 计数（`:86`）、v0 不可比（`:91`）、批次 1–4 全是 v1（`:92`）、**popup 边界（`:99`，随本段 #20 收口同步改写）**、chaos 探索性（`:102`）—— 除 `:99` 外**全部已核一致、无未核过的绝对措辞**。
 
 **改前 / 改后（4 处；技能 110 → 112 行，sha `88f62d610d87af0b → 8d3182cbfc514df4`）**
@@ -1587,4 +1587,49 @@ foreground after:  搜索 (hwnd 66100)  unchanged: False
 - **只覆盖前台真实鼠标通道**：`--bg` 鼠标通道（盲区 21）与滚轮/拖拽（#18）**不变**。
 - **#21 的判据达成 = 「不再早停 + 该题 `refused_right`」**；「鼠标通道拒答率」**没有**被测（两批合计 `must_refuse` 17 题，其中走新路径 7 题）。
 - **回退点**：`gym_run.py 3fa0e4ba4b1b9679`（单文件 `git checkout <旧 commit> -- ../sol/sandbox/gym_run.py`，或 `git revert`）；`scripts_sha` 随之回到 `3fa0e4ba4b1b9679`。
-- **下一件 = A（#18）**：靶子侧两处一行 + `score.py` 新桶（`DESIGN-18-scroll-drag.md` §9，**首次裂 `gym_app.py` sha**）。
+- **下一件 = 3.5（v1.0 声明 + 冻结条款 + 欠账分流）**；A（#18）已于**阶段 3.4** 落地 —— 见 §33，验证批与 `viewport` 桶的首次真取数在 3.5。
+
+## 33. 阶段 3.4：`viewport` 进体系（A 已实施）+ manifest v1 只设计
+
+**33.1 一句话** = `t_rows`（滚轮）与 `t_chips`（拖拽）两类题自本段起**声明真值类 `viewport`**，打分时单列成桶（**不进五判定、不进主分母**）；靶子**首次裂 sha**。本段**未跑批**（验证批在 3.5）。
+
+**33.2 改了什么（逐条）**
+
+- 靶子 `../sol/sandbox/gym_app.py`：`t_rows` / `t_chips` 两条 `finish(...)` 的 truth 字典各加两键（`truth_class` / `variant`），**判定逻辑一字未改**；1493 → **1494** 行。
+- 打分器 `../sol/sandbox/score.py`：新增 `VIEWPORT` 常量与独立桶 `viewport_n` / `viewport_pass`；`undeclared` 改为 `len(runs) - n - len(viewport)`；打印**独立一行** `viewport n/m (x%) [own bucket: not in the rates above]`（最多 4 条失败行）；`v1_row` 的 bad 列表排除 `viewport` 行（否则会被印成 `timeout`）；`--selftest` 41 → **43** 项（新增两条：viewport 不进主分母；viewport 的 ok/wrong 计数正确）；748 → **795** 行。新增代码放**文件尾块**（`v1_counts` / `v1_row` / `selftest` 都是调用时解析该名字）⇒ v1 段的行结构不动。
+- **没改什么**：五判定的定义与分母、`pass_rate` / `false_refusal_rate` / `false_accept_rate`、任何既有题的 `finish(...)` 判定、`../sol/sandbox/gym_run.py`（一字未动）。
+
+**33.3 sha（本段）**
+
+| 文件 | 3.3 后 | 3.4 后 |
+| --- | --- | --- |
+| `gym_app.py` | `66632d85eac81c12` | **`17b6a59cb831dafa`** |
+| `score.py` | `ef066713a03eb940` | **`c1a251a248a029c7`** |
+| `gym_run.py` | `2ba26b608cf7ec18` | `2ba26b608cf7ec18`（未动） |
+| `scripts_sha` | `b8f83571f650` | **`0c2c420e4d40`** |
+
+**33.4 离线验证（本段不许跑批 ⇒ 只用离线证据）**
+
+- 新旧打分器在 **5 个既有 run json**（`t_trap2-w9-move70` / `t_trap5-1` / `t_trap6-1` / `t_trap4-1` / `t_trap3-1`）上输出**逐字节相同** ⇒ 批次 1–20 的读数不受影响。
+- 合成 run（1 个 `answerable` + 3 个 `viewport` 行）：新版打 `n 1/1` + `viewport 2/3 (66.7%)` 独立行、**无 `UNDECLARED`**；旧版打 `UNDECLARED 3` + 三行 `timeout #N truth=viewport` —— 那正是"新类未声明时会被误判"的缺陷本身。
+- 两个文件 `python -m py_compile` 通过。
+
+**33.5 边界（写死）**
+
+- `viewport` 通过率**不是**五判定、**不可与主线通过率并列引用**；混池批的 `rows_total` / `undeclared` 构成与批次 1–20 不同 —— 主线通过率仍与 1–20 同源（这正是选新类名、而不是复用 `answerable` 的全部理由）。
+- 旧 json **不回溯**（`truth_class` 来自各批自己的 `events.jsonl`）。
+- 回退 = 单文件：`git checkout <3.4 前 commit> -- sol/sandbox/gym_app.py`（`score.py` 同理）。
+- `--bg` 鼠标通道仍不可用（盲区 21）⇒ 本桶覆盖的只是**前台真鼠标**路径。
+
+**33.6 两项决策（本段只处置、不实施）**
+
+- **`scripts_sha` 覆盖面缺口**（只哈希三件套，漏 `gui_see.py` / `loop.py`）：**本段不扩** —— 扩容点在 `gym_run.py`，本段冻结该文件；且本段的 sha 变化必须可归因到靶子/打分器。迁移规则 = 一次**口径变更**：`SCORE-history.md` 记新定义 + run json 同时写 `scripts_sha_files`（参与哈希的文件清单）+ **旧值不改写**。见总纲 §4(d 配套) 判据 3。
+- **actor 自身 sha 取不到**（`ping` 只回 `pid` / `py` / `geom` / `dpi` / `uptime`，没有版本/哈希 op）⇒ **不记**，只记 `env.actor_py` / `env.actor_pid`；同一 session 内可辨认、**跨 session 不可追溯**。要取它得先在 `dsh-vision-kit/actor/actor.py` 加一个 op（跨仓库）。见判据 4。
+
+**33.7 manifest v1**
+
+- **只设计、未实施**：设计落 `docs/TASK-AUTHORING.md` §5（schema、闸 = 离线等价核、为什么不同批）。实现另起一段，并接受**第二次** `gym_app.py` sha 裂。
+
+**33.8 下一件**
+
+- **3.5** = v1.0 声明 + 冻结条款 + 欠账分流；验证批（含 `viewport` 桶首次真取数）占前台。

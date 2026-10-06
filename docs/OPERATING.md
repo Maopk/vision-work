@@ -106,6 +106,11 @@ P50·P95 / 逐题行。**引用前先对齐口径版本**（见 §3.3）。
   `false_accept`，外加 **`timeout` 单列**（不算判定，按失败计）。通过 =
   `answered_right` + `refused_right`。
 - **分母 = 声明了 `truth_class ∈ {answerable, must_refuse}` 的题**；未声明的题单列、不进分母。
+- **`viewport` 类（阶段 3.4 起）**：`t_rows` / `t_chips` 现在声明 `truth_class = "viewport"`
+  —— 它们**不进上面的五判定、不进分母**，单列成自己的桶（`score.py` 另打一行
+  `viewport n/m`）。理由 = 这是「能力边界」的进度，不是第六种判定；**它的通过率与主线
+  通过率不可并列引用**，混池批的 `rows_total` / `undeclared` 构成也因此与批次 1–20 不同。
+  口径与回退见 `../audit/DESIGN-18-scroll-drag.md` §9。
 - **拒绝 = 按 F8 协议键**（鼠标通道也按 F8——「拒绝键是协议不是答案」）⇒ F8 拒答**合法**，
   进 `refused_right` / `false_refusal`，不算违规动作。
 - 主指标是**每次干扰下的通过率**（自变量 = 真正 fire 的扰动次数，不按题数）；另单列

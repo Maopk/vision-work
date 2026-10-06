@@ -45,6 +45,9 @@ Three programs that deliberately do not share a source:
 
 The driver never receives ground truth: it reads the instruction from the screen and clicks what it was told to click. That is the point of the range — it measures behaviour under disturbance, *including* the behaviour of refusing, which a single pass-rate figure hides.
 
+Extending it is a first-class path, not an afterthought: [`docs/TASK-AUTHORING.md`](docs/TASK-AUTHORING.md)
+says where a task family is defined, what the truth-class protocol requires, and what to change.
+
 ## Ten minutes to a scored run
 
 1. **Install** — an interactive Windows desktop session, Python 3.12, the PC actor

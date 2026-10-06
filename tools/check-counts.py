@@ -314,7 +314,10 @@ CHECKS: list[dict] = [
         "id": "v1x-open-items",
         "what": "`v1.x` 仍开着的项数（自称数 vs 同一条目行里未划掉的行数；一致性检查）",
         "value": src_v1xopen,
-        "claims": [("OPENSOURCE-READINESS.md", "v1.x 清单（仍开着的欠账", "**{n}** 项")],
+        "claims": [
+            ("OPENSOURCE-READINESS.md", "v1.x 清单（仍开着的欠账", "**{n}** 项"),
+            ("audit/STATE.md", "v1.x 清单补上缺的", "**{n}** 项"),
+        ],
     },
     {
         "id": "census-rows",

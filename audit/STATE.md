@@ -1760,3 +1760,41 @@ J5（既有场景无翻转）= **静态论证 + 干跑承担**：本段对靶子
 **36.7 本段没跑批、没裂 sha**：三件套 sha 逐位未变（`gym_run.py` `fd8e5e1f0ee237b4` / `gym_app.py` `f8b8429725364294` / `score.py` `e80a646c63de8075`，`scripts_sha` `7051c259fa05`）；`plans.v1.json`、装载器、五判定 / 分母 / 判定逻辑未动；`dsh-vision-kit` 与 `dsh-termux-kit-copy` 未动。**净增远超 30 行**（普查表 + 新脚本 + 规程）：按本仓库"改动 > 30 行要说清"的口径主动说明 —— 本段是文档 / 工具段，判定逻辑零改动。
 
 **36.8 下一件**：`(h)` 已处置 ⇒ v1.x 只剩 ① `#18` 部分覆盖 / ③ actor 自身 sha 不记 / ⑥ `dsh-termux-kit` 侧 5 处计数漂移。**B3 活体字段证据**仍欠（桌面锁，见 §35.8③）。
+
+## 37. 阶段 3.9 —— v1.x 清单补洞 + `dsh-vision-kit` 的 v1.0 状态（只读核）+ 3.8 技能对齐
+
+**37.1 一句话**：v1.x 清单补上缺的 **⑦**（`dsh-vision-kit` 侧计数闸）并把清单行改成自述 **4** 项、标「三仓库共用」；对 `dsh-vision-kit` 把 §4 八条**逐条只读核了一遍**，结论 = **(h) ❌ 且另有 3 条未全过（共 4 条）** ⇒ 命中本段终止条件，于是**不擅自定口径**、交用户裁决；用户裁决 = **两种口径都写**（声明主体仍是「`vision-work` 的 v1.0」）⇒ §6 冻结条款新增「产品级口径」一行。
+
+**37.2 `dsh-vision-kit` 对 §4 八条的逐条核验（阶段 3.9；只读，命令可复跑）**
+
+| 条 | 状态 | 证据（只读实测） |
+|---|---|---|
+| (a) 前门三问 | ✅（**总纲 §4(a) 原记的 ⚠ 已过期**） | `README.md:14 ## Why this exists`；`:34 ## The current path: the PC Actor` + `:40`（nothing to install first）；`:101 ## Skills: what the model is told`；`:136 ## Generation 1: seeing the screen (reference)`（已降级）—— 由 `00373f7`（docs: answer the front door's three questions）与 `76505f9` 完成 |
+| (b) 路径不写死 | ✅ | 代码 / 脚本零真硬编码：`grep -rn -F 'D:\' --include=*.py --include=*.ps1` 唯一命中 = `tools/install-skills.ps1:13` 的**用法示例** |
+| (c) 依赖落盘 | ✅ | `requirements.txt`（`numpy==2.3.5` / `pillow==12.3.0` + pin 理由）与 `requirements-dev.txt`；`README.md:269 ## Requirements` 给系统级（PS 5.1+ / Python 3.9+ / 可选 `tesseract` + `chi_sim+eng` / 可选 Ollama + 两个模型名）+ `actor.ps1 -Setup` 一行装 `comtypes` |
+| (d) 产物记 `env` / 构建产物 | ⚠ **半条** | 无 run 记录类产物（该支不适用）；构建产物侧 = DSH 插件包 `plugins/dsh-selflook-local/`，`package.json:3` 有 `"version": "1.0.0"` ✓，但 `tools/ci-static.ps1` 无版本 / manifest 门禁 ✗ |
+| (d 配套) sha 记录可核对 | ✅ | 通道 = 本地 git 直推 `main` ⇒ 引用写 `仓库@<commit sha>:路径:行`；`CONTRIBUTING.md:82` 的检查清单要求每次变更带 `CHANGELOG.md` 条目 |
+| (e) 手册在 repo 内 | ⚠（总纲原记，仍成立） | `docs/` 4 篇 + `actor/README.md` + `skills/drive-a-windows-gui/SKILL.md` 都在仓库内，但 Generation 1 的说明仍在 `README.md`（`:136`）而不在 `docs/` |
+| (f) 边界诚实 | ⚠ 差一句 | `README.md:281 ## Security` + `:293`（No UI screenshots…）✓；但 §4(f) 末尾「统一新增一条」（不承诺复现作者的数字）**尚未落** |
+| (g) 双语统一 | ✅ | `README.md`(294 行) + `README.zh-CN.md`(262 行) 成对；HEAD `76505f9` 本身就是中文 README 的再同步 |
+| (h) 计数与清单单一化 | ❌ | `tools/` 无 `check-counts.py`；**且已有一处活漂移**：`CONTRIBUTING.md:94` 写 `tools/ci-static.ps1` 是 all five stages（5 个），脚本实为 **6** 个（`tools/ci-static.ps1:150 # ── 6. skills`） |
+
+⇒ **未全过 = (h) ❌ + (e) ⚠ + (d) ⚠ + (f) 差一句 = 4 条**（≥2 ⇒ 3.9 终止条件命中）。
+
+**37.3 终止条件的处置**：3.9 的终止条件写「`dsh-vision-kit` 有 ≥2 条未过 ⇒ 停，报『v1.0 声明需重新评估』」。处置 = **不改任何声明语义、不擅自选口径**，把证据交用户裁决；用户裁决 = **两种口径都写进总纲**（原声明不动，另加产品级门槛与今日状态）⇒ 落地为 `OPENSOURCE-READINESS.md` §6 冻结条款的「产品级口径」一行。**产品级 v1.0 至今未达成**（`vision-work` 已声明；`dsh-vision-kit` 4 条未过；`dsh-termux-kit` 未评且 ⑥ 未做）。
+
+**37.4 清单自身的记账缺口（本段顺手核出）**：`OPENSOURCE-READINESS.md` §6 的 `2.x` 行（2.1 发布上游 / 2.2 前门三代整理 / 2.3 下游引用核）**三条都没有 ✅ 标记**，但 2.1 与 2.2 的**事实要件已由仓库提交完成**（`00373f7` + `76505f9` + `CHANGELOG.md` 的 `## [Unreleased]`）⇒ 这是**记账缺口**（清单没跟上仓库），不是工作缺口；**2.3 是否做过无记录，判为不确**。本段**未动 §6 的 2.x 行**（不越权改历史记录）。同类缺口还有一处：v1.x 清单自身直到本段才补上 ⑦ —— 而它从阶段 3.7 起就该在（`(h)` 那次只做了 `vision-work` 侧）。
+
+**37.5 3.8（技能正文对齐）的记录**：改的**不在任何 git 仓库里** —— `D:\DSH\skills\gui-audit-gym\SKILL.md`（阶段 3.3 起已降级为指针文件，**30 行 / LF**）。
+
+- **全量扫的可变事实**：只有一处漂移 —— 第 3 行（frontmatter `description`）与第 16 行写「**九条**引用规则」，实际 = **十一条**（`audit/HANDOFF.md` §2 = 11 条，第 32 行是规则 11；`docs/OPERATING.md:123` 亦写「现 **十一条**」）。其余逐条对得上：`已知盲区 23 条`（HANDOFF §4 = 23 ✓）、`五判定` ✓、`口径版本 v0–v3` ✓、`:8731` ✓、留档三件套（`x.json` / `x-state.json` / `x-events.jsonl`）✓、四个 `docs/` 指针都存在 ✓。
+- **技能里根本没有的类别（故无可改）**：解释器路径 / `ACTOR_HOME` / `TESS` / `scripts_sha` / 三文件或六文件定义 / 硬编码行数 —— 这些只写在仓库内文档里。
+- **绝对措辞四处**（第 10/11、21、29/30 行）：都是技能自己的变更纪律（「不要改本文件正文」「不要复制规程」）与「数字一律引用 `SCORE.md` + `STATE.md`」，逐条核过 = **现行有效**。
+- **改前 / 改后**：`九条引用规则`（2 处）→ **`十一条引用规则`**；文件仍 30 行 / LF，sha16 `020286dd1b7e64bd` → **`959cbc8c80680201`**；`skill(name=gui-audit-gym)` 当场解析出新文案 ✓（未加 `disable-model-invocation`）。
+- **留给 3.10 的待评估项（按 3.8 的终止条件只报不做）**：技能把**条数硬编码**（「十一条引用规则」「已知盲区 23 条」）—— 与技能自己的纪律（不复制会漂的数字）同向的改法是**只指节号**（「引用规则见 `HANDOFF.md` §2」「已知盲区见 §4」），这样条数变化不再需要改技能。
+
+**37.6 闸与行号**：`python3 tools/check-counts.py` = **15 families, 0 problem(s)**（家族 14 `v1x-open-items` 自动对上新值 **4** 项；本段把 `audit/STATE.md` 本节的这句话也登记成家族 14 的**第 2 个宣称点** —— 这正是 3.7 那条「未登记的宣称点看不见」的教训）。本段**没跑批、没动三件套 / 六文件**：`gym_run.py fd8e5e1f0ee237b4` / `gym_app.py f8b8429725364294` / `score.py e80a646c63de8075` / `gui_see.py a683d18d8d617ee7` / `loop.py 535a567d1ffb1ece` / `plans.v1.json 080881993eb1cd7e`，`scripts_sha 7051c259fa05` 逐位未变；`dsh-vision-kit` / `dsh-termux-kit-copy` 只读、未改。
+
+**37.7 诚实边界**：(1) 八条核验是**只读的文档与 grep 实测**，没有跑 `dsh-vision-kit` 的任何脚本（(c) 的两条安装命令未逐条实测）；(2) (a) 判 ✅ 的依据是**章节结构**（三个问题各有专节），命令细节未逐条复核；(3) 2.3 的「不确」= 没找到记录，**不等于没做过**；(4) 本段改了 `OPENSOURCE-READINESS.md` §4 的 **(a)(d)(f)(h) 四行**（登记实测）与 §6 的三处（⑦ / 产品级口径 / 待外部条件）—— 这些是**记录更新**，标准原文未动；(5) 技能 sha16 变化只说明**文件字节变了**，技能不在任何仓库里 ⇒ 无 commit、无 diff 可回溯，改动内容只在本节与 `SKILL.md` 自身。
+
+**37.8 下一件**：3.10 = 技能「只指节号」改法评估（3.8 的待评估项）；若要做 ⑦，先在 `dsh-vision-kit` 落 `tools/check-counts.py`（C3 设计正本在仓库外 `D:\DSH\dsh-actor\tmp\stage2\C3-checkcounts-design.md`，落地时应先移进该仓库 `docs/`）。

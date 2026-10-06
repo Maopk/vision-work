@@ -86,7 +86,7 @@
 | 仓库 | ① 这是什么、我为什么需要 | ② 10 分钟跑起来 | ③ 怎么加 / 扩 |
 |---|---|---|---|
 | `dsh-termux-kit` | ✅ `README.md` 的 `## Overview` | ✅ 其 `## Quick start`（4 步；缺 `android.jar` 时**停下并打印指令**） | ⚠ 有 12 个 widget 的清单与 `ui/controls.json` 单源，但**没有"加第 13 个 widget / 加一条命令"的路径** ⇒ 阶段 1 已补：见 §8 |
-| `dsh-vision-kit` | ⚠ 无独立 Why 章；`:14 The current path: the PC Actor` 标了当前路线 | ✅ `:22 Quick start`（"nothing to install first"） | ⚠ 有 `:83 Skills`，但 Generation 1（`:103`）/ 1.5（`:200`）/ Actor **三代并置** ⇒ 新手要先读三段才知道从哪开始 |
+| `dsh-vision-kit` | ✅ `:14 ## Why this exists`（**阶段 3.9 实测**：旧记法「无独立 Why 章」已过期 —— `00373f7 docs: answer the front door's three questions` 补上的） | ✅ `:34 ## The current path: the PC Actor` + `:40`（"nothing to install first"）；Generation 1 的 Quick start 降到 `:178` | ✅ `:101 ## Skills: what the model is told`；Generation 1 已在 `:136` 明标 `(reference)` ⇒ 三代不再并置 |
 | `vision-work` | ✅ `## Why this exists`（三条动机：拒答是行为不是漏做 / 难的是发现屏幕在脚下变了 / 能带走的是方法不是数字，+"谁需要它"一行） | ✅ `## Ten minutes to a scored run`（可移植命令、无本机路径；好跑的样子 + 失败 → `docs/TROUBLESHOOTING.md`；四条前置清单**移到路径之后**当"起飞前检查"） | ✅ `docs/TASK-AUTHORING.md`（四个活动件 + 真值协议 + 加族七步清单；题仍是硬编码，文档**如实说明**并指出改哪几处） |
 
 ### (b) 路径不写死，缺了就报"装什么 / 设什么"
@@ -102,7 +102,7 @@
 
 ### (d) 产物记 `env` 块 —— 拆两种产物：**运行记录 / 构建产物**（v1.1 改写）
 
-**运行记录（每条记录一份）必须带 `env` 块** —— 谁跑的、哪一版代码、什么环境。**`vision-work` ✅（阶段 3.1）**：run json 里 `env` 与 `scripts_sha` 同级（`python` / `numpy` / `pillow` / `tesseract` / `screen{geom,dpi}` / `actor_py` / `actor_pid`；取不到一律记 `null`、不猜；actor 侧只多发一次 `ping`；**旧 json 不变**）。另两个仓库仍无这类产物 —— 它们的产物是构建物 ⇒ 走下一段的判据。
+**运行记录（每条记录一份）必须带 `env` 块** —— 谁跑的、哪一版代码、什么环境。**`vision-work` ✅（阶段 3.1）**：run json 里 `env` 与 `scripts_sha` 同级（`python` / `numpy` / `pillow` / `tesseract` / `screen{geom,dpi}` / `actor_py` / `actor_pid`；取不到一律记 `null`、不猜；actor 侧只多发一次 `ping`；**旧 json 不变**）。另两个仓库仍无这类产物 —— 它们的产物是构建物 ⇒ 走下一段的判据。**阶段 3.9 实测（`dsh-vision-kit`）**：其构建产物 = DSH 插件包 `plugins/dsh-selflook-local/`，`package.json:3` 有 `"version": "1.0.0"` ✓（版本写进产物本身）；但 `tools/ci-static.ps1` **无**版本 / manifest 门禁（`grep -n version` 与 `grep -n manifest` 在该脚本里都只命中一行 python `sys.version_info`）⇒ 这支判据**只过一半**。
 **构建产物（一份产物一个版本）必须把版本与来源写进产物本身，并有门禁能核对。** 范本 = `dsh-termux-kit`：`ui/controls.json > appVersions` 是唯一源 ⇒ `tools/ui-controls gen` 写进产物 ⇒ `tools/app-verify` 核对"同版本不同内容"；其 CHANGELOG 也记版本号（如"控制台 1.21（versionCode 34）· 桥 2.2"）与生成块 `UI_VERSION`。
 > 回灌依据：v1 把两类混成一条"运行产物"，而试点仓库**根本没有运行记录类产物** ⇒ 标准在那条上落不了地。拆分后两支各有各的验收语句。
 
@@ -129,7 +129,7 @@
 ### (f) 边界诚实声明
 
 `vision-work` ✅ 最强（`What this is not` + 已知边界 + 【未决】）；`dsh-vision-kit` ✅ `Security`（`:248`：`:8731` 无鉴权、只监听 loopback、截图含整屏）+ "No UI screenshots are published here"；`dsh-termux-kit` ✅ `Troubleshooting` 每条给出 symptom / cause / solution。
-**统一新增一条**：不承诺"复现作者的数字"（OCR、DPI、字体都在环里），只承诺**方法与可重跑的运行** —— 这既是诚实，也是保护。`vision-work` **已落（阶段 3.3）**：`README.md` 的 `## Why this exists` 第三条 + `## What this is not` 第四条。
+**统一新增一条**：不承诺"复现作者的数字"（OCR、DPI、字体都在环里），只承诺**方法与可重跑的运行** —— 这既是诚实，也是保护。`vision-work` **已落（阶段 3.3）**：`README.md` 的 `## Why this exists` 第三条 + `## What this is not` 第四条。**阶段 3.9 实测**：`dsh-vision-kit` 只有 `README.md:293` 的 "results are given as numbers plus reproduction commands"（接近，但不是这一条）⇒ **这句「统一新增一条」在该仓库尚未落**（`dsh-termux-kit` 本段未核）。
 
 ### (g) 双语策略统一
 
@@ -145,6 +145,7 @@
 - **可验收语句**：全库 grep 该数字，**除"源"那一处外不允许出现字面量**；参实现就在同一仓库里 —— `ui/controls.json`（三处 UI 文案的唯一源）与 `i18n/zh.json`（翻译表唯一源），两者都有生成器 + `check` 门禁。
 - **为什么单列一条**：这不是"把 12 改成 13"的小事，而是**加第 N 个组件时必然踩的坑** —— 试点段新增 `docs/TASK-AUTHORING.md` 时，光是找齐"12"写在哪几处就要 grep 一轮，而其中 2 处已与实际不符。
 - **`vision-work` 侧现状（阶段 3.5 核实，**阶段 3.7 已处置**）**：`五判定` 这个**集合名**出现在 **11** 个 `*.md`（口径：只数 `*.md`、`.git` 除外、**含本文件**；阶段 3.5 写的「9 个文件」既没写口径、也与实测不符 —— 它当时实测是 **10**，阶段 3.7 又把 `五判定` 写进 `STATE.md` §36.2 与 `CHANGELOG.md`，于是 **11**）；审计文档数 `8 份` 出现在 **4 处**（`README.md`、`README.zh-CN.md`、`audit/README.md`、本文 §1 结构图 —— 阶段 3.5 把 `CHANGELOG.md` 列了进来、却漏了中文 README）。处置 = 普查（`audit/STATE.md` §36.2 的 12 个家族）+ 每家族一个真源 + 宣称点登记 + 闸 `tools/check-counts.py`（接入点 `docs/OPERATING.md` §3.5）；`(h)` 从此在 v1.x 清单里划掉（⑤）。
+- **`dsh-vision-kit` 侧现状（阶段 3.9 只读实测）**：`tools/` **无** `check-counts.py`（同类闸未做 ⇒ v1.x ⑦）；且**已有一处活漂移**：`CONTRIBUTING.md:94` 写 `tools/ci-static.ps1` 是 "all five stages: parse, ruff, mypy, PSScriptAnalyzer, `node --check`"，而脚本实为 **6** 个阶段（第 6 个 = `skills`，`tools/ci-static.ps1:150` 的 `# ── 6. skills`）⇒ 这正是 (h) 要防的那类漂移。八条逐条核验表见 `audit/STATE.md` §37.2。
 
 ### 两条示范句（试点产出，可直接照抄进任一仓库的 CONTRIBUTING / README）
 
@@ -187,7 +188,9 @@
 - v1.0 之后**不再加 scenario 类**；新想法走 **v1.x** 或另开仓库。
 - **"冻结" = 接口冻结**（run json `schema: 1` + 文档 + 引用纪律），**不是停止开发**。
 - **声明口径**：`vision-work` 的 v1.0 = §4 八条里 **(a)(b)(c)(d)(d 配套)(e)(f)(g) 七条全过**；**(h) 计数与清单单一化明确不在声明内**（依据见 (h) 节末）。
-- **v1.x 清单（仍开着的欠账）**：**3** 项 = ①③⑥（②④⑤ 已划掉，理由见各项）：① #18 = **部分覆盖**（前台真鼠标、批次 23 / 24 各 8 题、`viewport` 桶；仍不覆盖 `--bg` 鼠标通道与滚轮 / 拖拽的连续交互公差）；② ~~`scripts_sha` 覆盖面缺口（只哈希三件套，漏 `gui_see.py` / `loop.py`）~~ **已还（阶段 3.6）**：六文件定义 + `scripts_sha_files`（值 `7051c259fa05`），旧值不回溯、两种定义不可互比（`SCORE-history.md` §1.1）；③ actor 自身 sha **不记**（`ping` 无版本 op；只记 `env.actor_py` / `env.actor_pid`，跨 session 不可追溯）；④ ~~**manifest v1 实现**（3.6）~~ **已做（阶段 3.6，commit A `1c1a9b8`）**：题序搬进 `sol/sandbox/plans.v1.json`，266 元组逐元组等价、题序逐字未变；⑤ ~~计数闸扩展（3.7）~~ **已做（阶段 3.7）**：普查 + 真源 + `tools/check-counts.py`（`STATE.md` §36、规程 `docs/OPERATING.md` §3.5）；⑥ `dsh-termux-kit` 侧 5 处计数漂移（§8 已记，未做）。
+- **产品级口径（同一条标准的另一种读法 —— 阶段 3.9 按用户裁决写入）**：v1.0 也可以读作**三仓库合成产品**的门槛：三仓库**各自**过 §4 八条（`(h)` 一并计入）才算产品级 v1.0。**今日状态**：`vision-work` ✅ 已声明（七条 + `(h)` 已在阶段 3.7 处置）；`dsh-vision-kit` ❌ **未过 4 条**（(h) ❌ / (e) ⚠ / (d) ⚠ 半条 / (f) 差「统一新增一条」—— 逐条证据见 `audit/STATE.md` §37.2）；`dsh-termux-kit` **未评**（阶段 1 已证明标准在该仓库可落地，但 `(h)` 的 5 处漂移仍在，见 ①⑥）。⇒ **产品级 v1.0 至今未达成**；上面那条「声明口径」不改，已宣布的结论仍以「`vision-work` 的 v1.0」为准。
+- **v1.x 清单（仍开着的欠账 · 三仓库共用）**：**4** 项 = ①③⑥⑦（②④⑤ 已划掉，理由见各项）：① #18 = **部分覆盖**（前台真鼠标、批次 23 / 24 各 8 题、`viewport` 桶；仍不覆盖 `--bg` 鼠标通道与滚轮 / 拖拽的连续交互公差）；② ~~`scripts_sha` 覆盖面缺口（只哈希三件套，漏 `gui_see.py` / `loop.py`）~~ **已还（阶段 3.6）**：六文件定义 + `scripts_sha_files`（值 `7051c259fa05`），旧值不回溯、两种定义不可互比（`SCORE-history.md` §1.1）；③ actor 自身 sha **不记**（`ping` 无版本 op；只记 `env.actor_py` / `env.actor_pid`，跨 session 不可追溯）；④ ~~**manifest v1 实现**（3.6）~~ **已做（阶段 3.6，commit A `1c1a9b8`）**：题序搬进 `sol/sandbox/plans.v1.json`，266 元组逐元组等价、题序逐字未变；⑤ ~~计数闸扩展（3.7）~~ **已做（阶段 3.7）**：普查 + 真源 + `tools/check-counts.py`（`STATE.md` §36、规程 `docs/OPERATING.md` §3.5）；⑥ `dsh-termux-kit` 侧 5 处计数漂移（§8 已记，未做）；⑦ `dsh-vision-kit` 侧计数闸（设计 = C3，正本暂在仓库外 `D:\DSH\dsh-actor\tmp\stage2\C3-checkcounts-design.md`；落地时接其 `tools/ci-static.ps1` 第 7 阶段 —— 阶段 3.9 实测：该仓库 `tools/` 无 `check-counts.py`，且已有一处活漂移，见 §4(h)）。
+- **待外部条件（不进 v1.x 清单 —— 性质不同：不是「可做未做」，而是「等条件」）**：B3 的**活体字段证据**（真跑 json 里 `scripts_sha_files` 的实测值）**待桌面解锁**（`LockApp` 在前台时不能干跑）；重跑命令与理由见 `audit/STATE.md` §35.8③。
 - **已关闭 / 已还清**（归档、不再投入）：#4 / #12 / #17 / #19 / #20（窄批口径）/ #21（已修 + 回归）。
 
 ## 7. 红线（v1 写作段与 v1.1 回灌段共同适用）

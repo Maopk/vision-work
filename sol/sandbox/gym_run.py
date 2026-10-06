@@ -3672,6 +3672,16 @@ def main() -> int:
         # now broadcasts on its event stream (`ready`).  The driver never reads it back
         # to decide - score.py joins it afterwards.  Only t_trap declares truths, so
         # every other scenario keeps the v0 gate and stays labelled 不可比.
+        # `scripts_sha` covers the driver, the target and the scorer *and* the modules they
+        # import (the pixel reader, the actor client) plus the plan manifest: a reading is
+        # only reproducible if the whole reading path is pinned.  From stage 3.6 the list
+        # is written into the json as `scripts_sha_files`, so a value can be recomputed
+        # without knowing which files this version happened to hash.  Batches before 3.6
+        # hashed the first three only - their `scripts_sha` is a different definition, and
+        # `SCORE-history.md` section 1 says how to read the two against each other.
+        _SHA_FILES = ("gym_run.py", "gym_app.py", "score.py",
+                      "gui_see.py", "loop.py", "plans.v1.json")
+
         def _sha(paths):
             h = hashlib.sha256()
             for p in paths:
@@ -3702,9 +3712,8 @@ def main() -> int:
                        "partial": bool(exit_reason),
                        "exit_reason": exit_reason or None,
                        "tasks_planned": max_tasks,
-                       "scripts_sha": _sha([os.path.join(here, "gym_run.py"),
-                                            os.path.join(here, "gym_app.py"),
-                                            os.path.join(here, "score.py")]),
+                       "scripts_sha": _sha([os.path.join(here, f) for f in _SHA_FILES]),
+                       "scripts_sha_files": list(_SHA_FILES),
                        "env": run_env(d.a),
                        "app_args": app_args,
                        "mode": {

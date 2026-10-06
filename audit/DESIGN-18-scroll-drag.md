@@ -23,9 +23,9 @@
 |---|---|
 | `../sol/sandbox/gym_run.py:1214` | `Driver.wheel()` 定义；**唯一调用点** `:2329`，写成 `if self.keys: self.key("Next") else: self.wheel(-3, …)` |
 | `../sol/sandbox/gym_run.py:1208` | `Driver.drag()` 定义；**唯一调用点** `:2877`（`t_chips` 的视觉回退路径） |
-| `../sol/sandbox/gym_app.py:725–735` | 靶子侧 `bind_all("<MouseWheel>", …)`；同一处把 `keymap["Next"]` 绑到 `_page(1)` |
-| `../sol/sandbox/gym_app.py:425–432` | `_page(step)` ⇒ `c.yview_scroll(step*9, "units")`（键通道翻页的真实实现） |
-| `../sol/sandbox/gym_app.py:959–961` | `t_chips` 的鼠标绑定；同一族的键盘路径是 `_bind_key(i, drop_slot)` / `_bind_key(len(slots)+i, pick)` |
+| `../sol/sandbox/gym_app.py:714–735` | 靶子侧 `bind_all("<MouseWheel>", …)`；同一处把 `keymap["Next"]` 绑到 `_page(1)` |
+| `../sol/sandbox/gym_app.py:414–432` | `_page(step)` ⇒ `c.yview_scroll(step*9, "units")`（键通道翻页的真实实现） |
+| `../sol/sandbox/gym_app.py:948–961` | `t_chips` 的鼠标绑定；同一族的键盘路径是 `_bind_key(i, drop_slot)` / `_bind_key(len(slots)+i, pick)` |
 
 **读法**：两条路径**都不是缺失**，而是"键通道有等价物、鼠标通道没被用过"。`--bg` 下鼠标失效的机制也早已定案：执行器的后台分支走 `PostMessage`，而 **Tk 完全忽略投递的鼠标消息**（`gym_run.py:2329` 附近的注释记录过实测：63 次投递滚轮、位移为 0）；`o_key` 在后台有焦点交接（`AttachThreadInput` + `SetFocus`），**鼠标操作没有对应机制**，而且"有焦点"也救不了它——投递的消息 Tk 就是不收。
 
@@ -174,14 +174,14 @@
 - 调用点：**滚轮** `gym_run.py:2356`（t_rows 处理器）、**拖拽** `gym_run.py:2900-2904`（t_chips 处理器）。
 - **滚轮已有键通道分支且已实现**：`gym_run.py:2349-2353` 注释「the wheel is a mouse message and Tk ignores those while it is not focused (measured: 63 posted wheel steps moved nothing at all), so turn the page with the key the app binds for exactly that」→ `self.key("Next")`；否则 `self.wheel(-3, img.width // 2, ...)`。
 - **拖拽只有鼠标一条路**：`gym_run.py:2900-2904` 无条件 `self.drag(...)`。
-- 计划表在**靶子**侧：`gym_app.py:504 next_task`、`:524-526 pool = [t_button, t_rows, t_form, t_toggle, t_menu, t_chips]` + `build = getattr(self, self.fixed_scenario) if self.fixed_scenario else self.rng.choice(pool)` ⇒ **`--scenario t_rows` / `--scenario t_chips` 只发该场景**（`gym_app.py:1451` 的 help 就是这几个名字）；`gym_run.py` 自己没有计划表 ⇒ **方案①零代码改动**。
+- 计划表在**靶子**侧：`gym_app.py:493 next_task`、`:524-526 pool = [t_button, t_rows, t_form, t_toggle, t_menu, t_chips]` + `build = getattr(self, self.fixed_scenario) if self.fixed_scenario else self.rng.choice(pool)` ⇒ **`--scenario t_rows` / `--scenario t_chips` 只发该场景**（`gym_app.py:1440` 的 help 就是这几个名字）；`gym_run.py` 自己没有计划表 ⇒ **方案①零代码改动**。
 
 ### 8.3 靶子侧等价物
 
 | 交互 | 键通道等价物 | 是否与原语义一致 |
 |---|---|---|
-| 滚轮（`t_rows`） | **有**：`gym_app.py:728 keymap["Next"] = lambda: self._page(1)`、`:729 keymap["Prior"] = lambda: self._page(-1)`（= Page Down / Page Up；另有 `Up` 细滚、`End` 到底） | 基本一致（都是「翻页后重新读行」）；但**「滚一格」的连续量**没有等价物 ⇒ 只能测「翻页」，不能测「滚轮步进」 |
-| 拖拽（`t_chips`） | **没有**：`gym_app.py:960-962` 的 `t_chips` 只绑 `<ButtonPress-1>` / `<B1-Motion>` / `<ButtonRelease-1>` | 无 |
+| 滚轮（`t_rows`） | **有**：`gym_app.py:717 keymap["Next"] = lambda: self._page(1)`、`:729 keymap["Prior"] = lambda: self._page(-1)`（= Page Down / Page Up；另有 `Up` 细滚、`End` 到底） | 基本一致（都是「翻页后重新读行」）；但**「滚一格」的连续量**没有等价物 ⇒ 只能测「翻页」，不能测「滚轮步进」 |
+| 拖拽（`t_chips`） | **没有**：`gym_app.py:949-962` 的 `t_chips` 只绑 `<ButtonPress-1>` / `<B1-Motion>` / `<ButtonRelease-1>` | 无 |
 
 ### 8.4 两方案（二选一 + 推荐）
 
@@ -197,7 +197,7 @@
 
 ### 8.5 跑之前必须知道的限制
 
-- `t_rows` / `t_chips` 题**不声明 `truth_class`**（`gym_app.py:737` / `:962-964` 的返回值里没有该键）⇒ 它们**不进 `score.py` 的判定分母**：覆盖只能按**题级通过 + 动作计数（`scrolls` / `drags`）+ 屏幕读题率**记，**不能**说成「五判定覆盖了滚轮/拖拽」。
+- `t_rows` / `t_chips` 题**不声明 `truth_class`**（`gym_app.py:726` / `:962-964` 的返回值里没有该键）⇒ 它们**不进 `score.py` 的判定分母**：覆盖只能按**题级通过 + 动作计数（`scrolls` / `drags`）+ 屏幕读题率**记，**不能**说成「五判定覆盖了滚轮/拖拽」。
 - 前台批的既有约束全部适用：靶窗口计数必须 = 1、同一时刻只有一个 gym 窗口、Windows 侧 `-WindowStyle Normal` 启动、先干跑 `--tasks 2`。
 
 ## 9. 进成绩体系（第二十三段设计 · **已实施：阶段 3.4**）
@@ -209,7 +209,7 @@
 
 | 问题 | 答案 |
 |---|---|
-| 这两类题为什么不声明 `truth_class`？ | 它们的 `truth` 字典装的是**自用几何真值**（`t_rows` = `{id, rows, row_height}`、`t_chips` = `{chip, slot, slots, chips}`），当初按「给驱动/人工核对」设计、没有进计分协议。`truth_class` 是 **`ready` 事件的字段**：`gym_app.py:536-537` 只在 `tr.get("truth_class")` 存在时才发。 |
+| 这两类题为什么不声明 `truth_class`？ | 它们的 `truth` 字典装的是**自用几何真值**（`t_rows` = `{id, rows, row_height}`、`t_chips` = `{chip, slot, slots, chips}`），当初按「给驱动/人工核对」设计、没有进计分协议。`truth_class` 是 **`ready` 事件的字段**：`gym_app.py:525-537` 只在 `tr.get("truth_class")` 存在时才发。 |
 | 它们到底有没有「对错」？ | **有，而且是靶子自己判的**：`t_rows` 每行的 `<Button-1>` 绑 `self.finish(rid == target, {"selected": rid, "want": target})`；`t_chips` 的 `drop()` 里 `self.finish(hit == want_slot and v == chips[pair], {...})` ⇒ 逐题行里的 `result` 已经是 `ok`/`wrong`。 |
 | `score.py` 怎么认 `truth_class`？ | 真值来自 **`ready` 事件**（`score.py:133`），`join_truth`（`:162`）按 `task_i` 写进逐题行；**分母 = `r.get("truth_class") in ("answerable", "must_refuse")`**（`v1_counts`，`:267`）。注意 `:110-112` 的 `VERDICTS` 是**判定名**（answered_right…），不是真值类名。 |
 | 现有真值类全集 | **只有 `answerable` / `must_refuse` 两个**（`score.py:211-221` 的 `v1_verdict` 分支也穷举了这两类）⇒ 没有现成类可复用。 |
@@ -223,9 +223,9 @@
 
 **靶子侧改动清单（逐条）**
 
-1. `gym_app.py:737`（`t_rows` 的 `return`）：`truth` 里加 `"truth_class": "viewport"`，并加 `"variant": "rows"`。
-2. `gym_app.py:962-964`（`t_chips` 的 `return`）：`truth` 里加 `"truth_class": "viewport"`，并加 `"variant": "chips"`。
-3. `gym_app.py:536` **不用改**（已经是「有 `truth_class` 就发」）—— 加键即生效，`ready` 事件会带上它。
+1. `gym_app.py:726`（`t_rows` 的 `return`）：`truth` 里加 `"truth_class": "viewport"`，并加 `"variant": "rows"`。
+2. `gym_app.py:951-964`（`t_chips` 的 `return`）：`truth` 里加 `"truth_class": "viewport"`，并加 `"variant": "chips"`。
+3. `gym_app.py:525` **不用改**（已经是「有 `truth_class` 就发」）—— 加键即生效，`ready` 事件会带上它。
 4. 任何 `finish(...)` 的判定逻辑**不动**（`ok` 的真值语义一字不改）。
 
 **`score.py` 改动（必改，最小）**
@@ -259,7 +259,7 @@
 | 风险 | 处置 |
 |---|---|
 | `gym_app.py` **首次裂 sha**（`66632d85eac81c12` → **`17b6a59cb831dafa`，阶段 3.4 已发生**）⇒ 靶子不再是「批次 1–20 的靶子」 | **回退 = 单文件 revert**：`git revert <commit>` 或 `git checkout <旧 commit> -- ../sol/sandbox/gym_app.py` ⇒ sha 回到 `66632d85eac81c12`。改动只在两个 `return` 的字典里加键，**无状态、无副作用** ⇒ revert 干净。 |
-| 已跑批次还能复现吗？ | **能**：题池与题序由 `--seed` 决定（`gym_app.py:504-526`），新键**不参与**任何绘制或判定（`finish()` 的 `ok` 一字不改）⇒ 同 seed + 同 scenario 下**题与判定逐题不变**，只有 `ready` 事件多一个字段。 |
+| 已跑批次还能复现吗？ | **能**：题池与题序由 `--seed` 决定（`gym_app.py:493-526`），新键**不参与**任何绘制或判定（`finish()` 的 `ok` 一字不改）⇒ 同 seed + 同 scenario 下**题与判定逐题不变**，只有 `ready` 事件多一个字段。 |
 | 新类名漏进某处统计？ | 由 `--selftest` 新增的两条兜住（viewport 不进主分母）。 |
 | 与 #20「不改 actor」的决定冲突吗？ | **不冲突**：本次只改靶子；`D:\DSH\dsh-vision-kit\actor` 一字不动 ⇒ 不触碰 #20 B 案的否决理由。 |
 | 新场景的 `gates` 档？ | 跑前先确认 `gym_run.py:3658` 对该 scenario 写到哪一档（落默认档也要**写明**，别让读者以为与 `t_trap*` 同档）。 |

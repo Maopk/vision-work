@@ -19,6 +19,28 @@ browser tab — with that string in its title is counted as a target.
 that a refused start can leave a target window behind (the driver only kills the
 launcher process), so confirm none is left before the next run.
 
+### 1b. The driver hangs and prints nothing
+
+**Symptom.** Started with output redirected to a file, the driver produces a **zero-byte** log and
+never exits. Blaming the target or the actor wastes a lot of time — check the desktop first.
+
+**Cause.** A **locked** Windows session. The driver's own guard reads the foreground process; when
+it is `LockApp.exe` it prints
+
+```
+gym driver: session is locked (foreground process LockApp.exe) - waiting up to 3600 s
+```
+
+and **blocks** until the session is unlocked (that is deliberate: a locked desktop cannot be driven
+honestly). With the output redirected, Python buffers that line, so the log stays empty and the run
+merely looks hung.
+
+**Fix.** Unlock the session (the wait ends by itself and the run continues; `lock_waits` in the run
+json records that it happened), or pass **`--lock-wait 0`** to make it fail fast —
+it then prints `refusing to start a run while the session is locked` and exits. Add
+**`PYTHONUNBUFFERED=1`** (or run `python -u`) so the reason is visible in redirected logs. **Do not**
+kill the driver by hand; a driver that never started writes no run json at all.
+
 ## 2. `shot failed`, or no run json at all
 
 **Cause.** The run was started without an interactive desktop session — from a service,

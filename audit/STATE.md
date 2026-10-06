@@ -175,7 +175,7 @@ cd D:\DSH\vision-work\sol\sandbox && D:\DSH\.venvs\vision-ci\Scripts\python.exe 
      - `swap_timer` 5 题里 2 题错（#10/#13，`ask_cells=1/0`）⇒ 换题落在**复验帧与按键之间**的残留竞态；
        `a_hit=0` 是结构性的（换题早于任何按键）。**已从靶子事件流取证**：`trap_swap a=INDIGO b=XENON why=timer a_hit=False` → `done detail.clicked=INDIGO`。新增事件 `trap_stale_press` + 计分行 `race(pressed the replaced ask) N/M`（`score.py` selftest 29 项）；旧 run 显示 `0/0` 只表示"当时没有这个字段"。这条**不从分母里剔除**：看着没变就按下去是真实边界（窗口 70–150 ms）。
      - `half_transparent` 五档（0.20/0.30/0.35/0.50/0.65）**各 2/2 全过 = 无区分度·不可作为 fill 阈值证据**（用户审计要求这样标，不能写成通过）：键通道下
-       能按下去的前提是找到 `[k]` 徽章，**操作性与填充率无关**（真正的机制：靶子只把**填充块**按 alpha 混合，`gym_app.py:942-943`；标签文字与 `[k]` 徽章**没过 blend**，见 `gym_app.py:944-945` 的 `create_text(..., fill="#12263a")` ⇒ 五档里可读的东西完全一样，**该类在结构上产生不了 fill 边界**）。另一条更便宜的路：让文字也走 `blend`，同批 10 题重跑，测的是驱动读数下限；要测阈值必须做"淡控件 + 无徽章"变体。
+       能按下去的前提是找到 `[k]` 徽章，**操作性与填充率无关**（真正的机制：靶子只把**填充块**按 alpha 混合，`gym_app.py:931-943`；标签文字与 `[k]` 徽章**没过 blend**，见 `gym_app.py:933-945` 的 `create_text(..., fill="#12263a")` ⇒ 五档里可读的东西完全一样，**该类在结构上产生不了 fill 边界**）。另一条更便宜的路：让文字也走 `blend`，同批 10 题重跑，测的是驱动读数下限；要测阈值必须做"淡控件 + 无徽章"变体。
      - `2330 ms/题` 是 `wall_ms`（含抓图）均值，判定耗时均值只有 1148 ms；按类拆开：`swap_after_press` **6233 ms/题 × 10 题 = 整轮 198 s 的 31.4%**，其余每类 1.5–2.7 s ⇒ 差别全在这 10 题（按对 A 后靶子换题，驱动等一个**永远不会来的判定**约 5 s：`wait_verdict(..., 0.6)` → "no verdict in 4.4 s"）。**下一批可优化**：等判定时顺带比对 banner 指纹（复用 `band_sig`，不额外抓帧）能省掉这 ~5 s。
       - 每个 run json 都带 `scripts_sha`（`gym_run.py`+`gym_app.py`+`score.py` 三个文件）：`t_trap-1..6` 六版各不相同（`a04562c5`/`1a3c8993`/`31a244a3`/`03bf345d`/`918619ef`/`ea755d12`）、`t_trap2-1`=`82f71c8f`、`t_trap2-2`=`5829c8b9`（这两次 `gates` 还被错写成 v0）、定稿 `t_trap2-3`=`f09f2ed21363`、`prof2`/`prof3`=`264a87d48d4c`；跨版本的数字不可直接比，引用要带 sha。
       - `screen 69/85` **不是 16 题屏读失败**（审计疑点，已核对）：判据是**归一化后的屏读文本是否包含真值**（`gym_run.py:1498`），不包含才记 `file`，而行动**仍用屏读文本**（`gym_run.py:1504` 只在屏读为空时才回落文件）。那 16 行全是 OCR 滑字（`GAMM.`/`TUND`/`XENON2`/`acknowledae`），逐题核对 = **10 题 acted + 6 题 refused、16/16 `result=ok`**。
@@ -212,9 +212,9 @@ cd D:\DSH\vision-work\sol\sandbox && D:\DSH\.venvs\vision-ci\Scripts\python.exe 
         **不是控件**，点击直接判 wrong）。必中原因：`gui_see.py:130-156 find_text` 按 score 降序且**排序稳定** ⇒
         精确匹配并列 1.0 时取阅读顺序靠前者；且 `gym_run.py:1353 verify_before_act` 的 `verify_calls >= 1 ⇒ True`
         使**换题后的第二次点击不再复验**。8 题里 7 题靶子判决 `{"clicked": null, "twin": "TANGQ/…", ...}`。
-        **这是当前口径下的真实行为，不是 bug。** 代码：`gym_app.py:147 TRAP_PLAN4`、`gym_app.py:992 t_trap4()`、
-        `gym_app.py:1318 twin = variant == "swap_twin_press"`、`gym_app.py:1390` 标题、`gym_app.py:1357 twin_press()`、
-        `gym_app.py:1369 twin_watchdog()`（9 s 兜底结算，防止题目永不结算导致整批错位）。
+        **这是当前口径下的真实行为，不是 bug。** 代码：`sol/sandbox/plans.v1.json` 的 `trap4` 计划（阶段 3.6 前 = `gym_app.py:147 TRAP_PLAN4`）、`gym_app.py:981 t_trap4()`、
+        `gym_app.py:1307 twin = variant == "swap_twin_press"`、`gym_app.py:1379` 标题、`gym_app.py:1346 twin_press()`、
+        `gym_app.py:1358 twin_watchdog()`（9 s 兜底结算，防止题目永不结算导致整批错位）。
       - **守门失明的真根因是折叠表（我上一轮"`sim 1.0` 被后续覆盖"的说法是错的，已撤销）**：`gym_run.py:58 _CONFUSE`
         把 O/Q→0 ⇒ `TANGO` 与 `TANGQ` 折叠后**同码**（都 `74N60`）⇒ 守门**重读读对了**（`ask_label_read` 里就是 `TANGQ`）
         仍判"未变"⇒ 按过期 A。修法：`gym_run.py:67 _plain()`（不折叠）+ `ask_text_changed`（`gym_run.py:1287`）改用
@@ -322,7 +322,7 @@ t13 `ask_moved=1`（守门真的开火了，重规划到 `GAMMB`）、t33 `ask_c
 ### 8.1 追记（用户 2026-10-04 复核后的定论，批次 6 之后）
 
 - **`race`：不单独跑扩分母，记"踩线达标"**。分母 5 = 判据线，5 次全错**有区分度**（不是"24/24 连五次"那种空信息），但不据此宣布"已缓解"；**下一批若涉及守门改动（欠账 ④⑤⑥ 任一条），race 分母在同一批里扩**（单独跑只会被下一批的改动覆盖）。
-- **`chaos`：四类都做，不放弃任何一类**（用户 2026-10-04 **二次修正**，推翻同日晚间"只开 `move`/`popup`/`slow` 永久放弃"那一条）。顺序与理由：①`move`（`gym_app.py:606-614`：`self.body.pack_configure(padx=10+rng.randrange(20,90), pady=…）` + 50% 概率 `self.geometry(...)` 移整窗）与已跑的 `rebuild`（换题）互补 ⇒ "重建 vs 移动"对比；②`slow` 正对 `timeout` 分支（批次 6 已出现 `timeout=1`）：量"判定晚到"时驱动会不会重复按压；③`popup` **前置验证：`--no-topmost` 是继承的**（`gym_app.py:222 popup_topmost: bool = True` → `234 self.popup_topmost = popup_topmost  # False while a driver works in background` → `653 if self.popup_topmost:` → `1484 popup_topmost=not a.no_topmost` ⇒ 驱动在后台跑时干扰窗**不置顶**，不需要改代码；实测以各批 `foreground unchanged` 为准）；④`rebuild` 已完成（批次 6）。每类 **2 强度（0.35 / 0.70）× ≥5 fire**，标「探索性·不并入定稿」；delta 解释不了就停并写欠账。
+- **`chaos`：四类都做，不放弃任何一类**（用户 2026-10-04 **二次修正**，推翻同日晚间"只开 `move`/`popup`/`slow` 永久放弃"那一条）。顺序与理由：①`move`（`gym_app.py:595-614`：`self.body.pack_configure(padx=10+rng.randrange(20,90), pady=…）` + 50% 概率 `self.geometry(...)` 移整窗）与已跑的 `rebuild`（换题）互补 ⇒ "重建 vs 移动"对比；②`slow` 正对 `timeout` 分支（批次 6 已出现 `timeout=1`）：量"判定晚到"时驱动会不会重复按压；③`popup` **前置验证：`--no-topmost` 是继承的**（`gym_app.py:211 popup_topmost: bool = True` → `234 self.popup_topmost = popup_topmost  # False while a driver works in background` → `653 if self.popup_topmost:` → `1484 popup_topmost=not a.no_topmost` ⇒ 驱动在后台跑时干扰窗**不置顶**，不需要改代码；实测以各批 `foreground unchanged` 为准）；④`rebuild` 已完成（批次 6）。每类 **2 强度（0.35 / 0.70）× ≥5 fire**，标「探索性·不并入定稿」；delta 解释不了就停并写欠账。
 - **欠账 #14 已做**：驱动按 `--json-out` 给 app 的 state/events 命名（`x.json` → `x-state.json` + `x-events.jsonl`）⇒ 每批留档、可事后 `score.py <json>` 复核。**它只改文件命名、不改任何判定逻辑** ⇒ sha 会变但**与批次 6 数字可比**（`../sol/sandbox/SCORE.md` sha 表里已按此标注），且**不引入 `LOGIC_VERSION` 之类的新机制**。
 - **其余欠账全部冻结**（守门 ④⑤⑥、`guard-blind` 清零、`t_gate` 移到 `shot()` 之后、`press_delay_ms` 进逐题行、`swap_after_press` 5 s 空等、`no_badge_fill` 重标定、键通道核心 2 题），只保留在 `HANDOFF.md` 的「如果继续做」与本节 §7 表里，**不再为此裂 sha**。
 
@@ -335,7 +335,7 @@ t13 `ask_moved=1`（守门真的开火了，重规划到 `GAMMB`）、t33 `ask_c
 ## 9. 批次 6 —— 假设与证伪条件（先写，后量，再改）
 
 **假设（四行）**：`swap_twin_press` 8/8 全错的根因是**驱动排"词"、不排"被绘制的控件"**。
-同一个词出现两次：标题按阅读顺序在前（`gym_app.py:1387-1393`，注释原文 "a driver that ranks words
+同一个词出现两次：标题按阅读顺序在前（`gym_app.py:1376-1393`，注释原文 "a driver that ranks words
 rather than widgets picks the label over the button"），而**标题是裸文字**（`tk.Label(bg=BG)`，页面上没有画矩形），
 **真按钮是被绘制的块**（`find_blocks` 的判据，`gym_run.py:573-580`："only the pixels tell you whether anyone
 drew a control there"）。⇒ 命中文本后改用"是否坐在被绘制的块里"给候选排序，twin 家族应转为点真按钮；
@@ -358,7 +358,7 @@ drew a control there"）。⇒ 命中文本后改用"是否坐在被绘制的块
 `swap_race_timer` 加 sleep**，即选项 A）+ `score.py` 把新 variant 计入 `race`（+ `race_press_after_guard`）；
 ③ 逐门采样 `gate_ms_hist` + `score.py` 打 P50/P95（消掉"§1.4 要 P50/P95 / §二 说 P50/P95 不做"的冲突）；
 ④ chaos 首类：家族 = synonym、场景 `t_trap2`、通道 `--keys --bg`、kind = `rebuild`（四类 = rebuild/move/popup/slow，
-`gym_app.py:556-557`；`synonym` 不是 kind），另跑无 chaos 对照批。
+`gym_app.py:545-557`；`synonym` 不是 kind），另跑无 chaos 对照批。
 **不做**：`press_guard` 逻辑（只加 jitter 钩子）、④⑤⑥ 三条老欠账、nb046/nb050 边界带。
 **终止条件**：核心回归出 ok→wrong 翻转 ⇒ 停；twin 0/8 ⇒ 停；chaos delta 解释不了 ⇒ 停；
 twin 在"量"这步就证伪 ⇒ 不写代码即停；race `0,80` 拿不到 5 行 ⇒ 收窄到 `0,40` 再一批，仍不足 ⇒ 写"已知未测"。
@@ -400,7 +400,7 @@ banner 问 `HARBOP`，正文里 `HARBOP` 出现**两次**：
 | `gym_run.py:1468` | `press_guard` 逐门采样 `rec["gate_ms"]` + `stats["gate_samples"]` |
 | `gym_run.py:1480` | 新 `press_jitter(rec)`：只在 state 文件 `variant == "swap_race_timer"` 时 `random.randint(lo, hi)` 并 `sleep`，记 `press_delay_ms`/`press_jitter_task`/`stats["press_delays"]` |
 | `gym_run.py:3052`/`3158`/`3395` | `--press-jitter LO,HI`（默认 `0,0`）；main 解析并传 `jitter=`；`gates` = `v3`(t_trap5) / `v2`(t_trap*) / `v0` |
-| `gym_app.py:162`/`1008`/`1365`/`1436`/`1460` | `TRAP_PLAN5 = TRAP_PLAN4 + [("swap_mid_task","swap_race_timer")] * 10`（48 题，**前 38 题与批次 4/5 逐字相同**）；`t_trap5` 分派；`stale` 集合加 `swap_race_timer`；定时 `800-2600`（其余仍 `600-1000`）；帮助串补 t_trap5 |
+| `sol/sandbox/plans.v1.json` 的 `trap5`（= `base: trap4` + 10 条；阶段 3.6 前 = `gym_app.py:162`）/ `gym_app.py:997`/`1354`/`1425`/`1449` | `TRAP_PLAN5 = TRAP_PLAN4 + [("swap_mid_task","swap_race_timer")] * 10`（48 题，**前 38 题与批次 4/5 逐字相同**）；`t_trap5` 分派；`stale` 集合加 `swap_race_timer`；定时 `800-2600`（其余仍 `600-1000`）；帮助串补 t_trap5 |
 | `score.py:34`/`37`/`372`/`377`/`423`/`679`/`728` | `V3`；`pct()` nearest-rank；`race_after_guard` + `race_press_after_guard`；`gate_samples`/`gate_p50`/`gate_p95`；race 行加 `(after the guard's frame N)`、新增 gate 分位行；selftest 39 → **41 checks, 0 failed** |
 
 **定稿批**：`t_trap5-1.json`，sha `9db420c422a2`，`gates v3`，鼠标前台（不 `--bg`），`--press-jitter 0,1200`，48 题 4 分 05 秒。
@@ -487,7 +487,7 @@ timeout #31 truth=answerable dec=none result=none clicked=null
 - **干扰确实注入了**：本批自己的事件文件 `t_trap2-w7-move70-events.jsonl` 实测 **`chaos_planned 26 / chaos 26`**（全 `kind=move`）⇒ ≥5 fire ✅（驱动的 `disturbances: 0 fired` 仍是"只数弹窗"那个口径）。
 - **delta ①：`#30/#31/#32` 三行全是 app 的 task 31（`two_close_names`，ask `LUMEN93`），`result none`、`presses 0`、`decision none`、`replans 2`、`replan_why "no verdict arrived"`、`verdict_ms null`、`wall_ms 21151/21151/21786` ⇒ 连试 3 次 ⇒ `--max-repeat 3` 早停（33/60）。** 原始行关键字段：`ask_reread "DO: click the button labelled"`、`ask_label_read "DO: click the button labelled"`、`ask_cells 0`、`ask_delta 0.0`、`ask_changed_text true`、`ask_moved_text 1`、`ask_moved 3`、`ask_word LUMEN93`、`ask_word_from exact`。
 - **根因（读码定位，非猜；口径按用户 m09426 指定）**：**`move` 干扰下记录的 `ask_box` 在重读时失效**——重读回来的是一段**干净的句子前缀**（`"DO: click the button labelled"`），说明取景框**边缘切在 label 之前**、`ask_box` 已不再覆盖当帧的标签词；于是 `ask_label_now` 的 `labelled (.+)$` 取不到词、返回**哨兵 `""`**（旧 `gym_run.py:1351-1352`），而 `ask_text_changed` 把 `""` 当**变化**（旧 `1377-1379`）⇒ **同一帧指纹说"没动"（`ask_cells 0`/`ask_delta 0.0`）而文本路径说"变了"** ⇒ 守门不放行 ⇒ 重规划 ⇒ 死循环。该函数 docstring（`gym_run.py:1315-1317`）从批次 5 起就写着 "an unreadable read is not evidence that the question moved" ⇒ **实现与自己的契约相反**。**次级假设（未排除、不主导）**：OCR 在 6 px padding 的窄条上漏读末词——同属"读不到"，修法一致。分类：**可修**（不是异常：无 traceback；不是超时：压根没按；是判据缺陷）。
-- **delta ②：`a_hit` 10（控制）→ 4（move），而 `wrong=0`、`swap_after_press 10/10`** ⇒ 不是按错，是**首次按压被推过 8 s 安全换题线**（`gym_app.py:1414 if after_press: self.after(8000, lambda: swap("safety"))`）⇒ 按到的是换题后的 B（正确 ⇒ 仍 ok）但 `a_hit=False`。**逐题核对（用户 m09426 要求：`a_hit=false` 且 `wall_ms>8000` 是否恰为 6 题）**：**是，恰为 6 题**——`#1 #4 #5 #7 #8 #9`（墙钟 10.65–10.88 s，全部 > 8000 ms）；反方向也干净：`a_hit=True` 的四题墙钟 4.35–4.61 s，**没有一题 > 8000 ms**；控制批十题全 `a_hit=True`、墙钟 6.62–6.97 s（到 8 s 只剩 1.0–1.4 s 余量）⇒ **机制成立**。⇒ `a_hit` 不是独立指标，是"守门假阳性把按压推过换题线"的**读出量**。
+- **delta ②：`a_hit` 10（控制）→ 4（move），而 `wrong=0`、`swap_after_press 10/10`** ⇒ 不是按错，是**首次按压被推过 8 s 安全换题线**（`gym_app.py:1403 if after_press: self.after(8000, lambda: swap("safety"))`）⇒ 按到的是换题后的 B（正确 ⇒ 仍 ok）但 `a_hit=False`。**逐题核对（用户 m09426 要求：`a_hit=false` 且 `wall_ms>8000` 是否恰为 6 题）**：**是，恰为 6 题**——`#1 #4 #5 #7 #8 #9`（墙钟 10.65–10.88 s，全部 > 8000 ms）；反方向也干净：`a_hit=True` 的四题墙钟 4.35–4.61 s，**没有一题 > 8000 ms**；控制批十题全 `a_hit=True`、墙钟 6.62–6.97 s（到 8 s 只剩 1.0–1.4 s 余量）⇒ **机制成立**。⇒ `a_hit` 不是独立指标，是"守门假阳性把按压推过换题线"的**读出量**。
 
 ### 10.3 批次 8 —— 假设与证伪条件（先写，后改，再跑）
 
@@ -522,7 +522,7 @@ timeout #31 truth=answerable dec=none result=none clicked=null
 
 - **`move` 类的两处 delta 都还在**（不是同一缺陷的另一半）：`#15` `prose_with_button`（`stale_actions 1`、`dec=none`）与 `#34` `two_close_names` **点错 `TUNDRA`**（`wrong_target 1`）；`a_hit` 的剂量-反应见上表判据 iii ⇒ **修好的是死锁，不是 `a_hit`**。
 - **`slow` 类把批次 6 判定"机制上不可能"的 race 重新打开了**：`slow` 把靶子判定推后 1.5–3.2 s ⇒ 老 `swap_timer`（600–1000 ms）的窗口重新落到**守门抓帧之后** ⇒ `race 0/2`、`2/2`，**两档都是同一对 task（#10/#14）**。同族还带出本项目第一次 `false_accept 1`（`#44`）与 `MISMATCH 1`（同一 `task_i` 被重复尝试、行按 task 折叠，`extra_attempts 6`）。
-- **`popup` 类当前测不了**（**驱动能力缺口，不是脚本 bug**）：弹窗标题 `"attention"`（`gym_app.py:616-655`），但 `dismiss_interference` 在 `--keys --bg` 下只按标题找它、**没找到**（`disturbances: 0 fired`）⇒ 弹窗留屏 ⇒ 驱动的按键被吃（`dec=acted` 但 `result=none`）⇒ 该题永不结束、靶子也不推进 ⇒ 两档各只 fire 1 次后早停。
+- **`popup` 类当前测不了**（**驱动能力缺口，不是脚本 bug**）：弹窗标题 `"attention"`（`gym_app.py:605-655`），但 `dismiss_interference` 在 `--keys --bg` 下只按标题找它、**没找到**（`disturbances: 0 fired`）⇒ 弹窗留屏 ⇒ 驱动的按键被吃（`dec=acted` 但 `result=none`）⇒ 该题永不结束、靶子也不推进 ⇒ 两档各只 fire 1 次后早停。
 - 口径提醒：非 `popup` 类打印的 `fired-task pass 0/0` 是**口径使然**（`score.py:278` 的 "fired" = 驱动侧 `interferences`，只数弹窗）；注入率引用 app 侧 `-events.jsonl`。`stale N`（驱动 `stale_actions`）与 `race X/Y`（app `trap_stale_press`）是两个计数。
 
 ## 11. WSL 探测（2026-10-05；结论：**放弃 WSL 做 GUI 靶场**，WSL 保留为工具链）
@@ -857,7 +857,7 @@ t_trap5  v3 35/48  72.9%  decided 100.0%  disturb 0   screen 42/48 replan 31   1
 ### §16.1 现状（判据第①节，只读）
 - **覆盖 = 0**：`TRAP_PLAN`/`PLAN2`–`PLAN5` 的 screen 集合里**没有** `t_rows`/`t_chips`；所有 `t_trap*` 记录 `stats.scrolls = 0`、`stats.drags = 0`。
 - **两条路径都只在鼠标分支**：`Driver.wheel()`（`gym_run.py:1199–1210`）唯一调用点 **`gym_run.py:2314`**（rows 处理器鼠标分支）；`Driver.drag()`（`gym_run.py:1193–1197`）唯一调用点 **`gym_run.py:2862`**（chips 处理器鼠标分支）。键通道走 `Home`/`Next`/`Down`（`gym_run.py:2228–2316`）与 chip/slot 键（`gym_run.py:~2830` `self.key(hd)`），**完全不经过这两个函数**。
-- **靶子场景**：`t_rows()` = `gym_app.py:684–738`（14–34 行、行高 34/40/46、canvas 视口 621 px、末尾 52 px spacer、`<MouseWheel>` 绑定在 **725**、`Next`/`Prior`/`Up`/`Down`/`Home` 在 728–735）；`t_chips()` = `gym_app.py:861–965`（chip→slot；鼠标 = `tag_bind("chip","<ButtonPress-1>")` + `<B1-Motion>` + release 里命中槽判定；键 = `pick`/`drop_slot`）。真值坐标可从 app 状态文件读到（`truth.chips` 给 chip 中心、`truth.slots` 给槽位矩形，`layout.origin/size` = 窗口 `(316,313) / 1180×780`）。
+- **靶子场景**：`t_rows()` = `gym_app.py:673–738`（14–34 行、行高 34/40/46、canvas 视口 621 px、末尾 52 px spacer、`<MouseWheel>` 绑定在 **725**、`Next`/`Prior`/`Up`/`Down`/`Home` 在 728–735）；`t_chips()` = `gym_app.py:850–965`（chip→slot；鼠标 = `tag_bind("chip","<ButtonPress-1>")` + `<B1-Motion>` + release 里命中槽判定；键 = `pick`/`drop_slot`）。真值坐标可从 app 状态文件读到（`truth.chips` 给 chip 中心、`truth.slots` 给槽位矩形，`layout.origin/size` = 窗口 `(316,313) / 1180×780`）。
 
 ### §16.2 探针与产物（日志与 json 全在 `D:\DSH\dsh-actor\tmp\`，队列日志 `w18_queue.log`）
 | 探针 | 命令（`--max-repeat 3` 统一） | 结果 |
@@ -880,7 +880,7 @@ t_trap5  v3 35/48  72.9%  decided 100.0%  disturb 0   screen 42/48 replan 31   1
 | # | 问题 | 判定 | 最小证据 |
 |---|---|---|---|
 | 滚1 | 会不会滚 | **量不到（有据）** | 唯一调用点在鼠标分支（`gym_run.py:2314`）+ bg 鼠标通道不生效（§16.3）；6 跑里 `stats.scrolls` 全 0（鼠标跑的第一题目标就在可视区，没走到 `wheel()`）|
-| 滚2 | 方向对不对 | **代码一致，未实测** | `wheel(-3)` ⇒ `dy = -360`（`gym_run.py:1199–1210`，一格 = 120）⇒ actor `scroll` ⇒ `MOUSEEVENTF_WHEEL`；靶子 `<MouseWheel>` = `yview_scroll(int(-e.delta/60),"units")`（`gym_app.py:725`）⇒ 负 delta = 视口下移 = 驱动想去的方向 ✓（只读推导）|
+| 滚2 | 方向对不对 | **代码一致，未实测** | `wheel(-3)` ⇒ `dy = -360`（`gym_run.py:1199–1210`，一格 = 120）⇒ actor `scroll` ⇒ `MOUSEEVENTF_WHEEL`；靶子 `<MouseWheel>` = `yview_scroll(int(-e.delta/60),"units")`（`gym_app.py:714`）⇒ 负 delta = 视口下移 = 驱动想去的方向 ✓（只读推导）|
 | 滚3 | 幅度对不对 | **未实测** | 代码每次 3 格；靶子把 delta 折成 `units`（一次 ≈ 6 行），而视口 621 px / 行高 34–46 ⇒ 一屏 13–18 行；处理器循环上限 7 次，够不够**没有数据** |
 | 滚4 | 滚完重新定位 | **能（实测，键通道）** | 处理器每轮重抓帧（`img2 = self.shot()` + 新帧 `body_words` 重找行）；P1c 需翻页的 5 题**全 OK**（`task_i 2` 目标行 y=658 在首帧视口外），每题只多 ~1.0–1.2 s（4.1 s vs 3.0 s）⇒ **用新帧重找**，不是进题冻结坐标 |
 | 拖1 | 会不会拖 | **量不到（有据）** | bg 鼠标跑真的发了 `drag`（P4 `drags 3`、P5 `drags 9`）而 app `detail {}`、`task_i` 不动（§16.3）|
@@ -910,17 +910,17 @@ t_trap5  v3 35/48  72.9%  decided 100.0%  disturb 0   screen 42/48 replan 31   1
 - `stale = [r for r in declared if r.get("stale_press")]`（`score.py:324`）；`stale_press` / `stale_variant` 来自 **events 文件**里 app 发的 `trap_stale_press` 事件（`score.py:148–156`）。
 - `blind = [r for r in stale if r.get("stale_variant") == "swap_hard_timer"]`（**332**）；`blind_wrong_target = len(...)`、`blind_seen = len(blind)`（**373**）。
 - 打印：`if k["blind_seen"]:`（**425**）⇒ **只有非 0 才打印** `guard-blind(one-glyph re-roll) %d/%d`（**428**）；0 时整行不出现 ⇒ 读者既看不到家族跑了几题（分母），也分不清"家族没跑"与"跑了但没漏判" —— 这就是 #12 说的"没有分母"。
-- 计数来源是 **app 自己的记账**（不是驱动自报）：`gym_app.py:1360–1368`，phase b 按到 `want_a` 且 `variant in ("swap_timer","swap_hard_timer","swap_race_timer")` 时 `emit("trap_stale_press", variant=…)`。
+- 计数来源是 **app 自己的记账**（不是驱动自报）：`gym_app.py:1349–1368`，phase b 按到 `want_a` 且 `variant in ("swap_timer","swap_hard_timer","swap_race_timer")` 时 `emit("trap_stale_press", variant=…)`。
 
 **② 指纹漏判 + 文本说"变了"这两个条件现在还能同时成立吗**
-- `swap_hard_*` 的设计就是 B 与 A 只差一个字形（`gym_app.py:1316–1320`："band-signature guard cannot see the change at all"）。
+- `swap_hard_*` 的设计就是 B 与 A 只差一个字形（`gym_app.py:1305–1320`："band-signature guard cannot see the change at all"）。
 - 但**批次 4 起**驱动加了文本重读：`ask_label_now`（`gym_run.py:1413–1488`）读 banner 上的 label 词，`ask_text_changed`（**1490–1522**）用 `_plain`（**不折叠**）逐字比较。docstring（1493–1501）记着批次 3 的实测：折叠版放过 `TANGO→TANGQ`（2/3 仍 guard-blind），raw 版抓到 `HARBOR→HARBOP` ⇒ **批次 3 的 `blind_seen=1` 是"折叠比较"时代的产物，不是现在的性质**。
 - 键通道**也走守门**：`press_hint` 在 `self.key(hint)` 之前调 `press_guard`（**1767**；鼠标分支在 2123 / 2156 / 2220）⇒ 键通道的测量与鼠标通道同义，`--keys --bg` 可用。
-- app 侧按键与点击同源：`pick(L)`（`gym_app.py:1104`）绑在按钮 badge 键上 ⇒ 两条通道进同一段 stale 判定。
+- app 侧按键与点击同源：`pick(L)`（`gym_app.py:1093`）绑在按钮 badge 键上 ⇒ 两条通道进同一段 stale 判定。
 - **残余窗口（唯一可能出分母的路）**：`ask_label_now` 返回 `None`（`ask_box`/`ask_word` 缺失，或 banner 读不出 `labelled X` 形）⇒ `ask_text_changed` 直接 False，判定退回**指纹**（`ask_moved_now` / `ask_cells` / `ask_delta`）⇒ 单字形换题在这条路上仍可能被漏判。
 
 **③ 现有题型能不能产生 `blind_seen`**
-- **能跑**：`TRAP_PLAN5`（`t_trap5`）含 `("swap_mid_task","swap_hard_timer") * 5`（`gym_app.py:150`、162）；`--seed 20251007 --tasks 20` 时该家族落在 `task_i 13–17`（plan 顺序：twin 8 → hard_press 5 → hard_timer 5）。
+- **能跑**：`plans.v1.json` 的 `trap5`（`t_trap5`；阶段 3.6 前 = `gym_app.py:162`）含 `("swap_mid_task","swap_hard_timer") * 5`（`gym_app.py:139`、`plans.v1.json` 的 `trap5`）；`--seed 20251007 --tasks 20` 时该家族落在 `task_i 13–17`（plan 顺序：twin 8 → hard_press 5 → hard_timer 5）。
 - 批次 5/6 的 `blind_seen == 0` **不是"没题"**，而是文本重读抓住了（批次 4 起有文本重读，批次 5 又加 pad 6 px 治截断）。
 - **方法学注意**：`blind_seen` 只来自 **events 文件**，而 events 每次 app 启动被覆盖 ⇒ 这个数字**跑完必须立刻打分**；历史批（5/6）的 events 已不存在，**不能事后补出分母**。
 
@@ -962,14 +962,14 @@ D:\DSH\.venvs\vision-ci\Scripts\python.exe gym_run.py --scenario t_trap5 --tasks
 - **协议坑（教训）**：actor `:8731` 是**裸 TCP + 换行 JSON**（`loop.py:Actor.call` 发 `{"op":"run","steps":[…]}`），**不是 HTTP**（用 `urllib` 会得到 `BadStatusLine`）；**从 WSL 到不了 Windows loopback** ⇒ 探针必须 `pwsh` + Windows venv python。
 - 探针 1：app 以 `--chaos 1.0 --chaos-kind popup --no-topmost` 起，`{"op":"uia","what":"windows","max":120}` 的 trace 里**有** `{"name":"attention","cls":"TkTopLevel","type":"Window"}`（同列表 11 项）；app 事件确认 `chaos kind=popup` 真的 fire。
 - 探针 2（决定性；脚本 `D:\DSH\dsh-actor\tmp\w10-uia-probe3.py`，用 actor 自己的 `loop.Actor` 复刻驱动读法）：**同一条 trace 条目**里 inline `windows` **11** 项、`data.windows` **7** 项 ⇒ 截断坐实（`results=False` 时 `data` 干脆为空）。
-- 批次 8 原始产物复核（旧驱动 `f598406cfc70`）：`w8-popup35.json` 只 7 行 / `max task_i 4` = 4 ok + 3 none；`w8-popup70.json` 只 4 行 / `max task_i 1` = 1 ok + 3 none；两批 `interferences 0`、`clicks 0 / drags 0`、无 `popup_*` 键；而 app 事件显示驱动发的键**到了 app**（`hit:true, modal:true`）却没计分（`gym_app.py:465-481 finish()` 的 modal 门）。
+- 批次 8 原始产物复核（旧驱动 `f598406cfc70`）：`w8-popup35.json` 只 7 行 / `max task_i 4` = 4 ok + 3 none；`w8-popup70.json` 只 4 行 / `max task_i 1` = 1 ok + 3 none；两批 `interferences 0`、`clicks 0 / drags 0`、无 `popup_*` 键；而 app 事件显示驱动发的键**到了 app**（`hit:true, modal:true`）却没计分（`gym_app.py:454-481 finish()` 的 modal 门）。
 
 ### 18.2 改了哪 4 处（`../sol/sandbox/gym_run.py`；+24 / −4 行，其中约 8 行是注释/docstring；**判定路径一字未动**）
 1. `Driver.window_by_title()`（约 `:849`）：**inline 优先** —— `wins = step.get("windows") or (step.get("data") or {}).get("windows") or []`，docstring 写明 `_slim` 截断根因与批次 8 症状。
 2. `target_windows()`（约 `:3111`）：同一改法（同一缺陷类；它是"挂窗口"用的）。
 3. `dismiss_interference()` 键分支（约 `:922-935`）：越过闸门时 `popup_seen += 1`；发完 Return 后再查一次 `attention` ⇒ `popup_dismissed += 1` 或 `popup_dismiss_failed += 1`（`interferences` 语义未动）。
 4. 等判定循环（约 `:3461-3466`）：清干扰返回 `n>0` ⇒ **立刻 `break`**（弹窗已清，但被它吞掉的按压不会补分 ⇒ 马上走 `_redo(..., "no verdict arrived")` 重答，省掉剩余最多 4.4 s 空等）。
-- 未采用"盲按 Return"方案：闸门本身可修；盲按有 60 题 × 3 键噪声与表单题 Entry `<Return>` 误提交风险（`gym_app.py:768`）。
+- 未采用"盲按 Return"方案：闸门本身可修；盲按有 60 题 × 3 键噪声与表单题 Entry `<Return>` 误提交风险（`gym_app.py:757`）。
 - 备份：`D:\DSH\dsh-actor\tmp\gym_run.py.bak-w10`（sha `105cf6cb679eea10`，与改前一致）。
 
 ### 18.3 批次 12 结果（判据逐条）
@@ -984,7 +984,7 @@ D:\DSH\.venvs\vision-ci\Scripts\python.exe gym_run.py --scenario t_trap5 --tasks
 - 成绩行：`v2 60/60 100.0%`、`disturb 15`、`screen 50/60`、`replan 29`、`1714 ms/task`、`false_refusal 0/46`、`false_accept 0/14`、`fired-task pass 15/15`、`quiet 45/45`、`gate_ms` P50 127 / P95 138 ms。定稿行在 `../sol/sandbox/SCORE.md` 批次 12 节 ②。
 - **计数闭合（可复算）**：驱动 `interferences 24` = 逐题行合计 **15** + `interferences_at_start` 合计 **9**（9 行，题首清障，`gym_run.py:2033-2034`），涉及 **24 个不同 task**；`score.py` 的 `disturb 15` 只数"题内"那 15 次 ⇒ 两个计数**不可互推**。
 - **恢复代价**：`replan_why = "no verdict arrived"` **12 行全 ok**；逐题 ms **1748.6**（n=12）vs 未被吞的 **1639.5**（n=34）⇒ **+6.7%**。驱动墙钟 3627 ms/题（222.7 s / 60 题）与 `ms/题 1714` 不是同一个量 ⇒ 未细分、不并入性能结论。
-- **app 侧 fire 25 vs 驱动清障 24 差 1 次**：两种候选解释（落在最后一题之后 / 被下一次换题的 `_close_modal()` 顺手关掉，`gym_app.py:512`）都成立、**未取证** ⇒ 只并列、不裁定。
+- **app 侧 fire 25 vs 驱动清障 24 差 1 次**：两种候选解释（落在最后一题之后 / 被下一次换题的 `_close_modal()` 顺手关掉，`gym_app.py:501`）都成立、**未取证** ⇒ 只并列、不裁定。
 
 ### 18.4 引用时必带的边界
 1. 与批次 8 是**历史产物对照**（驱动版本不同、无同批 A/B）⇒ 只能说"**这一类现在可测了**"，不能说"通过率被提升"。
@@ -1089,8 +1089,8 @@ D:\DSH\.venvs\vision-ci\Scripts\python.exe gym_run.py --scenario t_trap5 --tasks
 
 ### 20.3 #18 读码结论（滚轮 / 拖拽）
 
-- **滚轮**：`wheel()` 定义在 `gym_run.py:1214`，**唯一调用点 `gym_run.py:2329`**，写法 `if self.keys: self.key("Next") else: self.wheel(-3, …)`（"行没出现"的重试分支）；注释已记录实测原文："the wheel is a mouse message and Tk ignores those while it is not focused (measured: 63 posted wheel steps moved nothing at all)"。app 侧有**完整键盘路径**：`keymap["Next"]=lambda: self._page(1)`（另有 Prior/Up/Down/Home/End），`_page()` 在 `gym_app.py:425-432`。⇒ **键通道本来就靠 `Next` 翻页、驱动已经在用**；滚轮只是"没有键盘路径时"的兜底 ⇒ **不是缺口**；`--bg` 下 posted `WM_MOUSEWHEEL` 被 Tk 忽略（`post_scroll` 固定发到窗口中心，**与焦点无关**）。
-- **拖拽**：`drag()` 定义在 `gym_run.py:1208`，**唯一调用点 `gym_run.py:2877`**（chips 的视觉兜底：`if hs and hd: self.key(hd) … else: self.drag(…)`）；app 侧有鼠标绑定（`gym_app.py:959-961`）**同时有完整键盘路径**（`_bind_key(i, drop_slot)` / `_bind_key(len(slots)+i, pick)`，doc "Keyboard path: pick a chip up, then name the slot it goes into"）。全仓扫描：**没有任何批次 json 的 `drags > 0`**；`drags 3`/`drags 9` 出自 §16 的 P4/P5（鼠标 + 强制 `--bg`，0/3 早停）与 `HANDOFF.md` 盲区 21；同场景键通道 8/8（§16 P1b/P3）。⇒ **`--bg` 下拖拽不生效与滚轮同一坑**；键通道有等价物 ⇒ **覆盖缺口、不是功能缺陷**。
+- **滚轮**：`wheel()` 定义在 `gym_run.py:1214`，**唯一调用点 `gym_run.py:2329`**，写法 `if self.keys: self.key("Next") else: self.wheel(-3, …)`（"行没出现"的重试分支）；注释已记录实测原文："the wheel is a mouse message and Tk ignores those while it is not focused (measured: 63 posted wheel steps moved nothing at all)"。app 侧有**完整键盘路径**：`keymap["Next"]=lambda: self._page(1)`（另有 Prior/Up/Down/Home/End），`_page()` 在 `gym_app.py:414-432`。⇒ **键通道本来就靠 `Next` 翻页、驱动已经在用**；滚轮只是"没有键盘路径时"的兜底 ⇒ **不是缺口**；`--bg` 下 posted `WM_MOUSEWHEEL` 被 Tk 忽略（`post_scroll` 固定发到窗口中心，**与焦点无关**）。
+- **拖拽**：`drag()` 定义在 `gym_run.py:1208`，**唯一调用点 `gym_run.py:2877`**（chips 的视觉兜底：`if hs and hd: self.key(hd) … else: self.drag(…)`）；app 侧有鼠标绑定（`gym_app.py:948-961`）**同时有完整键盘路径**（`_bind_key(i, drop_slot)` / `_bind_key(len(slots)+i, pick)`，doc "Keyboard path: pick a chip up, then name the slot it goes into"）。全仓扫描：**没有任何批次 json 的 `drags > 0`**；`drags 3`/`drags 9` 出自 §16 的 P4/P5（鼠标 + 强制 `--bg`，0/3 早停）与 `HANDOFF.md` 盲区 21；同场景键通道 8/8（§16 P1b/P3）。⇒ **`--bg` 下拖拽不生效与滚轮同一坑**；键通道有等价物 ⇒ **覆盖缺口、不是功能缺陷**。
 - **行号漂移更正**（§7 #18 行与 `HANDOFF.md` 盲区 21 里记的是批次 11 时代的坐标）：`wheel()` 由 `1199–1210` 漂到 **`1214`**、调用点 `2314` → **`2329`**；`drag()` 由 `1193–1197` 漂到 **`1208`**、调用点 `2862` → **`2877`**（批次 11 的 `ShotFailed` 补丁加了 ~15 行）。
 - **共同点（修正本段规格第三节的假设）**：滚轮 + 拖拽 = **一个**根因（Tk 忽略 posted 鼠标消息）；弹窗鼠标通道 = **另一个**根因（帧来源 + topmost pin）。**不是"一个根因、三个症状"。**
 
@@ -1156,7 +1156,7 @@ D:\DSH\.venvs\vision-ci\Scripts\python.exe gym_run.py --scenario t_trap5 --tasks
 
 ### 22.1 结论摘要（细节全在设计文档，此处只留指针与骨架）
 - **现状**：v1–v3 口径下覆盖 = 0（计划表 `TRAP_PLAN`/`PLAN2`–`PLAN5` 从不排 `t_rows`/`t_chips`；所有 `t_trap*` 记录 `stats.scrolls = 0`、`stats.drags = 0`）；第十一段的六跑只是**探针**，不进成绩；v0 时代的 rows/chips 文件**一律不可引用**（`SCORE-history.md` 勘误）。
-- **已有等价物**：滚轮 ⇒ `Next`/`Prior`/`Up`/`Down`/`Home`/`End`（`gym_app.py:725-735` 的 `bind_all("<MouseWheel>")` 同处把 `keymap["Next"]` 绑到 `_page(1)`，`_page()` = `:425-432` 的 `c.yview_scroll(step*9,"units")`），驱动**已经在用**（`gym_run.py:2329` 的 `if self.keys: self.key("Next") else: self.wheel(-3, …)`）；拖放 ⇒ `_bind_key(i, drop_slot)` / `_bind_key(len(slots)+i, pick)`（`gym_app.py:959-961` 邻域）。⇒ 本族是**覆盖缺口，不是功能缺陷**（§20.3）。
+- **已有等价物**：滚轮 ⇒ `Next`/`Prior`/`Up`/`Down`/`Home`/`End`（`gym_app.py:714-735` 的 `bind_all("<MouseWheel>")` 同处把 `keymap["Next"]` 绑到 `_page(1)`，`_page()` = `:425-432` 的 `c.yview_scroll(step*9,"units")`），驱动**已经在用**（`gym_run.py:2329` 的 `if self.keys: self.key("Next") else: self.wheel(-3, …)`）；拖放 ⇒ `_bind_key(i, drop_slot)` / `_bind_key(len(slots)+i, pick)`（`gym_app.py:948-961` 邻域）。⇒ 本族是**覆盖缺口，不是功能缺陷**（§20.3）。
 - **要补什么**（四件事，键盘等价物替不了）：① 连续量的物理性（方向 / 单格幅度 / 累计位移，键通道的 `Next` 是离散翻页，把"滚多少"整个抹掉）；② 轨迹与落点精度（起点抓得准不准、中途经过什么、偏几像素算命中）；③ **动作中途的干扰适应**（拖拽进行中撞上 `move` ⇒ 必须重新抓帧重算落点）；④ "键盘等价物根本不存在"的真实界面（画布 / 拖拽排序 / 按住拖选 / 地图式视口）——这条不影响已有结论，但影响**口径可移植性**（`REPORT.md` §7.3 第 5 项）。
 - **八问现状**（§16.4 逐条判定，此处只记状态）：滚轮四问 = 1 能 / 1 代码级一致 / 2 量不到；拖拽四问 = 4 量不到。**量不到的原因不是驱动不会，而是没有一条不抢前台的通道能把鼠标动作送进 Tk。**
 - **三方案**：**A 前台鼠标批**（零代码改动，驱动两条路径本来就在；代价 = 每次占用前台与指针、必须标通道、单窗口串行）/ **B 给鼠标动作加物理通道**（裂 sha；两条硬伤：① 真 `SendInput` 本质上仍要前台，占用不会消失 ⇒ 它只是 A 的自动化版本；② 改动落在**执行器** `D:\DSH\dsh-vision-kit\actor`，而 `scripts_sha` 只覆盖沙箱三个文件 ⇒ 这批是谁跑的无法从留档核对，违反记账纪律）/ **C 接受键通道优先、把鼠标交互写成已知边界**（零成本、与报告既有边界写法一致）。
@@ -1206,7 +1206,7 @@ D:\DSH\.venvs\vision-ci\Scripts\python.exe gym_run.py --scenario t_trap5 --tasks
 
 **② 同点补点一次（候选 a）**：现在 `tries=3` 的循环只换**不同的**候选（8 px 去重），从不补点同一点、也不做窗口存在性校验。补一次的成本 ≈ 一次 actor 往返 + 0.3 s ≈ 0.4 s（便宜），但**失败原因未知**（批次 14 的 1/11 是同一坐标静默失败），同点重试是**对着未知原因再赌一次**，且不改变"弹窗还在 ⇒ 全批死"的结构。
 
-**③ 降级 `key("Return")`（候选 b）**：app 侧 `gym_app.py:646-649` = `btn.focus_set()` + `btn.bind("<Return>")`/`<space>`（`close()`）+ `top.bind("<Escape>")`；驱动键分支本来就走这条路（`:926 self.key("Return")`，`:911-912` 注释："the app closes its own dialog when the main window gets the key"），**实测 24/24（批次 12）+ 45/45（批次 13-A）**。`Driver.key()`（`gym_run.py:1175-1198`）在非 bg 鼠标通道发的是**真实前台按键**（带 `front_title`；`focus=True` 只在 `keys and bg` 时加），弹窗与主窗**同进程**，Tk 把按键交给**持有焦点的控件**（`btn`）⇒ **不用坐标、不看层叠、不读像素**。
+**③ 降级 `key("Return")`（候选 b）**：app 侧 `gym_app.py:635-649` = `btn.focus_set()` + `btn.bind("<Return>")`/`<space>`（`close()`）+ `top.bind("<Escape>")`；驱动键分支本来就走这条路（`:926 self.key("Return")`，`:911-912` 注释："the app closes its own dialog when the main window gets the key"），**实测 24/24（批次 12）+ 45/45（批次 13-A）**。`Driver.key()`（`gym_run.py:1175-1198`）在非 bg 鼠标通道发的是**真实前台按键**（带 `front_title`；`focus=True` 只在 `keys and bg` 时加），弹窗与主窗**同进程**，Tk 把按键交给**持有焦点的控件**（`btn`）⇒ **不用坐标、不看层叠、不读像素**。
 - **残留风险（要写进收口）**：若在弹窗立着期间有别的控件抢走了 Tk 的控件级焦点（例如驱动点到了某个 Entry），Return 会落到那个控件上。降级路径只在"弹窗确实还在"时触发，触发时 `btn` 是最后被 `focus_set` 的控件。
 
 ### 23.2 做了什么
@@ -1414,7 +1414,7 @@ foreground after:  搜索 (hwnd 66100)  unchanged: False
 |---|---|---|---|---|
 | 1 | `:3` 描述 + `:79` §3.2 | 「**七条**引用规则」；规则只写到 **7** | 「**九条**」（逐条对齐）+ 补齐**规则 8**（partial 批不与完整批并列）、**规则 9**（鼠标前台窄批**四条边界**） | 计数陈旧（**已知必修**） |
 | 2 | `:56` 跑批参数 | `--chaos-kind ∈ {rebuild, move, slow, popup}` | 实际 choices = `{any, rebuild, move, popup, slow}`（`any` 为默认） | **新偏差**（集合不全） |
-| 3 | `:57` 延迟档 | 「`--chaos-ms 200,700`（**默认**）」 | **真实默认 = `600,1800`**（`gym_app.py:1466`；驱动侧默认 `None` ⇒ 不转发、走 app 默认）；**`200,700` 是 chaos 批刻意选的短延迟** | **新偏差**（写成默认 = 错） |
+| 3 | `:57` 延迟档 | 「`--chaos-ms 200,700`（**默认**）」 | **真实默认 = `600,1800`**（`gym_app.py:1455`；驱动侧默认 `None` ⇒ 不转发、走 app 默认）；**`200,700` 是 chaos 批刻意选的短延迟** | **新偏差**（写成默认 = 错） |
 | 4 | `:34` §1.3 铁律 3 | 「同一时刻只能有 1 个 gym 窗口…不要在 GUI 里开第二个 gym」 | 计数按 UIA 窗口 name 的**子串** `"GUI Gym"`（`gym_run.py:3135-3150` / `:3364-3370`）⇒ **标题含这四个字的别的窗口也会被算进去**；实测撞过（`refusing to drive: 2 practice target window(s)…`、退出码 2）⇒ 临时改名 + **跑完还原**，被拒那次还会**留残留靶窗口** | **新偏差**（缺口） |
 
 ⇒ **新偏差 3 处，未超"发现 >3 处即停"的阈值**（阈值是 `>3`）⇒ 三处当场改完、未触发停止。**复查第十九段那三处**：盲区 **17→23** ✓ 稳；`gym_run.py` **3465→3687** ✓ 稳（`wc -l` 实测）；`popup` 旧规则 ✓ 稳，并按本段收口再改一次（`:99`：三条边界 → **四条**，并加"批次 17–19 同样是合法证据"）。
@@ -1463,9 +1463,9 @@ foreground after:  搜索 (hwnd 66100)  unchanged: False
 
 - **actor 能力（不用改）**：模块 docstring 的 `Ops:` 行里 **`drag` 与 `scroll` 都是一等 op**（`@op('drag')`/`@op('scroll')`）；`Hands.drag(..., steps=30, ms=240)`（SendInput）、`post_drag(...)`（bg 版，「a drag needs no foreground」）、`o_drag` ⇒ **不重蹈 #20 的 B 案否决理由**（读数仍落在 `scripts_sha` 之内）。
 - **驱动侧路径都在**：`gym_run.py:1235-1239 Driver.drag`（`stats["drags"]`）、`:1241-1252 Driver.wheel`（`stats["scrolls"]`）；调用点 = 滚轮 `:2356`（t_rows 处理器）、拖拽 `:2900-2904`（t_chips 处理器）。
-- **滚轮**：键通道**等价物已存在且已实现** —— `:2349-2353` 注释（「the wheel is a mouse message and Tk ignores those while it is not focused (measured: 63 posted wheel steps moved nothing at all)」）→ `self.key("Next")`；app 侧 `gym_app.py:728-729 keymap["Next"]/["Prior"]`（= Page Down/Page Up → `_page(±1)`，另有 `Up`/`End`）。
-- **拖拽**：键通道**无等价物**（`gym_app.py:960-962` 的 `t_chips` 只绑 `<ButtonPress-1>` / `<B1-Motion>` / `<ButtonRelease-1>`）⇒ 只能前台鼠标；「造键盘版拖拽」要改**靶子**（裂 `gym_app.py` 的 sha + 语义不等价）⇒ **不做**。
-- **方案与推荐**：**①前台鼠标批**（`--scenario t_rows` / `--scenario t_chips`，**零代码改动**，一次覆盖滚轮 + 拖拽）；②键通道等价物只对**滚轮**成立（第十一段探针已跑过：rows 8/8、24 题 22/24、chips 8/8）⇒ **推荐 ①**，② 当滚轮的轻量补测。**边界**：`t_rows`/`t_chips` 题**不声明 `truth_class`**（`gym_app.py:737`/`:962`）⇒ 只能按**题级 + `scrolls`/`drags` 计数 + 屏幕读题率**量，**不是五判定**；`--bg` 鼠标通道仍不可用（盲区 21）。
+- **滚轮**：键通道**等价物已存在且已实现** —— `:2349-2353` 注释（「the wheel is a mouse message and Tk ignores those while it is not focused (measured: 63 posted wheel steps moved nothing at all)」）→ `self.key("Next")`；app 侧 `gym_app.py:717-729 keymap["Next"]/["Prior"]`（= Page Down/Page Up → `_page(±1)`，另有 `Up`/`End`）。
+- **拖拽**：键通道**无等价物**（`gym_app.py:949-962` 的 `t_chips` 只绑 `<ButtonPress-1>` / `<B1-Motion>` / `<ButtonRelease-1>`）⇒ 只能前台鼠标；「造键盘版拖拽」要改**靶子**（裂 `gym_app.py` 的 sha + 语义不等价）⇒ **不做**。
+- **方案与推荐**：**①前台鼠标批**（`--scenario t_rows` / `--scenario t_chips`，**零代码改动**，一次覆盖滚轮 + 拖拽）；②键通道等价物只对**滚轮**成立（第十一段探针已跑过：rows 8/8、24 题 22/24、chips 8/8）⇒ **推荐 ①**，② 当滚轮的轻量补测。**边界**：`t_rows`/`t_chips` 题**不声明 `truth_class`**（`gym_app.py:726`/`:962`）⇒ 只能按**题级 + `scrolls`/`drags` 计数 + 屏幕读题率**量，**不是五判定**；`--bg` 鼠标通道仍不可用（盲区 21）。
 
 ### 29.4 约束与下一件
 
@@ -1497,7 +1497,7 @@ foreground after:  搜索 (hwnd 66100)  unchanged: False
 ### 30.3 任务 2：#18 进成绩体系的设计（**只设计不实施**）
 
 - **落点**：`DESIGN-18-scroll-drag.md` **§9**（9.1 现状 / 9.2 设计 / 9.3 风险与回退 / 9.4 边界）。
-- **要点**：新增真值类 **`viewport`**（`t_rows`/`t_chips` 共用）⇒ 靶子侧**两处一行改动**（`gym_app.py:737`、`:962-964` 的 `truth` 里加 `truth_class`）+ **`score.py` 必改（最小）**：认识新类名、**单列一行**、**不进** `pass_rate` 与两个假阳/假阴分母；历史可比性靠「不进主分母」保住（批次 1–20 的主线不受影响）；回退 = **单文件 revert**（改动只在两个 `return` 的字典里加键，无状态）。
+- **要点**：新增真值类 **`viewport`**（`t_rows`/`t_chips` 共用）⇒ 靶子侧**两处一行改动**（`gym_app.py:726`、`:962-964` 的 `truth` 里加 `truth_class`）+ **`score.py` 必改（最小）**：认识新类名、**单列一行**、**不进** `pass_rate` 与两个假阳/假阴分母；历史可比性靠「不进主分母」保住（批次 1–20 的主线不受影响）；回退 = **单文件 revert**（改动只在两个 `return` 的字典里加键，无状态）。
 - **两问答案**：**`score.py` 要不要改？→ 要**（不改的话新类只会被算成 `undeclared`，进不了体系；除非改用 `answerable`，但那会把这两类题灌进主分母、破坏与批次 1–20 的可比性）。**历史可比性怎么处理？→ 新类不进主分母 + 报告另开一节**（明写「批次 1–20 与之后不可直接比」只发生在「混池批」的 `rows_total`/`undeclared` 口径上，主线通过率不受影响）。
 
 ### 30.4 约束与下一件
@@ -1519,7 +1519,7 @@ foreground after:  搜索 (hwnd 66100)  unchanged: False
 | 批次 20 `t_trap2-w22-popup35-mouse.json` | 鼠标前台 | plan 24 / 实跑 24 行（21 题） | **3 行 `prose_only`** | `acted` / `none` | **是**（`task_i 21`） |
 | 批次 16 `t_trap2-w17-popup70-mouse.json` | 鼠标前台 | plan 16 | **0** | — | 否（16/16） |
 | 批次 17/18/19 `t_trap2-w18-popup70-mouse-r{1,2,3}.json` | 鼠标前台 | plan 16 各 | **0** | — | 否（16/16 各） |
-| `t_trap3-1/-2/-3/-4/-smoke/-smoke2`（6 批） | 鼠标前台 | plan 48 | 0（该 5 类**按设计排除**，见 `gym_app.py:118-121`）；此处的 `must_refuse` 行全是 `no_badge_fill`（**可见性**判定） | `refused` / `ok` ✓ | 否 |
+| `t_trap3-1/-2/-3/-4/-smoke/-smoke2`（6 批） | 鼠标前台 | plan 48 | 0（该 5 类**按设计排除**，见 `gym_app.py:107-121`）；此处的 `must_refuse` 行全是 `no_badge_fill`（**可见性**判定） | `refused` / `ok` ✓ | 否 |
 | `_dbg-class4.json` | 鼠标前台 | 4 | 0（同上：`no_badge_fill` 3 行） | `refused` / `ok` ✓ | 否 |
 | 键通道 12 批（`t_trap2-w12/w13/w6*/w7*/w8*/w9*`） | `--keys --bg` | 14–28 行/批 | 有（`prose_only` 等） | `refused` / `ok`（`refuse_why = "the control carries no action key"`） | 否 |
 
@@ -1656,4 +1656,40 @@ J5（既有场景无翻转）= **静态论证 + 干跑承担**：本段对靶子
 
 **34.7 手册双份分叉封死（复核）**：`docs/OPERATING.md` 是规程**正本**；仓库外 `D:\DSH\skills\gui-audit-gym\SKILL.md` 只留 frontmatter + 一页指针（阶段 3.3 起）⇒ 改规程只改正本，指针**不再复制正文**。本段复核：指针未复制正文 ✓（技能仍可被会话层列出、注入）。
 
-**34.8 下一件**：**3.6** = manifest v1 实现（+ `scripts_sha` 覆盖面扩容 + run json 新增 `scripts_sha_files`）；**3.7** = 计数闸扩展（设计已在仓库外成文）。
+**34.8 下一件**：**3.6** = manifest v1 实现（+ `scripts_sha` 覆盖面扩容 + run json 新增 `scripts_sha_files`）；**3.7** = 计数闸扩展（设计已在仓库外成文）。**（已完成 —— 见 §35）**
+
+---
+
+## 35. 阶段 3.6 — manifest v1 + `scripts_sha` 覆盖面扩容（两个可独立回退的提交；未跑批）
+
+**35.1 一句话**：五张 plan 表从 `gym_app.py` 的字面量变成 `sol/sandbox/plans.v1.json`（**266 个 `(class, variant)` 逐元组等价**），`scripts_sha` 的覆盖面从三件套扩到**六个文件**并让每个新 json 自带清单（`scripts_sha_files`）。本段**没跑任何批**；两次 sha 裂分别是提交 A（`gym_app.py`）与提交 B（`gym_run.py`），`score.py` **未动**。
+
+**35.2 三个提交的分工（A/B 为什么各自只含那几个文件）**
+| 提交 | 内容 | 文件 | 回退 |
+|---|---|---|---|
+| A `1c1a9b8` | manifest v1：5 张 plan 表 → 数据 | `plans.v1.json`（新）、`gym_app.py`、`.gitignore` | `git checkout` **数据 + 装载器一起**（一个单元） |
+| B（本段） | `scripts_sha` 扩容 + 清单自描述 | `gym_run.py`、`audit/SCORE-history.md`、`CHANGELOG.md` | `git checkout` 单文件 |
+| C（本段） | 文档收口 | `audit/STATE.md`（§35）、`audit/REPORT.md`、`OPENSOURCE-READINESS.md`、`docs/OPERATING.md`、`docs/TROUBLESHOOTING.md` | 纯文档 |
+
+对 A4「只含 manifest + `gym_app.py`」有**一处被迫偏离**：`.gitignore` 必须加 `!sol/sandbox/plans.v1.json` —— `sol/sandbox/*.json` 会**静默**吃掉这个新文件，而一个不在哈希里的 manifest 正好就是 3.6b 要堵的"同一 `scripts_sha`、两套题序"。理由已写进 `CHANGELOG.md` 3.6a 条目（不只写在报告里）。
+
+**35.3 manifest v1 长什么样（`schema: 1`）**：每张 plan = 一串 **run** `[[class, variant], n]`（n 个连续相同的条目）；plan 可以用 `base` 从另一张长出来 —— `trap5 = trap4 + 10 × ("swap_mid_task","swap_race_timer")`，于是 48 条既不必写死、也不可能与 `trap4` **悄悄**漂移。文件头部自带 `what` / `adding_a_family` / `not_a_plugin_system` 三块说明，这就是 A2 的**能力边界**落点：manifest 管**题序**（哪一类、哪个变体、几个），**不管渲染**；加一类**新题** = 改 manifest + 复用现有渲染器，改一个**新视觉形态**仍要写 `_trap_*` 与 `t_trapN`；共享渲染器是**有意的**，不是插件系统的雏形。
+
+**35.4 等价性闸 = 离线，不是跑批**：**266/266** 三方一致（HEAD 里的字面量 / 工作树经 `_load_plans()` / manifest 独立展开，不经过装载器），`trap5 == trap4 + 10 races` 单独断言；**13 个场景各 `--tasks 2`** 前台干跑（13/13 写出 json、恰好 2 行、`partial false`，gate 分流仍 `v0`（池类）/`v2`（`t_trap*`）/`v3`（`t_trap5`）；5 个 exit 1 的场景里 `t_trap4`/`t_trap5` 是**该族设计如此**、其余 3 个（`t_menu`/`t_probe_fill`/`t_probe_fill2`）与 3.6 前同形）；`score.py --selftest` **43/43**；3.5 的六个证据文件 sha16 逐位未变。**同 seed 跑批不能当等价测试**：它只覆盖"这次跑到的那些题"。
+
+**35.5 `scripts_sha` 扩容**：覆盖清单 = `gym_run.py` + `gym_app.py` + `score.py` + **`gui_see.py`**（屏读/OCR 路径）+ **`loop.py`**（驱动循环）+ **`plans.v1.json`**（题序）；run json 新增 **`scripts_sha_files`** = 清单本身 ⇒ 任何值都能离线重算，不再依赖"那一版恰好哈希了哪几个文件"。**旧值不回溯**（批次 1–24 保持三文件定义，最后一个值 `4fc217c37901` 属批次 23/24）；**两种定义数值不可互比**，读法落在 [`SCORE-history.md`](SCORE-history.md) §1.1（定义表、重算方法、3.6a/3.6b 逐段读法：题序同构、驱动行为未改）。判定口径（五判定、分母、gate）**一字未动**。
+
+**35.6 本段 sha 轨迹**
+| 文件 | 进段值 | 提交 A 后 | 提交 B 后 |
+|---|---|---|---|
+| `gym_app.py` | `17b6a59cb831dafa` | **`f8b8429725364294`**（1494 → 1483 行，CRLF 保持） | 同左 |
+| `gym_run.py` | `2ba26b608cf7ec18` | 同左 | **`fd8e5e1f0ee237b4`**（3724 → 3733 行，LF 保持） |
+| `score.py` | `e80a646c63de8075` | **未动** | **未动** |
+| `scripts_sha` | `4fc217c37901` | `cebcb97fb952`（三文件） | **`7051c259fa05`**（六文件） |
+| `plans.v1.json` | —（新） | `080881993eb1cd7e` | 同左 |
+
+**35.7 行号偏移（核引用时用）**：`gym_app.py` 的装载器（`:84`–`:105`）**之下全部 −11**（5 张表、场景方法、renderer、chaos planner）—— 落在改动区内的引用改用**名字锚点**（本段已把这类引用改成**名字锚点**，例如原先指向 `gym_app.py:147 TRAP_PLAN4` 的那处现写 `plans.v1.json` 的 `trap4`）；`gym_run.py` 的哈希块（`:3675` 起）**之下 +9**，该区间只有 3 处引用（`audit/DESIGN-18-scroll-drag.md` 两处、`sol/sandbox/SCORE.md` 一处），已按新值改。`audit/REPORT.md` 口径行的漂移源新增 **⑪**。
+
+**35.8 诚实边界**：① 本段**没跑批** ⇒ 没有任何新读数；"manifest 不影响判分"的证据只有**离线逐元组等价 + 13 场景干跑**两档；② 覆盖面扩容**不等于** `gui_see.py`/`loop.py` 被审过 —— 它只说明"这两个文件变了，值就会变"；③ B3 的**活体字段检查**（新 json 里真带 `scripts_sha_files`）当时受**桌面锁**阻塞：锁屏时前台进程是 `LockApp.exe`，驱动会打印 `session is locked … waiting up to 3600 s` 并**挂住**，而 `-RedirectStandardOutput` 会把输出缓冲成 **0 字节**日志（跑驱动请加 `PYTHONUNBUFFERED=1`）—— 解锁后补跑一次 2 题干跑取证（**离线部分已做完**：把 `gym_run.py` 里的 `_SHA_FILES` + `_sha` 代码文本**原样抽出并执行** ⇒ `scripts_sha` = `7051c259fa05`，逐文件 sha16 = `gym_run.py fd8e5e1f0ee237b4` / `gym_app.py f8b8429725364294` / `score.py e80a646c63de8075` / `gui_see.py a683d18d8d617ee7` / `loop.py 535a567d1ffb1ece` / `plans.v1.json 080881993eb1cd7e`；`score.py --selftest` = **43/43**；3.5 两批用现行 `score.py` 复评读数不变 = `t_rows` `viewport 8/8`、`t_chips` `viewport 8/8`）；④ 干跑 json（`t36-<场景>-dry.json`）被 `.gitignore` 忽略、只留本地，**不进任何成绩**。
+
+**35.9 下一件**：**3.7** = 计数闸扩展（设计已在仓库外成文）。

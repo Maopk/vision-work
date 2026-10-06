@@ -24,7 +24,7 @@ counts how many tasks reached a *decision* at all, and scores refusal on its own
 Reported per run: `pass_rate`, `decided_rate`, `false_refusal_rate` (over answerable),
 `false_accept_rate` (over must_refuse), `disturb` (interference fires, **not** tasks),
 `screen/file` (where the ask was read), `replan`, `stale`, `wasted`, `verify_giveup`.
-A run carries `gates`, `events`, `scripts_sha` (sha256/12 of gym_run+ gym_app + score),
+A run carries `gates`, `events`, `scripts_sha` (sha256/12 of gym_run+ gym_app + score —— **阶段 3.6 起改为六个文件**，再加 `gui_see.py` / `loop.py` / `plans.v1.json`，并在同一条记录里写 `scripts_sha_files` 清单；两种定义的数值不可互比，见 `audit/SCORE-history.md` §1.1),
 `app_args`; `truth` is joined by `score.py` **after** the run, never by the driver.
 
 Per-row annotation: `gate / channel / ask reads (screen/file)`.
@@ -44,7 +44,7 @@ so re-reads make them exceed the task count).
 | **v2** | v1 定义**一字不改**，只把 `a_hit_but_failed` 拆成 `_wrong_target`/`_twin`，行标签改 `v2` | `v2` | 批次 5（`t_trap*` 场景） | 与 v1 的 `pass/decided/false_*` **逐列可比**（拆分只是把一个合计列展开成两列） |
 | **v3** | v2 定义**一字不改**，加两样：race 的 variant 集合纳入 `swap_race_timer` 并拆出 `race_press_after_guard`（"**守门抓帧之后**才发生的过期按压"），以及守门逐门样本分位 `gate_samples`/`gate_p50`/`gate_p95` | `v3` | 批次 6（`t_trap5` 场景） | 与 v2 的 `pass/decided/false_*`/`a_hit_but_failed_*` **逐列可比**；**race 分母不可与批次 5 的 `0/0` 并列解读**（批次 5 的 `swap_timer` 定时 600–1000 ms 落在守门帧之前，机制上不可能产生过期按压，见批次 6 一节） |
 
-各批 `scripts_sha`（sha256/12，覆盖 `gym_run.py` + `gym_app.py` + `score.py`；**sha 相同才是同一版驱动**）：**阶段 3.5 的两批（23 / 24）= `4fc217c37901`**（`score.py` 在跑批前补了 v0 打印 ⇒ `e80a646c63de8075`；**表体不加行**以免全表之后的行号整体漂移，逐条见文末「批次 23 / 24」两节）：
+各批 `scripts_sha`（sha256/12；**批次 1–24 用的是三文件定义** = 覆盖 `gym_run.py` + `gym_app.py` + `score.py`；**sha 相同才是同一版驱动**）：**阶段 3.6 起定义改为六文件**（上述三件 + `gui_see.py` / `loop.py` / `plans.v1.json`，json 自带 `scripts_sha_files`）⇒ **新批的值不可与本表三文件定义的值互比**（读法见 `audit/SCORE-history.md` §1.1）：**阶段 3.5 的两批（23 / 24）= `4fc217c37901`**（`score.py` 在跑批前补了 v0 打印 ⇒ `e80a646c63de8075`；**表体不加行**以免全表之后的行号整体漂移，逐条见文末「批次 23 / 24」两节）：
 
 | 批次 | 文件 | `scripts_sha` | 口径 | 通道 / 备注 |
 |---|---|---|---|---|
@@ -211,8 +211,8 @@ dialog was covering it. The next fixes belong in `gym_run.py`:
 - **`a_hit` 第一次不为 0**（10/10）⇒ 设计 §5.2 三种情况里的第一种（A 做对 + B 做对 ⇒ 通过 + `a_hit=1`）
   第一次被实测到；第二种（A 对 + B 错 ⇒ `a_hit_but_failed=1`）**仍然 0 例**，别当成已验证。
 - **`half_transparent` 五档全过 = 无区分度·不可作为 fill 阈值证据**：靶子只把**填充块**按 alpha 混合
-  （`gym_app.py:942-943` 的 `blend(BG, "#dbe6f2", alpha)` / `blend(BG, "#8595a8", alpha)`），而**标签文字
-  是全不透明的**（`gym_app.py:944-945` 的 `c.create_text(..., fill="#12263a")` 没有过 `blend`）⇒ 五档里
+  （`gym_app.py:931-943` 的 `blend(BG, "#dbe6f2", alpha)` / `blend(BG, "#8595a8", alpha)`），而**标签文字
+  是全不透明的**（`gym_app.py:933-945` 的 `c.create_text(..., fill="#12263a")` 没有过 `blend`）⇒ 五档里
   驱动读到的标签和 `[k]` 徽章**一模一样**，只有背景变淡；键通道下能按下去的前提就是找到徽章，所以
   alpha 0.20（已低于正文自身的 0.213）也照过。**这一类当前在结构上产生不了 fill 边界**，别把 2/2 读成
   "阈值 0.45 以下也能用"。要测阈值两条路：① 一行改动——让文字也走 `blend`，同一批 10 题重跑，测的是
@@ -743,7 +743,7 @@ guard gate sample 26  P50 188 ms  P95 212 ms      stop: task 31 failed 3 times i
 | delta | 现象 | 证据 |
 |---|---|---|
 | ① `two_close_names` 三连 `none` ⇒ 早停 | task 31（`LUMEN93`）跑了 3 次、每次 21.2–21.8 s、`presses 0`、`decision none`、`replan_why "no verdict arrived"`、`error` 空 | 重读回来的是**干净前缀** `"DO: click the button labelled"`（`ask_cells 0`、`ask_delta 0.0` —— 指纹明确说没动），但旧代码把"读不到 label"当成"问题变了"（`ask_changed_text true`）⇒ 与同函数 docstring「读不出的重读不是问题移动的证据」**相反** |
-| ② `a_hit` 10（控制）→ 4 | 首次按压被推过 8 s 安全换题线（`gym_app.py:1414`）⇒ 按到换题后的 B（正确 ⇒ `wrong=0`、`swap_after_press` 仍 10/10） | **恰 6 题**：`a_hit=False` 的 `#1 #4 #5 #7 #8 #9` 墙钟 10.65–10.88 s（全 > 8000 ms）；`a_hit=True` 四题 4.35–4.61 s（无一 > 8000 ms）；控制批十题全 True、6.62–6.97 s |
+| ② `a_hit` 10（控制）→ 4 | 首次按压被推过 8 s 安全换题线（`gym_app.py:1403`）⇒ 按到换题后的 B（正确 ⇒ `wrong=0`、`swap_after_press` 仍 10/10） | **恰 6 题**：`a_hit=False` 的 `#1 #4 #5 #7 #8 #9` 墙钟 10.65–10.88 s（全 > 8000 ms）；`a_hit=True` 四题 4.35–4.61 s（无一 > 8000 ms）；控制批十题全 True、6.62–6.97 s |
 
 ⇒ **`a_hit` 不是独立指标**，是"守门假阳性把首按推过换题线"的读出量（`../../audit/HANDOFF.md` 盲区 15）。
 根因口径（用户 m09426 指定）：**`move` 干扰下记录的 `ask_box` 在重读时失效**（边缘切在 label 之前），
@@ -791,7 +791,7 @@ sha **`f598406cfc70`**（批次 8 = "**读不出的重读不再被当成'问题�
 - **`ask_read_unreadable` 在 `move@0.70` 计 2 次，全部落在 `task 31`**——就是批次 7 卡死、导致 33/60 早停的那题；
   这次它**正常作答**，整批**没有 `result == none` 的行**、没有早停（`../../audit/HANDOFF.md` 盲区 14）。
 - 两档数字给出**剂量-反应**：干扰越强，`a_hit` 越低（0.35 → 7/10，0.70 → 4/10），
-  而**每次"没按中第一次"都对应墙钟 > 8 s 的安全换题线**（`gym_app.py:1414`）：
+  而**每次"没按中第一次"都对应墙钟 > 8 s 的安全换题线**（`gym_app.py:1403`）：
   0.70 档没按中的 6 题墙钟 **10.86–11.17 s**、按中的 4 题 **4.58–4.92 s**；0.35 档没按中的 3 题 **10.58–10.98 s**、按中的 7 题 **4.32–4.59 s**。
   ⇒ `a_hit` 是"守门假阳性/干扰把首按推过换题线"的**读出量**，不是独立能力指标（`../../audit/HANDOFF.md` 盲区 15）。
 - `move@0.70` 的两次真失败：`#15`（`prose_with_button`，驱动侧 `stale_actions 1`，`dec=none`）+ `#34`（`two_close_names`，**点错 `TUNDRA`** ⇒ `wrong_target 1`）。
@@ -810,7 +810,7 @@ sha **`f598406cfc70`**（批次 8 = "**读不出的重读不再被当成'问题�
 
 - 两档都只 fire 了 **1 次**（`chaos_planned 1 / chaos 1`），随后 driver 卡死：
   `#4`（`MICA`）/`#1`（`WILLOW`）三次尝试、每次 **22.8–24.6 s**、`dec=acted` 但 `result=none`、`detail {}` ⇒ `--max-repeat 3` 早停。
-- 根因（读代码 + 逐行证据）：弹窗是 Tk `Toplevel`，标题 `"attention"`（`gym_app.py:616-655`），
+- 根因（读代码 + 逐行证据）：弹窗是 Tk `Toplevel`，标题 `"attention"`（`gym_app.py:605-655`），
   而 `dismiss_interference` 在 `--keys --bg` 下**只按窗口标题找 `"attention"`**（`gym_run.py` "if self.bg: if self.window_by_title('attention') is None: break"）——
   实际没找到（驱动侧 `disturbances: 0 fired`），于是**弹窗留着挡在靶子上**：驱动的按键被弹窗吃掉（`dec=acted` 但靶子没记到判定），
   该题永远不结束；而弹窗不消失 ⇒ 靶子也不再推进下一题（所以 app 侧只有 1 次 fire）。
@@ -1042,8 +1042,8 @@ t_trap5  v3 35/48  72.9%  decided 100.0%  disturb 0   screen 42/48 replan 31   1
 - **弹窗一直能被 UIA 看见**：`{"op":"uia","what":"windows","max":120}` 的 trace 里有 `{"name":"attention","cls":"TkTopLevel","type":"Window","rect":[…]}`（同列表 11 项）。
 - **真正的原因 = actor 折叠截断**：同一条 trace 条目里 **inline `windows` 11 项**，而 **`data.windows` 只有 7 项** —— `actor.py:_slim()` 对 list **只保留前 ~6 项**，`data` 只在 `results=True` 时写入。改前 `window_by_title()`（以及 `target_windows()`）**只读 `step["data"]["windows"]`** ⇒ "attention" 一落到截断之后，`window_by_title("attention")` 恒 `None` ⇒ 键通道 bg 分支第一行就 `break` ⇒ **一次 Return 都没发**。
 - 探针方式与坑（写进这里以免下次再踩）：actor `:8731` 是**裸 TCP + 换行 JSON**（`{"op":"run","steps":[…]}`），**不是 HTTP**；**WSL 到不了 Windows loopback** ⇒ 必须 pwsh + Windows venv python；复刻驱动读法的脚本 = `D:\DSH\dsh-actor\tmp\w10-uia-probe3.py`。
-- 批次 8 原始产物复核（旧驱动 `f598406cfc70`）：`t_trap2-w8-popup35.json` 只 **7** 行 / `max task_i 4` = 4 ok + 3 none；`t_trap2-w8-popup70.json` 只 **4** 行 / `max task_i 1` = 1 ok + 3 none；两批 `interferences 0`、`clicks 0 / drags 0`、无 `popup_*` 键；而 app 事件显示驱动发的键**到了 app**（`hit:true, modal:true`）却没计分（`gym_app.py:465-481 finish()` 的 modal 门）。
-- ⚠ 本节推翻了批次 8 ③ 的一半判断（那里说"没有这条路"）：**路在，是读错了字段**。原判断的另一半**仍然成立**：`_button_candidates` 那条视觉路在 `--keys --bg` 下**不可用**（弹窗是独立 HWND、不在主窗帧里；且 `--bg` 鼠标点击整条失效，见 `../../audit/STATE.md` §16）⇒ 只能走"按键打掉"（app 自己的设计：`gym_app.py:376-383` 弹窗在时 `Return/space/Escape/d/D` 直接关）。
+- 批次 8 原始产物复核（旧驱动 `f598406cfc70`）：`t_trap2-w8-popup35.json` 只 **7** 行 / `max task_i 4` = 4 ok + 3 none；`t_trap2-w8-popup70.json` 只 **4** 行 / `max task_i 1` = 1 ok + 3 none；两批 `interferences 0`、`clicks 0 / drags 0`、无 `popup_*` 键；而 app 事件显示驱动发的键**到了 app**（`hit:true, modal:true`）却没计分（`gym_app.py:454-481 finish()` 的 modal 门）。
+- ⚠ 本节推翻了批次 8 ③ 的一半判断（那里说"没有这条路"）：**路在，是读错了字段**。原判断的另一半**仍然成立**：`_button_candidates` 那条视觉路在 `--keys --bg` 下**不可用**（弹窗是独立 HWND、不在主窗帧里；且 `--bg` 鼠标点击整条失效，见 `../../audit/STATE.md` §16）⇒ 只能走"按键打掉"（app 自己的设计：`gym_app.py:365-383` 弹窗在时 `Return/space/Escape/d/D` 直接关）。
 
 ### ② 本批定稿行
 
@@ -1092,7 +1092,7 @@ app 事件：`chaos_planned 25` / `chaos 25`（全 `popup`）、`key 109`、`tra
 2. **旧的 `interferences 0` 一律不可读成"没被干扰"**：那是"打不掉"的缺陷；批次 7/8 的 `popup` 两档成绩仍然**不可引用**。
 3. **本批仍是「探索性·不并入定稿」**：键通道 + `--bg`，与鼠标批（批次 4/5/6/9/11）**不同通道、不同协议**，不能与之并列成"提升/退步"。
 4. **`disturb 15` 只数"题内"清障**：驱动 `interferences 24` = 逐题行合计 **15** + `interferences_at_start` 合计 **9**（题首清障，`gym_run.py:2033-2034`）—— 两个计数不可互推；`screen 50/60` 与驱动摘要的 `asks read off the screen 78 / from the state file 11` 也是两个不同计数。
-5. **app 侧 fire 25 对驱动清障 24 差 1 次**：两种候选解释（落在最后一题之后 / 被下一次换题的 `self._close_modal()`，`gym_app.py:512` 顺手关掉）**都成立，未取证** ⇒ 只并列、不裁定。
+5. **app 侧 fire 25 对驱动清障 24 差 1 次**：两种候选解释（落在最后一题之后 / 被下一次换题的 `self._close_modal()`，`gym_app.py:501` 顺手关掉）**都成立，未取证** ⇒ 只并列、不裁定。
 6. **没做的事**：同协议重复批（1 次）、`0.70` 档复跑（批次 8 的 `popup70` 仍是旧驱动的失败产物）、鼠标通道批（`--bg` 鼠标整条不生效）、A/B 对照批（用 `D:\DSH\dsh-actor\tmp\gym_run.py.bak-w10` 跑同协议）。
 7. **本批留档**：`t_trap2-w12-popup35.json` / `-state.json` / `-events.jsonl` + 驱动 stdout `D:\DSH\dsh-actor\tmp\w12-driver-stdout.txt`；改前备份 `D:\DSH\dsh-actor\tmp\gym_run.py.bak-w10`（sha `105cf6cb679eea10`）。
 
@@ -1143,7 +1143,7 @@ chaos:popup    v2 60/60 100.0%  decided 100.0%  disturb 24  screen 54/60 replan 
 - **命令（逐字）**：`gym_run.py --scenario t_trap5 --tasks 48 --seed 20251007 --press-jitter 0,1200 --max-repeat 3 --chaos 0.35 --chaos-ms 200,700 --chaos-kind popup --json-out t_trap5-w13-popup35.json`（鼠标通道协议照批次 4/5/6/9/11，只加 chaos 三参数；**用户已放行前台**）。
 - **结果**：**driver 退出码 1、墙钟 79.1 s、只跑到第 3 题**（`score 0/3`、`stopping early: task 0 failed 3 times in a row`）。留档 `sol/sandbox/t_trap5-w13-popup35.json`（+ `-state.json` / `-events.jsonl`）、日志 `D:\DSH\dsh-actor\tmp\w13_mouse35.log`、`w13-driver-stdout-mouse35.txt`、`w13_score_mouse35.txt`。
 - **驱动侧**：`disturbances: 0 fired`（**清障一次都没发生**）、`keys 0`、`clicks 10`、`shots 47`、`ocr 124`；三题同一 ask（`TANGQ`）、逐题 27317 / 24117 / 24071 ms、`detail = {"ask_box_recomputed": 4, "ask_box_shift_px": [0, 0]}`；`foreground after: GUI Gym (hwnd 3148420) unchanged: False`。
-- **app 侧（决定性证据）**：`t_trap5-w13-popup35-state.json` = `task_i 0`、`variant swap_twin_press`、`result none`、`elapsed_ms 71283`、**`"event": "blocked", "by": "modal"`**；events 计数 = `ready 1 / chaos_planned 1 / chaos 1 / trap_a_hit 1 / trap_swap 1 / blocked 10 / trap_twin_timeout 1` ⇒ **弹窗真的弹了、并且一直没被清掉**，`finish()` 的 modal 门让该题永不结算（与批次 8 同一条门，`gym_app.py:465-481`）。
+- **app 侧（决定性证据）**：`t_trap5-w13-popup35-state.json` = `task_i 0`、`variant swap_twin_press`、`result none`、`elapsed_ms 71283`、**`"event": "blocked", "by": "modal"`**；events 计数 = `ready 1 / chaos_planned 1 / chaos 1 / trap_a_hit 1 / trap_swap 1 / blocked 10 / trap_twin_timeout 1` ⇒ **弹窗真的弹了、并且一直没被清掉**，`finish()` 的 modal 门让该题永不结算（与批次 8 同一条门，`gym_app.py:454-481`）。
 - **`score.py` 输出（逐字）**：
 
 ```
@@ -1688,7 +1688,7 @@ gym_run.py --scenario t_rows --tasks 8 --seed 20251007 --max-repeat 3 --json-out
 ```
 - 同一 json 加 `--v1`：`t_rows v1 0/0 0.0% … no declared tasks` + `viewport 8/8` ⇒ **主分母 n = 0**（本批没有 `answerable` / `must_refuse` 题），桶仍单列 —— 这就是"桶不进主分母"的直接证据。
 - 用 `score.py` 自己的 `join_truth` / `v1_counts` 实测：joined 8 / viewport 行 8 / ok 8 / `undeclared` 0 / `variants = ['rows']`。
-- **`gates` 落 `v0`**：`gym_run.py:3694` 按场景名分流（`t_trap5→v3`、`t_trap*→v2`、其余 `→v0`），`t_rows` 不是 `t_trap*` ⇒ v0 分支的 viewport 行是**阶段 3.5 新加的**（见 23.6）。
+- **`gates` 落 `v0`**：`gym_run.py:3703` 按场景名分流（`t_trap5→v3`、`t_trap*→v2`、其余 `→v0`），`t_rows` 不是 `t_trap*` ⇒ v0 分支的 viewport 行是**阶段 3.5 新加的**（见 23.6）。
 
 ### 23.4 落档
 - json `t_rows-w23-mouse8.json`（17473 B）`sha256/16 = f2d7dec6c975d096`；state `49cd44e018e93839`；events `47143e90c045ec26`（39032 B）。

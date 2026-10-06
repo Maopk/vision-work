@@ -196,6 +196,13 @@ def src_censusrows() -> int:
     return len(re.findall(r"^\| V\d+ \|", body, re.M))
 
 
+def src_vkstatus() -> str:
+    """`§37.2` 九行标记的分布（`dsh-vision-kit` 对 §4 八条），如 `1 ❌ / 3 ⚠ / 5 ✅`。"""
+    body = section("audit/STATE.md", "**37.2 `dsh-vision-kit` 对 §4 八条的逐条核验", "**37.3 ")
+    marks = re.findall(r"^\| \([a-h][^|]*\| (❌|⚠|✅)", body, re.M)
+    return " / ".join("%d %s" % (marks.count(m), m) for m in ("❌", "⚠", "✅"))
+
+
 # --------------------------------------------------------------- the registry ---
 CHECKS: list[dict] = [
     {
@@ -328,6 +335,16 @@ CHECKS: list[dict] = [
             ("audit/STATE.md", "只覆盖 §36.2 表里登记的", "**{n}** 个【可变量】家族"),
             ("docs/OPERATING.md", "- **管什么**", "**{n}** 个【可变量】家族"),
             ("OPENSOURCE-READINESS.md", "普查 → ", "**{n}** 个【可变量】家族"),
+        ],
+    },
+    {
+        "id": "vk-status",
+        "what": "`dsh-vision-kit` 对 §4 八条的核验分布（`§37.2` 九行标记）",
+        "value": src_vkstatus,
+        "claims": [
+            ("OPENSOURCE-READINESS.md", "按 §37.2 的九行标记", "**{n}**"),
+            ("audit/STATE.md", "**37.1 一句话**", "**{n}**"),
+            ("audit/STATE.md", "⇒ **未全过 = (h) ❌", "**{n}**"),
         ],
     },
 ]

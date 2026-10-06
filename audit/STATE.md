@@ -1669,7 +1669,7 @@ J5（既有场景无翻转）= **静态论证 + 干跑承担**：本段对靶子
 |---|---|---|---|
 | A `1c1a9b8` | manifest v1：5 张 plan 表 → 数据 | `plans.v1.json`（新）、`gym_app.py`、`.gitignore` | `git checkout` **数据 + 装载器一起**（一个单元） |
 | B（本段） | `scripts_sha` 扩容 + 清单自描述 | `gym_run.py`、`audit/SCORE-history.md`、`CHANGELOG.md` | `git checkout` 单文件 |
-| C（本段） | 文档收口 | `audit/STATE.md`（§35）、`audit/REPORT.md`、`OPENSOURCE-READINESS.md`、`docs/OPERATING.md`、`docs/TROUBLESHOOTING.md` | 纯文档 |
+| C（本段） | 文档收口 | `audit/STATE.md`（§35）、`audit/REPORT.md`、`OPENSOURCE-READINESS.md`、`docs/OPERATING.md`、`docs/TROUBLESHOOTING.md`、`docs/TASK-AUTHORING.md`、`audit/HANDOFF.md` 与三份 `DESIGN-*.md`、`sol/sandbox/SCORE.md`（**共 11 个文件**；含全仓库 `gym_app.py` −11 / `gym_run.py` +9 的行号机械改写） | 纯文档 |
 
 对 A4「只含 manifest + `gym_app.py`」有**一处被迫偏离**：`.gitignore` 必须加 `!sol/sandbox/plans.v1.json` —— `sol/sandbox/*.json` 会**静默**吃掉这个新文件，而一个不在哈希里的 manifest 正好就是 3.6b 要堵的"同一 `scripts_sha`、两套题序"。理由已写进 `CHANGELOG.md` 3.6a 条目（不只写在报告里）。
 

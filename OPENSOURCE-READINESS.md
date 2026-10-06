@@ -37,9 +37,9 @@
 
 | 方向 | 处数 | 样例 |
 |---|---|---|
-| vision-work → dsh-vision-kit | **16** | `CHANGELOG.md:16`、`DESIGN-18-scroll-drag.md:73 / :152 / :264`、`HANDOFF.md:62 / :177 / :194`、`REPORT-draft.md:6` |
+| vision-work → dsh-vision-kit | **14 引用行 / 12 个字面量**（原记 16；复核 `git grep -nE 'actor\.py:[0-9]' f8604df` = 10 行 + `audit/HANDOFF.md` 第 180 行的裸行号 + 3 处同行多锚；字面量表见本仓库 `CHANGELOG.md` 的 3.2 条目） | `CHANGELOG.md:16`、`audit/DESIGN-18-scroll-drag.md:73 / :152 / :264`、`audit/HANDOFF.md:62 / :177 / :194`、`audit/REPORT-draft.md:6` |
 | dsh-vision-kit → vision-work | **0** | 无 |
-| dsh-vision-kit → dsh-termux-kit | **4** | `README.md:150`（"Following the upstream dsh-termux-kit convention"）、`README.md:258`（fork 来源）、`README.zh-CN.md:112 / :205` |
+| dsh-vision-kit → dsh-termux-kit | **4** | `README.md:183`（"Following the upstream dsh-termux-kit convention"）、`README.md:291`（fork 来源）、`README.zh-CN.md:166 / :259`（现行行号；2.2 的「Why」章与 zh-CN 重同步各插入一次，原 150 / 258 / 112 / 205 已过期） |
 | dsh-termux-kit → A（kit/work） | **0** | grep `actor` 的 10 条命中全是 `refactor` 子串 |
 
 ⇒ 单元 A 的耦合**只有一条**（actor 运行时），单元 A↔B 的耦合**只有一条**（fork 信用）。两者都不是"见另一仓库"式含糊引用，而是可核对的具体指向 —— 这一点已经合格，要保住的只是它别退化。
@@ -50,7 +50,7 @@
 
 | 内容 | 唯一副本在哪 | 谁消费 | 怎么断 |
 |---|---|---|---|
-| actor op 协议（23 op · `127.0.0.1:8731` · 换行 JSON） | `dsh-vision-kit/actor/actor.py` | vision-work 运行时（`sol/sandbox/loop.py:48-53`）+ 16 处文档引用（含 `actor.py:1427–1513`、`actor.py:1665` 这类**行号**引用） | 改 actor 一行 ⇒ 下游读数层与文档行号**同时**失效 |
+| actor op 协议（23 op · `127.0.0.1:8731` · 换行 JSON） | `dsh-vision-kit/actor/actor.py` | vision-work 运行时（`sol/sandbox/loop.py:48-53`）+ 14 行 / 12 个字面量的**行号**引用（3.2 已改名字锚：`@op('window')`/`o_window`、`@op('drag')`/`o_drag`、`Hands.drag()`、`post_drag()`、`_maybe_front(req)`；复核见 `audit/README.md` §行号口径） | 改 actor 一行 ⇒ 下游**读数层**仍失效（读数层不受名字锚保护）；**文档不再随之失效**（3.2 已改名字锚） |
 | actor HOME 与端口文件（`D:\DSH\dsh-actor\port.txt`） | **仓库外**（运行环境） | 两个仓库都靠它 | 环境不落盘 ⇒ 陌生人起不来 |
 | 插件 fork 来源（`dsh-selflook-local`） | `dsh-termux-kit`（历史组件） | vision-kit README 的信用引用（4 处） | 组件改名/搬迁 ⇒ 引用悬空 |
 | 写作权威（提交前缀 + 禁用词表 + 术语表） | `dsh-termux-kit/CONTRIBUTING.md`、`docs/术语表.md` | **实际约束三个仓库** | 权威只在一个仓库里却管三个 ⇒ 另两个引用它时必须带 commit |
@@ -58,7 +58,7 @@
 
 **各仓库独有（不共享，也不要假装共享）**
 
-- `vision-work`：靶子 `ready`/`verdict` 协议、六判定与 `truth_class` 门、`[k]` 徽章约定、欠账/可比性纪律（`SCORE-history.md`）、批次证据 JSON（`sol/` 102 文件）。
+- `vision-work`：靶子 `ready`/`verdict` 协议、六判定与 `truth_class` 门、`[k]` 徽章约定、欠账/可比性纪律（`audit/SCORE-history.md`）、批次证据 JSON（`sol/` 102 文件）。
 - `dsh-vision-kit`：actor 实现、UIA/视觉工具、插件包（`plugins/`）、Generation 1 截图路线。
 - `dsh-termux-kit`：Termux 工具（`tools/` 52）、两个 Android app（`apps/` 33）、12 个 widget（`widgets/` 14）、`ui/controls.json` **一源三面**（面板/控制台/桥）。
 
@@ -72,8 +72,8 @@
 
 | 改动 | 影响面 | 影响方式 | 本总纲的处置 |
 |---|---|---|---|
-| 发布/修改 `actor.py`（单元 A 上游） | vision-work：运行时 **+** 16 处文档引用 | 行号漂移 ⇒ 引用变假；行为变 ⇒ 旧批读数不可比 | 上游发布单独成段；发布后**逐条核 16 处引用**（模板第 4 格） |
-| vision-work 搬迁审计档案（`audit/`） | 自身 **77** 处交叉引用 + README/HANDOFF 指向 | 路径/行号漂移 | 搬迁**前**列失效清单 + 内容锚定核验（第 4 格） |
+| 发布/修改 `actor.py`（单元 A 上游） | vision-work：运行时 **+** 14 引用行 / 12 个字面量 | 行为变 ⇒ 旧批读数不可比（**文档行号不再随上游漂移**：3.2 已把 11 处 `actor.py:NNNN` 改成名字锚） | 上游发布单独成段；发布后**逐条核 14 引用行**（模板第 4 格） |
+| vision-work 搬迁审计档案（`audit/`） | 自身 **714 引用点 / 457 行 / 735 行（表内）** 交叉引用 + README/HANDOFF 指向 | 路径/行号漂移 | ✅ **已搬迁（3.2）**：搬迁**前**先列失效清单 **412** 处（入站 55 + 跨边界出站 202 + 跨边界入站 38 + 出站路径 68 + 仓库外 50 = 仓内 362 + 仓外 50；仍成立 381）；`git mv` 逐 blob 相同、**行数零漂移**；逐类改写与计数口径见 `audit/README.md` |
 | vision-work 改三件套 | 自身 sha 表、跨批可比性、`scripts_sha` | 一次 sha 裂 = 一次可比性代价 | 合并成**一次**（manifest v1 + A 的 viewport） |
 | 调整 vision-kit 插件目录 / README 结构 | 它自己指向 termux 的 4 处信用引用 | 被引用目标改名 ⇒ 空指针 | 动 vision-kit 前先确认 termux 侧路径稳定 |
 | 改 termux-kit 的 `ui/controls.json` | 面板 + 控制台 + 桥 + 12 widget + `dsh-kit-update` | 单源改动三面同变（**优点**，也是"改一处动三面"） | 试点段只动**前门**，不碰 `controls.json` |
@@ -156,7 +156,7 @@
 |---|---|---|---|---|---|---|
 | **1 试点** | `dsh-termux-kit` | B | 完全独立、前门最好（B+）、改它不牵动任何仓库 ⇒ 用最低试错成本把标准**真落地一遍**，验证标准本身好用（阶段 1 已完成并已发布：见 §8） | ✅ 与阶段 2/3 无依赖（但作为试点**应先做**：它的产出是"标准实测版"） | ✅ **已达成、并已发布（§8；对外 commit `1fbc1a36bc7a1131555250c96c1c9a511b72e8ac`）**：标准逐条落地并成文；前门改前/改后对照；交叉引用核（它指向 A = **0** 处；A 指向它的 4 处逐条读过，无一路径/节/行号 ⇒ 不悬空） | 若发现**标准本身**要改（某条在该仓库落不了地）⇒ 先改标准再继续 **（已触发并按此办理：v1.1 回灌）** |
 | **2 上游** | `dsh-vision-kit` | A | 下游文档要引用**准确的 commit/sha** ⇒ 必须先发布；当前 `published ≠ working`，不发布则下游永远引用不存在的版本 | ❌ 与阶段 3 不可并行；✅ 与阶段 1 可并行（不同仓库、无引用） | actor 可发布版本确定（commit 记录 + 引用用的 sha）；前门三代整理（标清当前路线）；4 处 termux 信用引用仍成立 | 若发布需要改接口 ⇒ **停**，先报（会波及下游引用核） |
-| **3 下游** | `vision-work` | A | 最重、依赖最多（依赖阶段 2 的 pin） | ❌ 与阶段 2 同批禁止 | 段内多步见 §6：参数化 + `env` + requirements + `audit/` 搬迁（77 处核验）+ 前门 + 加题接口 + viewport 验证 + 冻结声明 | 搬迁前未列失效清单 ⇒ **停**；引用不存在的上游版本 ⇒ **停** |
+| **3 下游** | `vision-work` | A | 最重、依赖最多（依赖阶段 2 的 pin） | ❌ 与阶段 2 同批禁止 | 段内多步见 §6：参数化 + `env` + requirements + `audit/` 搬迁（**714 引用点 / 457 行**核验，搬迁前失效清单 412 处，见 `audit/README.md`）+ 前门 + 加题接口 + viewport 验证 + 冻结声明 | 搬迁前未列失效清单 ⇒ **停**；引用不存在的上游版本 ⇒ **停** |
 
 **试点必须回灌 —— 已执行（v1.1）**：答案是「**没有一条不适用**，但 (c)(d) 必须改措辞、并应新增一条 (h)」；已按阶段 1 的实际写法回写本文档（§4 的 (c)(d)(h) + 示范句 + (d 配套)），回灌输入与逐条对照见 §8。⇒ 标准不再是纸面的：它被一个真实仓库走了一遍，并因此改了两次措辞、加了一条。
 
@@ -169,21 +169,21 @@
 1. **段号 / 仓库 / 单元**；
 2. **前门改前 → 改后结构对照**（章节级：新增哪些节、合并哪些、降级到 `docs/` 哪些、删除哪些）；
 3. **sha 变化**：三件套（work）/ `actor`（kit）/ 工具脚本（termux）**哪个变了、新值是什么**；未变就写"未变"（termux 无 git 历史 ⇒ 报**发布后的远端 commit + 已发布文件的 git blob sha + CHANGELOG 版本**，见 §4「(d 配套)」）；
-4. **交叉引用核**：指向其它仓库的引用逐条列（现状 = 16 / 0 / 4 / 0 处），仍成立的打勾，失效的给出修复动作（**搬迁类改动必须先列失效清单再动**）；
+4. **交叉引用核**：指向其它仓库的引用逐条列（现状 = **14 引用行（12 字面量）** / 0 / 4 / 0 处），仍成立的打勾，失效的给出修复动作（**搬迁类改动必须先列失效清单再动**）；
 5. **一句话**：陌生人能否从 `clone` 到知道下一步 —— 照 §4(a) 三问逐条回答**是 / 否**，不许写"更好了"；
 6. **闸与停止条件**（照 §5 该阶段那一行）。
 
 **段清单**
 
 - **1.x `dsh-termux-kit`（试点）**：1.1 ✅ 前门补第 ③ 问（新增 `docs/TASK-AUTHORING.md`：加 widget / 加命令的路径）；1.2 ✅ 标准落地对照表成文并**已回灌本文档 §4**（v1.1，独立提交）。**未做**：版本号 bump（该仓库 §六：纯文档 commit 不 bump）与该仓库内部 5 处计数漂移（§8）。
-- **2.x `dsh-vision-kit`（上游）**：2.1 发布上游（commit + CHANGELOG + 记下可被引用的 sha）；2.2 前门三代整理（Generation 1 / 1.5 降到 `docs/` 或明确标"历史"，当前路线提到最前）；2.3 下游引用核（`vision-work` 那 16 处逐条）。
-- **3.x `vision-work`（下游）**：3.1 参数化（`TESS` / `ACTOR_HOME`）+ `requirements.txt` + run json `env` 块；3.2 `audit/` 搬迁 + `audit/README.md` + 77 处内容锚定核验；3.3 前门重写（动机 + 三问 + 加题接口 `TASK-AUTHORING`）；3.4 manifest v1 + viewport（**一次** sha 裂）+ 验证批（占前台，同时是 #18 的首次真取数）；3.5 v1.0 声明 + 冻结条款 + 欠账分流。
+- **2.x `dsh-vision-kit`（上游）**：2.1 发布上游（commit + CHANGELOG + 记下可被引用的 sha）；2.2 前门三代整理（Generation 1 / 1.5 降到 `docs/` 或明确标"历史"，当前路线提到最前）；2.3 下游引用核（`vision-work` 那 14 引用行 / 12 字面量逐条）。
+- **3.x `vision-work`（下游）**：3.1 ✅ 参数化（`TESS` / `ACTOR_HOME`）+ `requirements.txt` + run json `env` 块；3.2 ✅ `audit/` 搬迁 + `audit/README.md` + **714 引用点 / 457 行**内容锚定核验（搬迁前失效清单 412 处 = 仓内 362 + 仓外 50）；3.3 前门重写（动机 + 三问 + 加题接口 `TASK-AUTHORING`）；3.4 manifest v1 + viewport（**一次** sha 裂）+ 验证批（占前台，同时是 #18 的首次真取数）；3.5 v1.0 声明 + 冻结条款 + 欠账分流；**3.6（待办）**计数闸扩展 —— 设计已在仓库外成文（`D:\DSH\dsh-actor\tmp\stage2\C3-checkcounts-design.md`；本轮只落文、不改 `dsh-vision-kit`）：op 数已有闸（`tools/check-skill-ops.py`，`ci-static.ps1` 第 6 阶段），真缺口 = 踩坑条数单一化 / 双语数字一致性 / 清单完整性 ⇒ 建议 `tools/check-counts.py` 接第 7 阶段。
 
 ## 7. 红线（v1 写作段与 v1.1 回灌段共同适用）
 
-- 本段**只写文档**：三个仓库的代码与公开内容**一字未改**；三件套 sha 未变（`gym_app.py 66632d85eac81c12` / `gym_run.py d8594bff3738ca9b` / `score.py ef066713a03eb940`）。
+- 本段**只写文档**：三个仓库的代码与公开内容**一字未改**；三件套 sha 未变（`gym_app.py 66632d85eac81c12` / `gym_run.py d8594bff3738ca9b（3.1 后 = `2ba26b608cf7ec18`）` / `score.py ef066713a03eb940`）。
 - v1 唯一新增文件 = 本文档（在 `vision-work` 内），按发布纪律补 `CHANGELOG.md`。若你希望它不属于任何一个仓库，移到 `D:\DSH\notes\` 只是一次 `git mv`。
-- **v1.1（回灌）**：只改本文档 + 本仓库 `CHANGELOG.md`；**另一份仓库（`dsh-termux-kit`）与 `dsh-vision-kit` 一字未改**，三件套 sha 仍逐位不变（`gym_app.py 66632d85eac81c12` / `gym_run.py d8594bff3738ca9b` / `score.py ef066713a03eb940`）。
+- **v1.1（回灌）**：只改本文档 + 本仓库 `CHANGELOG.md`；**另一份仓库（`dsh-termux-kit`）与 `dsh-vision-kit` 一字未改**，三件套 sha 仍逐位不变（`gym_app.py 66632d85eac81c12` / `gym_run.py d8594bff3738ca9b（3.1 后 = `2ba26b608cf7ec18`）` / `score.py ef066713a03eb940`）。
 - **一句话**：**先动 `dsh-termux-kit`（试点磨标准）**；`dsh-vision-kit` 次之、**必须在下游之前**；`dsh-termux-kit` 与单元 A **可并行**（无依赖），单元 A 的两仓库**不可同批**，`vision-work` **最后**。
 
 ## 8. 试点记录摘要（阶段 1 · `dsh-termux-kit`）

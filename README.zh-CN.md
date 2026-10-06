@@ -24,18 +24,18 @@
 
 - 不是排行榜：这里不给任何模型排名。
 - 不对绝对能力下结论：跑批是单机、Windows 专用，且绑定在一位操作者的环境上。
-- 不是单一通过率：判定被拆开、分母被声明、口径被版本化（v0–v3）。两批成绩只有在**同一口径**下才可比 —— 规则见 [`HANDOFF.md`](HANDOFF.md) §2，口径史见 [`SCORE-history.md`](SCORE-history.md)。
+- 不是单一通过率：判定被拆开、分母被声明、口径被版本化（v0–v3）。两批成绩只有在**同一口径**下才可比 —— 规则见 [`audit/HANDOFF.md`](audit/HANDOFF.md) §2，口径史见 [`audit/SCORE-history.md`](audit/SCORE-history.md)。
 
 ## 目录
 
 ```
 README.md  README.zh-CN.md  CHANGELOG.md  LICENSE
-STATE.md                   这条线的当前状态（开头是接续点，§7 是欠账表）
-HANDOFF.md                 三件套、口径、一行可复制的命令、已知盲区
-DESIGN-refusal-scoring.md  为什么判定要拆开（需求与判定设计）
-REPORT.md                  报告正文初稿 v0.1（8 章 + 2 附录）
-REPORT-draft.md            章节骨架与素材指针（有意保留）
-SCORE-history.md           口径史一页纸
+audit/STATE.md                   这条线的当前状态（开头是接续点，§7 是欠账表）
+audit/HANDOFF.md                 三件套、口径、一行可复制的命令、已知盲区
+audit/DESIGN-refusal-scoring.md  为什么判定要拆开（需求与判定设计）
+audit/REPORT.md                  报告正文初稿 v0.1（8 章 + 2 附录）
+audit/REPORT-draft.md            章节骨架与素材指针（有意保留）
+audit/SCORE-history.md           口径史一页纸
 sol/sandbox/SCORE.md       逐批结果与逐批阅读须知
 sol/sandbox/               三件套、探针、批次证据 JSON
 ```
@@ -76,11 +76,11 @@ cd D:\DSH\vision-work\sol\sandbox
 | 问题 | 文档 |
 |---|---|
 | 逐批成绩是多少 | [`sol/sandbox/SCORE.md`](sol/sandbox/SCORE.md) |
-| 这两批能不能比 | [`SCORE-history.md`](SCORE-history.md)，再看 `HANDOFF.md` §2 |
-| 怎么重跑、已知哪里坏了 | [`HANDOFF.md`](HANDOFF.md) §3 与 §4 |
-| 为什么"拒得对"要单独计数 | [`DESIGN-refusal-scoring.md`](DESIGN-refusal-scoring.md) |
-| 完整的论证 | [`REPORT.md`](REPORT.md) |
-| 现在正在做什么 | [`STATE.md`](STATE.md) |
+| 这两批能不能比 | [`audit/SCORE-history.md`](audit/SCORE-history.md)，再看 `audit/HANDOFF.md` §2 |
+| 怎么重跑、已知哪里坏了 | [`audit/HANDOFF.md`](audit/HANDOFF.md) §3 与 §4 |
+| 为什么"拒得对"要单独计数 | [`audit/DESIGN-refusal-scoring.md`](audit/DESIGN-refusal-scoring.md) |
+| 完整的论证 | [`audit/REPORT.md`](audit/REPORT.md) |
+| 现在正在做什么 | [`audit/STATE.md`](audit/STATE.md) |
 
 ## 技能
 

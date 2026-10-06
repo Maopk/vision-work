@@ -1,12 +1,12 @@
 # 设计：拒绝计分（第 2 件）+ 新计分口径 + 对抗题家族
 
-状态：**已放行 r3**（2026-10-04，实施顺序 §3 → §1 → §2 → §4 → §5 → §6）。基准：`D:\DSH\vision-work\STATE.md`、`D:\DSH\vision-work\sol\sandbox\SCORE.md`。
-本轮实测数据源：`sol\sandbox\prof1.json`（12 题混合，键通道+后台）、`probe_ocr_cost.py`（离线分项计时）。
+状态：**已放行 r3**（2026-10-04，实施顺序 §3 → §1 → §2 → §4 → §5 → §6）。基准：`D:\DSH\vision-work\audit\STATE.md`、`D:\DSH\vision-work\sol\sandbox\SCORE.md`。
+本轮实测数据源：`..\sol\sandbox\\prof1.json`（12 题混合，键通道+后台）、`probe_ocr_cost.py`（离线分项计时）。
 修订 r2（按用户 6 条意见）：①题数对齐；②通过率分母钉死；③`verify_before_act` 的成本并进 §6；④本批定位为 smoke test；⑤`synonym`/`swap_mid_task` 的 `want` 与判定口径钉死；⑥`presses > 1` 归属钉死。
 修订 r3（放行时的 3 个残留细节）：①`synonym` 3 题按 **2+1 变体**分配并分列报告（§3）；②`recovered_from_swap` 先按"三计数 + 一列"记，具体事件流等靶子写完复核（§5.2 **已复核定稿为 `a_hit`/`a_hit_but_failed` 两列中性计数**）；③`verify_before_act` 加**单题重读上限 3 次**，超限判 timeout（§6.1）。
 
 修订 r4（放行后的 3 条补充）：
-①**"不可比"与"数据源存疑"分开标注** —— 前者是算法换了、数字没错；后者是数字本身可能错（文件被覆盖/引用错位）。`SCORE.md` 里四处（keys-btn / keys-chips9 / keys-menu7 / keys-tog）标 **「数据源存疑·勿引用」**；`keys-tog.json` 已按文件名彻底搜过：现存两个 `*tog*` 文件都是鼠标通道，**原始文件已丢失**，不猜（§2）。
+①**"不可比"与"数据源存疑"分开标注** —— 前者是算法换了、数字没错；后者是数字本身可能错（文件被覆盖/引用错位）。`../sol/sandbox/SCORE.md` 里四处（keys-btn / keys-chips9 / keys-menu7 / keys-tog）标 **「数据源存疑·勿引用」**；`keys-tog.json` 已按文件名彻底搜过：现存两个 `*tog*` 文件都是鼠标通道，**原始文件已丢失**，不猜（§2）。
 ②**加锁屏检测与等待**：`gym_run.py` 新增 `foreground_info()`/`lock_reason()`/`wait_until_unlocked()`（ctypes 直查前台进程名/窗口类/标题，不依赖 actor 与 PowerShell），CLI `--lock-wait SEC`（默认 3600，0 = 只查不等）；**跑测前**等待、**跑到一半锁屏**则暂停等待（记 `lock_waits`）、**跑测后**再查一次并把 `locked_at_end` 写进 run json。动机：锁屏时所有抓图都是空图，那样的分数测的是锁屏不是驱动。
 ③**profiling 分两份**：`prof2.json` = 纯 baseline（不含 t_trap，与 `prof1.json` 同 seed 同题数，直接可比）、`prof3.json` = 含 t_trap（单看新题型成本）。两份之差才是"t_trap 每题多花多少 ms"。
 
@@ -25,8 +25,8 @@
 ①**`screen` 列的口径被审计质疑、已澄清**：判据是"归一化后的屏读文本**是否包含真值**"（`gym_run.py:1498`），不包含才记 `file`；**行动仍然用屏读文本**（`gym_run.py:1504` 只在屏读**为空**时才回落文件）⇒ `file` ≠ "没用屏幕"、≠ "屏读失败"。`t_trap2-3` 的 16 行逐题核对（全是 OCR 滑字 `GAMM.`/`TUND`/`XENON2`/`acknowledae`）= **10 题 acted + 6 题 refused、16/16 `result=ok`** ⇒ 没有"该答却拒"藏在这一列里。驱动摘要 `81/17` 是**按读取次数**（85 题 + 13 次重规划 = 98），`score` 的 `69/85` 是**按题目**，两者不矛盾。
 ②**`replan 13` 已全部归因**：10 × `swap_after_press`（`replan_why="no verdict arrived"` —— 按对 A 后靶子换题，旧 ask 永不再判分 ⇒ 超时重规划）+ 3 × `swap_timer`（`ask_moved=1`、`replan_why="ask re-rolled"`）⇒ 两条**互相独立**的恢复路径（超时 vs 指纹变化）。
 ③**竞态取证 + 拆列，但口径不升 v1.1**：靶子事件流直接证明（`trap_swap a=INDIGO b=XENON why=timer a_hit=False` → `done detail.clicked=INDIGO`）；新增事件 `trap_stale_press` 与计分行 `race(pressed the replaced ask) N/M`（旧 run 显示 `0/0` 只表示当时没有这个字段）。`race_wrong_target` 只是既有 `wrong_target` 的**子集标注**：不动分母、不动总分公式 ⇒ **与旧数据仍然可比**，故不另立 v1.1（若哪天把它从分母里剔除，才必须升版本并标旧数据不可比）。这条**保留在分母里**：看着没变就按下去是真实能力边界（窗口 70–150 ms）。
-④**`half_transparent` 机制定死**：`gym_app.py:942-945` 只把**填充块**按 alpha 混合，标签文字与 `[k]` 徽章**没过 `blend`** ⇒ 五档里可读的东西完全一样，该类**结构上产生不了 fill 边界**；SCORE.md/STATE.md 一律标"**无区分度·不可作为 fill 阈值证据**"。要测阈值两条路：①文字也走 `blend`（一行改动，同批 10 题重跑，测**驱动读数下限**）；②另做"淡控件 + **无徽章**"类，测像素可见性判断（规则须先离线冻结）。
-⑤**provenance 规则**：每个 run json 已带 `scripts_sha`（`gym_run.py`+`gym_app.py`+`score.py`）+ `app_args` + `gates`；SCORE.md/STATE.md 引用数字时**必须带 sha**（`t_trap-1..6` 是六个不同版本、互不可比；`t_trap2-1/2` 的 `gates` 还被错写成 v0）。
+④**`half_transparent` 机制定死**：`gym_app.py:942-945` 只把**填充块**按 alpha 混合，标签文字与 `[k]` 徽章**没过 `blend`** ⇒ 五档里可读的东西完全一样，该类**结构上产生不了 fill 边界**；../sol/sandbox/SCORE.md/STATE.md 一律标"**无区分度·不可作为 fill 阈值证据**"。要测阈值两条路：①文字也走 `blend`（一行改动，同批 10 题重跑，测**驱动读数下限**）；②另做"淡控件 + **无徽章**"类，测像素可见性判断（规则须先离线冻结）。
+⑤**provenance 规则**：每个 run json 已带 `scripts_sha`（`gym_run.py`+`gym_app.py`+`score.py`）+ `app_args` + `gates`；../sol/sandbox/SCORE.md/STATE.md 引用数字时**必须带 sha**（`t_trap-1..6` 是六个不同版本、互不可比；`t_trap2-1/2` 的 `gates` 还被错写成 v0）。
 ⑥**下一步顺序**：先把 `no_badge_fill`（淡控件+无徽章）与 `a_hit_but_failed` 跑出稳定数字，**再**跑 chaos 四类；顺带把"等判定时顺带比对 banner 指纹"的优化放进下一批（`swap_after_press` **6233 ms/题 = 整轮的 31.4%**，其中约 5 s 是在等一个永远不会来的判定）。
 
 修订 r8（批次 3 开工前：**先交离线标定曲线**，用户把"曲线先交"当检查点）：
@@ -74,7 +74,7 @@
 | §3 `t_trap` 靶子 | **已实现并自检通过** | `gym_app.py`（8 类 ×3 题、`TRAP_PLAN`、`REFUSE_KEY="F8"`）；`probe_trap.py` 正确动作 **24/24 ok**、错误动作全 wrong；F8 走后台键通道 e2e 通 ✓ |
 | §1 五判定 + 钉死分母 | **已实现，selftest 25/25** | `score.py`（`v1_verdict`/`v1_counts`/`v1_row`、`--selftest`、`--v1`、`--events`）；驱动侧 `refuse`/`no_key_refuse`/`synonym_invoke`/`presses`/`wasted_actions`/`stale_actions`/`decision`/`gates`/`events`/`scripts_sha`/`app_args` |
 | truth 事后 join | **已实现** | 靶子 `ready` 事件广播 `truth_class/variant/trap_class`；`score.py` 的 `load_truth`/`join_truth` **事后**填，驱动不读真相 |
-| §2 旧分数标注 | **已完成** | `SCORE.md` 顶部口径表头 + 每行 `口径/通道/读题比例`；`audit_runs.py`、`find_run.py` 逐行核对源文件（三处"数字对不上"如实写明，未复算） |
+| §2 旧分数标注 | **已完成** | `../sol/sandbox/SCORE.md` 顶部口径表头 + 每行 `口径/通道/读题比例`；`audit_runs.py`、`find_run.py` 逐行核对源文件（三处"数字对不上"如实写明，未复算） |
 | §4 扰动按 fire 计 | **已实现** | `gym_run.py --until-interferences N`（+`--max-tasks`，`--chaos-ms` 缺省压到 `200,700`）；`score.py` 输出 `fired-task pass` 与 `quiet` 对照 |
 | §5.1 帧↔题号原子对齐 | **已实现** | `rec["frame_task_i"]` + `press_hint` 开头比对 `task_i()`，不一致即不按（记 `stale_actions`/`stale_detected`） |
 | §5.1 `verify_before_act` | **已实现** | `Driver.verify_before_act()`：块级复验（≤1 次/题）、重读上限 3、超限 `verify_giveup=1` + `decision=timeout`、`no_key_refuse` 不对"世界动了"的失败拒答 |
@@ -219,7 +219,7 @@
 2. **键通道但含 file-read**（`mix60f.json` 16/60、`chaos-popup.json` 9、`chaos-slow.json` 8、`chaos-move.json` 5）——它测的是"读文件+读屏"的混合；
 3. **鼠标时代**（`gym-*.json`：坐标 bug + 通道不同，其中 5 个还键鼠混用）。
 
-`SCORE.md` 顶部加口径表头，每行标注 `口径版本 / 通道 / 屏幕读题率`；run json 新增 `gates: "v1"`、`scripts_sha`、`app_args`。
+`../sol/sandbox/SCORE.md` 顶部加口径表头，每行标注 `口径版本 / 通道 / 屏幕读题率`；run json 新增 `gates: "v1"`、`scripts_sha`、`app_args`。
 **新口径从设计确认后的第一批跑测开始，旧行不改数字、只加标注。**
 
 ---

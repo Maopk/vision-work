@@ -64,11 +64,11 @@ so re-reads make them exceed the task count).
 | 9 | `t_trap6-1.json` | `f473ff21ad09` | v3 | 鼠标（前台真实鼠标）；**只动计时点与记账**（#10 扣帧、#11 逐题行 `detail`、`_redo` 续带），判定逻辑一字未改；与批次 6 **逐题同构**（同 seed）；自带 `-state.json` / `-events.jsonl` |
 | 10 | `t_trap2-w9-move70.json` | `5dedae26c6e8` | v2（标签） | 键 + `--bg`；**只换守门的重读框**（新增 `ask_box_now()` 每帧用像素段重算；`ask_cells`/`ask_delta` 指纹基线、匹配路径、阈值、`press_guard` 分支一字未动）⇒ 与批次 8 **协议逐项相同、可逐题对照**（`chaos_planned 49 / chaos 49` 也相同）；自带 `-state.json` / `-events.jsonl`。⚠ 与批次 7/8 在"守门重读这条路径"上不可直接并列（本批改了框来源）——见「批次 10 结果」①③ |
 | 11 | `t_trap7-1.json` | `8da029edccbc` | v3 | 鼠标（前台真实鼠标）；**只改抓帧失败的处理**（#17：`ShotFailed` 异常类型 + `_shot` 重试 3 次/间隔 0.2 s + main 包 `try` 并把已完成的题写成 partial run json + 返回码 3）；判定逻辑/匹配路径/阈值/`press_guard`/`_redo` 一字未动，`score.py` 只加两行 `!! PARTIAL RUN` 警示 ⇒ 与批次 9 **逐题同构**（同 seed、同协议）；自带 `-state.json` / `-events.jsonl`。同段另有两条 partial 构造产物（`t_trap7-empty6.json` 4354 B、`t_trap7-minim6.json` 4546 B）——**只做路径验证，不并入任何成绩** |
-| 16 | `t_trap2-w17-popup70-mouse.json` | `780adce4017e` | v2（标签） | 鼠标（前台真实鼠标，非 `--bg`）；**重落第十三段选项 D 补丁 + 拆「漏一次点 ⇒ 整题死锁」耦合**（净 +30 行，只落在清障路径内；**判定逻辑一字未动**）⇒ 与批次 4/5/6/9/11 **不是同一版驱动**（`scripts_sha 186edbd9c024` → `780adce4017e`、`gym_run.py 87470aaff5593330` → `3fa0e4ba4b1b9679`），差异只在 `--chaos` 下的清障路径（非 chaos 批不受影响）；自带 `-state.json` / `-events.jsonl`。⚠ 本表**没有**批次 12/13/14/15 的行（它们的 `scripts_sha` 写在各批次节与 `STATE.md` 接续点里） |
+| 16 | `t_trap2-w17-popup70-mouse.json` | `780adce4017e` | v2（标签） | 鼠标（前台真实鼠标，非 `--bg`）；**重落第十三段选项 D 补丁 + 拆「漏一次点 ⇒ 整题死锁」耦合**（净 +30 行，只落在清障路径内；**判定逻辑一字未动**）⇒ 与批次 4/5/6/9/11 **不是同一版驱动**（`scripts_sha 186edbd9c024` → `780adce4017e`、`gym_run.py 87470aaff5593330` → `3fa0e4ba4b1b9679`），差异只在 `--chaos` 下的清障路径（非 chaos 批不受影响）；自带 `-state.json` / `-events.jsonl`。⚠ 本表**没有**批次 12/13/14/15 的行（它们的 `scripts_sha` 写在各批次节与 `../../audit/STATE.md` 接续点里） |
 | 17 | `t_trap2-w18-popup70-mouse-r1.json` | `780adce4017e` | v2（标签） | 鼠标（前台真实鼠标，非 `--bg`）；**拆耦合实战第 1 批**（seed 20251008，16 题 `popup@0.70`）：`popup_seen 10 / dismissed 10 / failed 0 / interferences 10` ⇒ **补点 0**；16/16、退出码 0；**1 次 app 侧 `blocked`**（task 12，`swap_timer`，该题最终 `ok`）。驱动与批次 16 同一版（`gym_run.py 3fa0e4ba4b1b9679`） |
 | 18 | `t_trap2-w18-popup70-mouse-r2.json` | `780adce4017e` | v2（标签） | 同一版驱动；**拆耦合被实战触发的那一批**（seed 20251009）：`popup_seen 8 / dismissed 8 / failed 0 / interferences **9**` ⇒ **同一遭遇点了两发并被清掉**（补点 1 次）、**16/16**、退出码 0、无 `blocked` |
 | 19 | `t_trap2-w18-popup70-mouse-r3.json` | `780adce4017e` | v2（标签） | 同一版驱动（seed 20251010）：`popup_seen 10 / dismissed 10 / failed 0 / interferences 10` ⇒ 补点 0；**15/16、退出码 1** —— 那一题落在**已知的 `swap_timer` 时序竞争类**（`race 1/1`、`wrong_target 1`），**不是弹窗通道问题、也非早停**（`partial False`、`exit_reason None`） |
-| 20 | `t_trap2-w22-popup35-mouse.json` | `780adce4017e` | v2（标签） | 鼠标（前台真实鼠标，非 `--bg`）；**#19 第四格**（`popup@0.35`，seed 20251007，24 题）：`popup_seen/dismissed 10/10`、`popup_dismiss_failed` 键不存在（=0）、`interferences 11` ⇒ **补点 1 次**；`task_i 17` 有 1 次 app 侧 `blocked`（`by` 「modal」，2.18 s）后恢复、该题 `ok`。⚠ **21/24 早停、退出码 1** —— 早停题（`task_i 21`）是 `must_refuse`（`prose_only`）题，驱动**没走拒答、反而按了标签**（`score.py false_accept 1/1`），**与弹窗通道无关**（见 20.3 与 `STATE.md` §7 #21）；驱动与批次 16–19 同一版 |
+| 20 | `t_trap2-w22-popup35-mouse.json` | `780adce4017e` | v2（标签） | 鼠标（前台真实鼠标，非 `--bg`）；**#19 第四格**（`popup@0.35`，seed 20251007，24 题）：`popup_seen/dismissed 10/10`、`popup_dismiss_failed` 键不存在（=0）、`interferences 11` ⇒ **补点 1 次**；`task_i 17` 有 1 次 app 侧 `blocked`（`by` 「modal」，2.18 s）后恢复、该题 `ok`。⚠ **21/24 早停、退出码 1** —— 早停题（`task_i 21`）是 `must_refuse`（`prose_only`）题，驱动**没走拒答、反而按了标签**（`score.py false_accept 1/1`），**与弹窗通道无关**（见 20.3 与 `../../audit/STATE.md` §7 #21）；驱动与批次 16–19 同一版 |
 | profiling | `prof1` / `prof2` / `prof3` | 无 / `264a87d48d4c` / `264a87d48d4c` | 无 / v0 / v1 | 成本对照，不参与通过率 |
 
 **引用规则（按用户审计定死，缺一条就算引用越界）**（第二十六段新增两批：`t_trap2-w26-popup35-mouse.json` = **批次 21**、`t_trap2-w26-popup35-mouse-rerun.json` = **批次 22**，同一版驱动 **`scripts_sha 586171888d39`**、`gym_run.py 3fa0e4ba4b1b9679 → d8594bff3738ca9b`（净 +9 行）；明细见本文件文末**批次 21 / 批次 22 节**。本行是**行内追加**——本表因此**不漂行号**）：
@@ -170,7 +170,7 @@ dialog was covering it. The next fixes belong in `gym_run.py`:
 ## `t_trap`（v1 口径，**已跑 4 次：18/24 → 24/24 → 24/24 → 24/24**）
 
 新口径的第一批：8 类 × 3 题 = 24 题，**定位是 smoke test，不是统计结论**（3 题/类的命中率只有
-0/33/67/100 四档）。跑法与分列规则见 `D:\DSH\vision-work\DESIGN-refusal-scoring.md` §3；
+0/33/67/100 四档）。跑法与分列规则见 `D:\DSH\vision-work\audit\DESIGN-refusal-scoring.md` §3；
 `variant` 必须分列（`prose_with_button`/`prose_only`、`synonym_button`/`synonym_only`、
 `alpha035`/`alpha050`/`alpha065`），不得合并。
 
@@ -556,13 +556,13 @@ t_trap4        v2 24/38  63.2%  decided 100.0%  disturb 0   screen 34/38 replan 
 | `t_trap4-3.json` | `4cbcd072f027` | 23/38，t9/t33 转 ok，t13 仍错 | 「`ask_cells==0` ⇒ 噪声」判据**吞掉了一次真换题**（t13 的 `GAMMA→GAMMB` 单字形改写让指纹给 0 格）⇒ 也是"桶指纹对单字形改写不可靠"的直接证据 |
 | `t_trap4-4.json` | `ebfc7dce831a` | 24/38，三题全转 ok | 定稿：文本不一致时由**靶子自己当前的 ask**（状态文件 `ask` 字段）仲裁——与计划词相同 ⇒ banner 读错；不同 ⇒ 真换题 |
 
-定稿判据（写在 `STATE.md` §6，跑前定死）：(i) 三题仍无 `ask_label_read` ⇒ ① 无效；
+定稿判据（写在 `../../audit/STATE.md` §6，跑前定死）：(i) 三题仍无 `ask_label_read` ⇒ ① 无效；
 (ii) `ask_word_short` 多而仍点错 ⇒ ③ 无效；(iii) 核心 14 出现批次 4 没有的新失败 ⇒ 有副作用。
 **三条都没有成立**（t9/t13/t33 全转 ok、核心 14 无新失败）⇒ 假设保留，批次 5 到此**收口**。
 
 ## 批次 6 结果（口径 v3：twin 修好 + race 首次拿到分母）
 
-批次 6 只做两件收口（改动清单见 `STATE.md` §9.2；设计记录见 DESIGN 修订 r11）：
+批次 6 只做两件收口（改动清单见 `../../audit/STATE.md` §9.2；设计记录见 DESIGN 修订 r11）：
 
 - **同词双现（`swap_twin_press`）**：判据从"按 OCR 顺序取首个出现"改成"**取坐在被绘制块里的那一次出现**"
   （`find_blocks` 的块覆盖，**不是** `block_evidence.fill_share`——后者在这条 app 上是反向的）。
@@ -699,7 +699,7 @@ t_trap5        v3 37/48  77.1%  decided 100.0%  disturb 0   screen 44/48 replan 
 3. **48 题而不是 24 题**：`TRAP_PLAN5 = TRAP_PLAN4 + 10×swap_race_timer`，前 38 题与批次 4/5 逐题同构、
    同 seed 下 byte-identical ⇒ 核心 14 的对比是**精确同题**对比（代价是多跑 10 题）。
 
-### ⑨ 批次 6 未做（欠账，已进 `STATE.md` §7）
+### ⑨ 批次 6 未做（欠账，已进 `../../audit/STATE.md` §7）
 
 守门 ④（多候选余量）、⑤（文本重读在指纹之前）、⑥（`verify_before_act` 预算每计划一次 + 鼠标接入）、
 `guard-blind` 清零、`t_gate` 移到 `shot()` 之后、`press_delay_ms` 进逐题行、`swap_after_press` 5 s 空等、
@@ -745,13 +745,13 @@ guard gate sample 26  P50 188 ms  P95 212 ms      stop: task 31 failed 3 times i
 | ① `two_close_names` 三连 `none` ⇒ 早停 | task 31（`LUMEN93`）跑了 3 次、每次 21.2–21.8 s、`presses 0`、`decision none`、`replan_why "no verdict arrived"`、`error` 空 | 重读回来的是**干净前缀** `"DO: click the button labelled"`（`ask_cells 0`、`ask_delta 0.0` —— 指纹明确说没动），但旧代码把"读不到 label"当成"问题变了"（`ask_changed_text true`）⇒ 与同函数 docstring「读不出的重读不是问题移动的证据」**相反** |
 | ② `a_hit` 10（控制）→ 4 | 首次按压被推过 8 s 安全换题线（`gym_app.py:1414`）⇒ 按到换题后的 B（正确 ⇒ `wrong=0`、`swap_after_press` 仍 10/10） | **恰 6 题**：`a_hit=False` 的 `#1 #4 #5 #7 #8 #9` 墙钟 10.65–10.88 s（全 > 8000 ms）；`a_hit=True` 四题 4.35–4.61 s（无一 > 8000 ms）；控制批十题全 True、6.62–6.97 s |
 
-⇒ **`a_hit` 不是独立指标**，是"守门假阳性把首按推过换题线"的读出量（`HANDOFF.md` 盲区 15）。
+⇒ **`a_hit` 不是独立指标**，是"守门假阳性把首按推过换题线"的读出量（`../../audit/HANDOFF.md` 盲区 15）。
 根因口径（用户 m09426 指定）：**`move` 干扰下记录的 `ask_box` 在重读时失效**（边缘切在 label 之前），
-"OCR 漏读"列为次级假设；修法见批次 8（`DESIGN-refusal-scoring.md` 修订 r13）。
+"OCR 漏读"列为次级假设；修法见批次 8（`../../audit/DESIGN-refusal-scoring.md` 修订 r13）。
 
 ### ③ 本批未做
 
-Option A（守门每帧重算 banner box）= `STATE.md` §7 #15，用户 m09426 定：本批不动。
+Option A（守门每帧重算 banner box）= `../../audit/STATE.md` §7 #15，用户 m09426 定：本批不动。
 
 ## 批次 8 结果（chaos 四类 × 2 强度；**探索性·不并入定稿**）
 
@@ -769,7 +769,7 @@ sha **`f598406cfc70`**（批次 8 = "**读不出的重读不再被当成'问题�
 - **勘误（把旧判定加上限定条件，不是纠正数字）**：本表**批次 6 ⑧-1** 写的是"批次 1–5 的 `race 0/0` 不是没踩中，而是**机制必然**"（老 `swap_timer` 的 600–1000 ms 落在守门抓帧之前）。
   批次 8 的 `slow` 两档给出 `race **0/2**`、`**2/2**`（同一对 task `#10/#14`）⇒ 那句话**要加限定条件**：
   "机制必然"只在**默认判定节奏**下成立；把靶子判定推后 1.5–3.2 s（`slow` 干扰）会让同一批老 variant 的窗口重新落到守门抓帧之后。
-  **旧数字本身一个都不变**（批次 1–6 的 `0/0`、`5/5` 仍按各自 sha/通道引用；参见本表批次 6 ⑧-1 的原句与 `STATE.md` §10.4 ②）。
+  **旧数字本身一个都不变**（批次 1–6 的 `0/0`、`5/5` 仍按各自 sha/通道引用；参见本表批次 6 ⑧-1 的原句与 `../../audit/STATE.md` §10.4 ②）。
 - **事后复核证据**：`sol/sandbox/t_trap2-w8-rescore.txt`（六个 run json 各跑一遍 `score.py` 的完整输出 + `selftest: 41 checks, 0 failed`）；
   复核结果**逐行等于上表数字**，且每批 `chaos == chaos_planned`（27/27、49/49、24/24、41/41、1/1、1/1）。
 
@@ -789,11 +789,11 @@ sha **`f598406cfc70`**（批次 8 = "**读不出的重读不再被当成'问题�
 ### ① `move` 类：批次 8 修好的正是那一题，死锁→可测
 
 - **`ask_read_unreadable` 在 `move@0.70` 计 2 次，全部落在 `task 31`**——就是批次 7 卡死、导致 33/60 早停的那题；
-  这次它**正常作答**，整批**没有 `result == none` 的行**、没有早停（`HANDOFF.md` 盲区 14）。
+  这次它**正常作答**，整批**没有 `result == none` 的行**、没有早停（`../../audit/HANDOFF.md` 盲区 14）。
 - 两档数字给出**剂量-反应**：干扰越强，`a_hit` 越低（0.35 → 7/10，0.70 → 4/10），
   而**每次"没按中第一次"都对应墙钟 > 8 s 的安全换题线**（`gym_app.py:1414`）：
   0.70 档没按中的 6 题墙钟 **10.86–11.17 s**、按中的 4 题 **4.58–4.92 s**；0.35 档没按中的 3 题 **10.58–10.98 s**、按中的 7 题 **4.32–4.59 s**。
-  ⇒ `a_hit` 是"守门假阳性/干扰把首按推过换题线"的**读出量**，不是独立能力指标（`HANDOFF.md` 盲区 15）。
+  ⇒ `a_hit` 是"守门假阳性/干扰把首按推过换题线"的**读出量**，不是独立能力指标（`../../audit/HANDOFF.md` 盲区 15）。
 - `move@0.70` 的两次真失败：`#15`（`prose_with_button`，驱动侧 `stale_actions 1`，`dec=none`）+ `#34`（`two_close_names`，**点错 `TUNDRA`** ⇒ `wrong_target 1`）。
   `a_hit_but_failed` 仍 **0 (0/0)**，`swap_after_press 10/10`、`race 0/0`。
 
@@ -815,11 +815,11 @@ sha **`f598406cfc70`**（批次 8 = "**读不出的重读不再被当成'问题�
   实际没找到（驱动侧 `disturbances: 0 fired`），于是**弹窗留着挡在靶子上**：驱动的按键被弹窗吃掉（`dec=acted` 但靶子没记到判定），
   该题永远不结束；而弹窗不消失 ⇒ 靶子也不再推进下一题（所以 app 侧只有 1 次 fire）。
 - ⚠ 这是**驱动的能力缺口**（不是测量脚本的 bug）：`popup` 类要能跑，驱动必须先"看得见并打掉"外来窗口（鼠标通道已有这条路径：`_button_candidates(img2, "DISMISS")`），
-  **`--keys --bg` 通道没有**。按用户规则：**delta 解释不了就停并写欠账** ⇒ 本类**不并入定稿**，写进 `STATE.md` §7 #16 / `HANDOFF.md` 盲区 17。
+  **`--keys --bg` 通道没有**。按用户规则：**delta 解释不了就停并写欠账** ⇒ 本类**不并入定稿**，写进 `../../audit/STATE.md` §7 #16 / `../../audit/HANDOFF.md` 盲区 17。
 - ⚠⚠ **2026-10-05 第十段更正（本节的机制判断错了一半，勿再引用上面两句当结论）**：直接探针（`D:\DSH\dsh-actor\tmp\w10-uia-probe3.py`）证明
   **弹窗一直能被 UIA 看见**（同一条 trace 里 inline `windows` 11 项、含 `name="attention"`），真正的根因是 **actor 折叠把 `data.windows` 截断**（`actor.py:_slim`
   对 list 只留前 6 项左右），而 `window_by_title()` 当时**只读 `data`** ⇒ 枚举"看不见"。所以：①"没有这条路"**错**（路在，读错字段）；②"借鼠标视觉路径
-  `_button_candidates`"在 `--keys --bg` 下**仍不可行**（弹窗是独立 HWND、不在主窗帧里；且 `--bg` 鼠标点击整条失效，见 `STATE.md` §16）——这条判断**对**。
+  `_button_candidates`"在 `--keys --bg` 下**仍不可行**（弹窗是独立 HWND、不在主窗帧里；且 `--bg` 鼠标点击整条失效，见 `../../audit/STATE.md` §16）——这条判断**对**。
   修法与修后结果见本节之后的 **批次 12**（`gym_run.py` `105cf6cb679eea10` → `87470aaff559`）。
 
 ### ④ 引用这批时必须带上的三条口径
@@ -832,7 +832,7 @@ sha **`f598406cfc70`**（批次 8 = "**读不出的重读不再被当成'问题�
 
 ## 批次 9 结果（口径 v3；欠账 #10 + #11 还清，**判定逻辑未动**）
 
-改动三处（假设、先量实测与证伪条件见 `STATE.md` §12）：①**#10** 守门计时点 `t_gate` 从 `self.shot()` 之前移到之后；②**#11** 逐题行 `detail` 注入驱动侧 `press_delay_ms`；③**记账续带**（实测逼出来的第三处）`_redo()` 续带 `press_delay_ms` / `press_jitter_task` / `gate_ms`。
+改动三处（假设、先量实测与证伪条件见 `../../audit/STATE.md` §12）：①**#10** 守门计时点 `t_gate` 从 `self.shot()` 之前移到之后；②**#11** 逐题行 `detail` 注入驱动侧 `press_delay_ms`；③**记账续带**（实测逼出来的第三处）`_redo()` 续带 `press_delay_ms` / `press_jitter_task` / `gate_ms`。
 
 ### 定稿行（`t_trap6-1.json`，sha `f473ff21ad09`，鼠标通道，48 题）
 
@@ -885,7 +885,7 @@ t_trap5        v3 36/48  75.0%  decided 100.0%  disturb 0   screen 43/48 replan 
 
 ## 批次 10 结果（口径 v2；欠账 **#4 = §7 #15「守门每帧重算 banner box」还清**，只换重读框、不动指纹基线）
 
-改动三处（全在 `sol/sandbox/gym_run.py`；假设、证伪条件、判据见 `STATE.md` §14）：①**新增 `Driver.ask_box_now()`**（只跑像素段、不跑 OCR）；②`ask_label_now` 里"**重算优先、失败退回冻结框**"（`pad=6` 保留）；③逐题行注入 `ask_box_recomputed` / `ask_box_shift_px`，`_redo` 续带两者。**指纹路径（`ask_cells`/`ask_delta`）、匹配路径、阈值、`press_guard` 分支结构一字未动**（这就是"只换重读框"）。
+改动三处（全在 `sol/sandbox/gym_run.py`；假设、证伪条件、判据见 `../../audit/STATE.md` §14）：①**新增 `Driver.ask_box_now()`**（只跑像素段、不跑 OCR）；②`ask_label_now` 里"**重算优先、失败退回冻结框**"（`pad=6` 保留）；③逐题行注入 `ask_box_recomputed` / `ask_box_shift_px`，`_redo` 续带两者。**指纹路径（`ask_cells`/`ask_delta`）、匹配路径、阈值、`press_guard` 分支结构一字未动**（这就是"只换重读框"）。
 
 ### 定稿行（`t_trap2-w9-move70.json`，sha `5dedae26c6e8`，键通道 + `--bg`，`move@0.70`，60 题）
 
@@ -956,7 +956,7 @@ shot failed: {"ok": false, "steps": 1, "total_ms": 18.4, "trace": [{"i": 0, "op"
 ## 批次 11 结果（口径 v3；欠账 **#17「`shot` 空帧零容忍」还清**，只改抓帧失败的处理、判定路径一字未动）
 
 本批只做一件事：把"抓帧拿到空位图 ⇒ `SystemExit` ⇒ **整批退出 + 不写 run json**"改成"**重试 3 次**（间隔 0.2 s、恢复链原样）+ 仍失败就把**已完成的题写成 partial run json**"。
-改动清单见 `STATE.md` §15.3 / §15.5b：新增 `class ShotFailed(RuntimeError)`；4 处 `raise SystemExit` 改异常类型（消息原文不变）；main 用 `try` 包住整段题目循环；json 新增 `partial` / `exit_reason` / `tasks_planned`；partial run **返回码 3**；`score.py` 只加两行 `!! PARTIAL RUN` 警示。
+改动清单见 `../../audit/STATE.md` §15.3 / §15.5b：新增 `class ShotFailed(RuntimeError)`；4 处 `raise SystemExit` 改异常类型（消息原文不变）；main 用 `try` 包住整段题目循环；json 新增 `partial` / `exit_reason` / `tasks_planned`；partial run **返回码 3**；`score.py` 只加两行 `!! PARTIAL RUN` 警示。
 **判定路径零改动**：`has_banner` / 指纹（`ask_cells`/`ask_delta`）/ 匹配路径 / 阈值 / `press_guard` / `_redo` / `score.py` 判定算法一字未动。
 
 ### ① 本批定稿行（鼠标通道 48 题 `t_trap5`，与批次 9 **逐项同协议、同 seed**；`scripts_sha 8da029edccbc`，`t_trap7-1.json` sha `dd77abc08e911794`）
@@ -1006,7 +1006,7 @@ t_trap5  v3 35/48  72.9%  decided 100.0%  disturb 0   screen 42/48 replan 31   1
 | 窗口不可达 | 第 10 s `ShowWindow(SW_MINIMIZE)`（`FindWindow` 拿不到 hwnd ⇒ 用 ctypes `EnumWindows` 枚举标题） | 复现同一条 actor 报错 `ValueError: cannot write empty image`；`shot_empty 4 shot_retry 2 restores 1 hwnd_relookup 2 shots 6`；`t_trap7-minim6.json`(4546 B)：`partial=true`、`runs 1`、**退出码 3**；**app 仍活着**（state：`layout.origin [-32000,-32000]`、`result none`）⇒ **空帧 ≠ app 死了** |
 
 ⇒ **"瞬时"类空帧没能构造出来**（两种可控手法都落在"永久 / 不可达"类）："重试能救回瞬时空帧"这一半假设**既未证实也未证伪**；能确证的是**空帧不再丢批**。
-⇒ 顺带更正一条旧注释："最小化能靠 `restore` 救回"**未复现**（最小化后该窗口对 `EnumWindows`/UIA 都不可见）⇒ 新盲区（见 `HANDOFF.md` §4 盲区 20）。
+⇒ 顺带更正一条旧注释："最小化能靠 `restore` 救回"**未复现**（最小化后该窗口对 `EnumWindows`/UIA 都不可见）⇒ 新盲区（见 `../../audit/HANDOFF.md` §4 盲区 20）。
 
 ### ④ 引用这批时必须带上的三条
 
@@ -1043,7 +1043,7 @@ t_trap5  v3 35/48  72.9%  decided 100.0%  disturb 0   screen 42/48 replan 31   1
 - **真正的原因 = actor 折叠截断**：同一条 trace 条目里 **inline `windows` 11 项**，而 **`data.windows` 只有 7 项** —— `actor.py:_slim()` 对 list **只保留前 ~6 项**，`data` 只在 `results=True` 时写入。改前 `window_by_title()`（以及 `target_windows()`）**只读 `step["data"]["windows"]`** ⇒ "attention" 一落到截断之后，`window_by_title("attention")` 恒 `None` ⇒ 键通道 bg 分支第一行就 `break` ⇒ **一次 Return 都没发**。
 - 探针方式与坑（写进这里以免下次再踩）：actor `:8731` 是**裸 TCP + 换行 JSON**（`{"op":"run","steps":[…]}`），**不是 HTTP**；**WSL 到不了 Windows loopback** ⇒ 必须 pwsh + Windows venv python；复刻驱动读法的脚本 = `D:\DSH\dsh-actor\tmp\w10-uia-probe3.py`。
 - 批次 8 原始产物复核（旧驱动 `f598406cfc70`）：`t_trap2-w8-popup35.json` 只 **7** 行 / `max task_i 4` = 4 ok + 3 none；`t_trap2-w8-popup70.json` 只 **4** 行 / `max task_i 1` = 1 ok + 3 none；两批 `interferences 0`、`clicks 0 / drags 0`、无 `popup_*` 键；而 app 事件显示驱动发的键**到了 app**（`hit:true, modal:true`）却没计分（`gym_app.py:465-481 finish()` 的 modal 门）。
-- ⚠ 本节推翻了批次 8 ③ 的一半判断（那里说"没有这条路"）：**路在，是读错了字段**。原判断的另一半**仍然成立**：`_button_candidates` 那条视觉路在 `--keys --bg` 下**不可用**（弹窗是独立 HWND、不在主窗帧里；且 `--bg` 鼠标点击整条失效，见 `STATE.md` §16）⇒ 只能走"按键打掉"（app 自己的设计：`gym_app.py:376-383` 弹窗在时 `Return/space/Escape/d/D` 直接关）。
+- ⚠ 本节推翻了批次 8 ③ 的一半判断（那里说"没有这条路"）：**路在，是读错了字段**。原判断的另一半**仍然成立**：`_button_candidates` 那条视觉路在 `--keys --bg` 下**不可用**（弹窗是独立 HWND、不在主窗帧里；且 `--bg` 鼠标点击整条失效，见 `../../audit/STATE.md` §16）⇒ 只能走"按键打掉"（app 自己的设计：`gym_app.py:376-383` 弹窗在时 `Return/space/Escape/d/D` 直接关）。
 
 ### ② 本批定稿行
 
@@ -1177,15 +1177,15 @@ chaos:popup    v3  0/1    0.0%  decided 100.0%  disturb 0   screen  1/1  replan 
 5. **两个计数不可互推**：驱动 `interferences 45` 是**清障次数**（题内 27 + 题首 18）；`score.py` 的 `disturb 24` 是**有干扰的 task 数**（与驱动同句的 "24 task(s) had >=1" 一致）—— 次数 vs 题数，不是同一个量。
 6. **"鼠标分支没有计数"本身就是一条测量缺陷**（与候选 veto 问题一起记入 #20）：不要把这批的 `0` 读成"这一支没被触发"——它在 app 侧留下了 `blocked 10` 与 `chaos 1`。
 
-### 13.5 本段新增欠账 #20（落在 `STATE.md` §7）
+### 13.5 本段新增欠账 #20（落在 `../../audit/STATE.md` §7）
 
 **鼠标通道下 `popup` 清障路径不生效。** 证据 = 13.2；该分支没有 `popup_*` 计数、候选走默认 veto。
 **判据（怎么算还清）**：鼠标通道的 `popup` 批跑满题数且 `popup_dismissed == popup_seen ≥ 5`；**或**明确宣告"鼠标通道不支持清障"并把该组合从覆盖面里划掉。
-**出处**：本节 13.2 / 13.5 + `STATE.md` §19 + `HANDOFF.md` 盲区 17。
+**出处**：本节 13.2 / 13.5 + `../../audit/STATE.md` §19 + `../../audit/HANDOFF.md` 盲区 17。
 
 ---
 
-## 批次 14 尝试（2026-10-05 第十三段）—— 欠账 #20 修复（`STATE.md` §20.4 选项 D）：**未通过判据，已回退**
+## 批次 14 尝试（2026-10-05 第十三段）—— 欠账 #20 修复（`../../audit/STATE.md` §20.4 选项 D）：**未通过判据，已回退**
 
 ### 14.0 一句话
 
@@ -1268,13 +1268,13 @@ app 侧（`t_trap2-w13-popup35-mouse-fix-state.json` / `-events.jsonl`）：stat
 3. **结论只能说到这一步**：选项 D 的**方向被验证有效**（清障 0 → 10/11），但**判据未达成**；**#20 仍然开着**。
 4. **与批次 13-B 不可直接比**：13-B 是"一次都没点中"（`dialog_refused 28`），本批是"点中了 10 次、漏 1 次"。
 5. **`popup_seen / popup_dismissed / popup_dismiss_failed` 三个计数在本批进入鼠标分支**（键分支早就有）⇒ 以后凡说"鼠标分支没看见弹窗"必须给出这三个数。
-6. **`shot_window()` 的坐标原点坑与回退无关**：窗口 rect 与 client origin 实测差 **+11 / +45 px**，任何"窗口 rect + 帧内坐标"的点击都会偏 45 px（已写进 `HANDOFF.md` 盲区 23）。
+6. **`shot_window()` 的坐标原点坑与回退无关**：窗口 rect 与 client origin 实测差 **+11 / +45 px**，任何"窗口 rect + 帧内坐标"的点击都会偏 45 px（已写进 `../../audit/HANDOFF.md` 盲区 23）。
 
 ## 批次 15（2026-10-05 第十四段）—— 欠账 #20 第二次尝试（选项 b：漏点后降级 `key("Return")`）：**干跑即失败，未成批**
 
 ### 15.0 一句话
 
-按 `STATE.md` §20.4 的三条候选选了 **(b) 降级 `key("Return")`**（净 **+24 行**，只落在非 bg 鼠标分支的"漏点处理"路径上），`py_compile` 与 `selftest 41/0` 都过；但**干跑 2 题就失败**（两题全 NONE、退出码 1、`popup_seen 13` 而 **`popup_dismissed` / `popup_key_dismissed` 键根本不存在 = 13 次发现、0 次清掉**）⇒ 按本段终止条件**立即回退**，**A 批 / B 批都没跑**（不试第二遍改动），`#20` **仍然开着**。
+按 `../../audit/STATE.md` §20.4 的三条候选选了 **(b) 降级 `key("Return")`**（净 **+24 行**，只落在非 bg 鼠标分支的"漏点处理"路径上），`py_compile` 与 `selftest 41/0` 都过；但**干跑 2 题就失败**（两题全 NONE、退出码 1、`popup_seen 13` 而 **`popup_dismissed` / `popup_key_dismissed` 键根本不存在 = 13 次发现、0 次清掉**）⇒ 按本段终止条件**立即回退**，**A 批 / B 批都没跑**（不试第二遍改动），`#20` **仍然开着**。
 
 ### 15.1 改了什么（一处，只在"漏点处理"路径里）
 
@@ -1329,7 +1329,7 @@ foreground after:  搜索 (hwnd 66100)  unchanged: False
 
 **判读**：`popup_dismissed` 与 `popup_key_dismissed` **两个键在 stats 里根本不存在** ⇒ 新增的降级路径**一次都没成功**（13 次发现弹窗、13 次记 `popup_dismiss_failed`、45 次 Return 全部落空）；两题都因"弹窗立着 ⇒ app 什么都不判分"而超时 NONE。
 
-### 15.3 判据（事前写死在 `STATE.md` §23.1）
+### 15.3 判据（事前写死在 `../../audit/STATE.md` §23.1）
 
 | 证伪条件 | 结果 |
 | --- | --- |
@@ -1342,7 +1342,7 @@ foreground after:  搜索 (hwnd 66100)  unchanged: False
 
 - `Driver.key()`（`gym_run.py:1175-1198`）**只在 `self.keys and self.bg` 时才加 `focus: True`**。非 bg 通道发的是**真实 SendInput 按键**，Windows 只把它交给**真前台窗口**；本机 DSH 会不断抢回前台（实测 `foreground after: 搜索 (hwnd 66100) unchanged: False`）⇒ **45 次 Return 全部没落到弹窗上**。
 - 对照：**鼠标点击是"按坐标"投递**的，弹窗又是 `-topmost` ⇒ 像素命中就一定命中它的窗口。⇒ **批次 14 的 `10/11` 不是"快好了"，而是"这条通道里唯一能到弹窗的机制"的副作用**；剩下的 `1/11` 不是调参能补的。
-- 键通道（`--keys --bg`）能 24/24、45/45 地关弹窗，靠的是**把按键直接投递给 app 窗口 + `focus=True` 做焦点交接**，**不是**"真实按键能到前台"。⇒ **(b) 这条方向不是"没写对"，而是结构上不成立**；要成立必须给鼠标通道加同等的托管投递（= `DESIGN-18-scroll-drag.md` §4 的 **B 方案**，裂 sha 且改动落在执行器侧、`scripts_sha` 覆盖不到），不属于"优先小改动"。
+- 键通道（`--keys --bg`）能 24/24、45/45 地关弹窗，靠的是**把按键直接投递给 app 窗口 + `focus=True` 做焦点交接**，**不是**"真实按键能到前台"。⇒ **(b) 这条方向不是"没写对"，而是结构上不成立**；要成立必须给鼠标通道加同等的托管投递（= `../../audit/DESIGN-18-scroll-drag.md` §4 的 **B 方案**，裂 sha 且改动落在执行器侧、`scripts_sha` 覆盖不到），不属于"优先小改动"。
 
 ### 15.5 引用这批时必须带上的边界
 
@@ -1350,14 +1350,14 @@ foreground after:  搜索 (hwnd 66100)  unchanged: False
 2. **不可复现**：它对应的驱动版本（`178591e19c40c37f`）**不在仓库里**（已回退）；补丁只在本机 `D:\DSH\dsh-actor\tmp\w16-popup-key-fallback.patch`。
 3. **不能与批次 13-B / 14 并列**：13-B = "一次没点中"（该支无计数），14 = "点中 10 次、漏 1 次"，15 = "点 0 次 + 按键 45 次全落空"。
 4. **`popup_seen / popup_dismissed / popup_dismiss_failed` 之外新增过 `popup_key_dismissed`**，回退后该键**不存在**（只有回退前的这次干跑记录里有）。
-5. **`#20` 仍然开着**：三条候选里 (b) 已被本段**实测否掉**（结构不成立），(a) 未试（对着未知原因再赌一次），(c) 未试且 `STATE.md` §23.1.1 已论证**单独修不好**；下一步只能在 A（前台鼠标批）/ B（加托管通道）/ C（接受边界）里选。
+5. **`#20` 仍然开着**：三条候选里 (b) 已被本段**实测否掉**（结构不成立），(a) 未试（对着未知原因再赌一次），(c) 未试且 `../../audit/STATE.md` §23.1.1 已论证**单独修不好**；下一步只能在 A（前台鼠标批）/ B（加托管通道）/ C（接受边界）里选。
 6. **干跑前后的环境是干净的**：跑完 `uia what=windows max=200` 里没有任何 'GUI Gym' / 'attention' 窗口，Windows 侧 python 进程只剩 actor `12008` + `32248`。
 
 ## 批次 16（2026-10-05 第十六段）—— 欠账 #20 第三次尝试（**重落选项 D 补丁 + 拆「漏一次点 ⇒ 整题死锁」耦合**）：**16 题前台窄批全过、判据达成**
 
 ### 16.0 一句话
 
-按 `STATE.md` §24.3 的两个前置条件一次做完：**先把第十三段的选项 D 补丁重落**（应用后 `gym_run.py` sha = `85893817760a3be5`，与批次 14 的被测版本**逐位相同**）+ **再拆掉耦合**（净 **+30 行**，都在清障路径内）；干跑 2 题 = **2/2**，正式批 **16 题 / `popup@0.70` 全部 `OK`、退出码 0、无早停**、**`popup_seen 14 / popup_dismissed 14`**（`popup_dismiss_failed` **键不存在 = 0**）⇒ 判据三条全过，**#20 按判据栏第一个分支还清**（窄批口径；边界见 16.5）。
+按 `../../audit/STATE.md` §24.3 的两个前置条件一次做完：**先把第十三段的选项 D 补丁重落**（应用后 `gym_run.py` sha = `85893817760a3be5`，与批次 14 的被测版本**逐位相同**）+ **再拆掉耦合**（净 **+30 行**，都在清障路径内）；干跑 2 题 = **2/2**，正式批 **16 题 / `popup@0.70` 全部 `OK`、退出码 0、无早停**、**`popup_seen 14 / popup_dismissed 14`**（`popup_dismiss_failed` **键不存在 = 0**）⇒ 判据三条全过，**#20 按判据栏第一个分支还清**（窄批口径；边界见 16.5）。
 
 ### 16.1 改了什么（两处，都只在"清障"这条路径上）
 
@@ -1367,7 +1367,7 @@ foreground after:  搜索 (hwnd 66100)  unchanged: False
 - hunk2：非 bg 鼠标分支**照抄隔壁 `if self.bg` 分支** —— 读**弹窗自己的窗口帧**（不是 app 矩形帧，后者里按钮从来不是候选）+ 点击**不带 `front_title`**（`click()` 带的 `front_title` ⇒ `mode: top` 会把 app 钉在弹窗之上）+ 收尾按"它还在不在"记 `popup_dismissed` / `popup_dismiss_failed`。
 - **应用后 sha = `85893817760a3be5` = 批次 14 的被测版本**（那次跑 `popup@0.35` / 60 题 ⇒ task 21 早停、`11 / 10 / 1`）。
 
-**改动 2 = 拆耦合**（净 +4 行，`STATE.md` §24.1-2 的那一处）：
+**改动 2 = 拆耦合**（净 +4 行，`../../audit/STATE.md` §24.1-2 的那一处）：
 
 ```python
                 if missed >= 2:                    # one makeup click per spot (batch 14 §14.5a)
@@ -1383,7 +1383,7 @@ foreground after:  搜索 (hwnd 66100)  unchanged: False
 
 - (a) **同点补点一次**：同一个落点（±8 px）已经点过两次就不再当候选 ⇒ 等于允许"再点一次"，且候选来自当帧 ⇒ 补点只会落在仍立着的弹窗上。
 - (c) **清掉才 `break`**：原代码 `if n: … break` 里 `n` 只表示"点了一下"，漏点也会 `break` 去 replan ⇒ 弹窗还立着、靶子什么都不判分、`tries=3` 耗尽 ⇒ **一次漏点 = 整题死锁**；现在只有 `window_by_title("attention") is None` 才 `break`。
-- `git diff --shortstat` = **43 insertions(+), 13 deletions(-)** ⇒ **净 +30 行**。`STATE.md:1099` 的硬闸写的是"改动 **> 30 行** ⇒ 停手"⇒ **未触发**；**但本批如实标注：净值与阈值相等（贴线）**，且批次 13/14 用的也是"净"口径（批次 14 = 净 +26）。
+- `git diff --shortstat` = **43 insertions(+), 13 deletions(-)** ⇒ **净 +30 行**。`../../audit/STATE.md:1099` 的硬闸写的是"改动 **> 30 行** ⇒ 停手"⇒ **未触发**；**但本批如实标注：净值与阈值相等（贴线）**，且批次 13/14 用的也是"净"口径（批次 14 = 净 +26）。
 - **没碰**：`gym_app.py` / `score.py` 一行未动；判定逻辑 / 匹配路径 / 阈值 / `press_guard` / `_redo` 一字未动；批次文件未动。
 - 闸门：`py_compile` 通过；`score.py --selftest` = **41 checks, 0 failed**。
 - **sha 轨迹**：`gym_run.py 87470aaff5593330`（HEAD）→ `85893817760a3be5`（重落补丁）→ **`3fa0e4ba4b1b9679`**（本批被测版本，**保留为定稿、未回退**）；`scripts_sha` **`186edbd9c024` → `780adce4017e`**；`gym_app.py 66632d85eac81c12` / `score.py ef066713a03eb940` 全程未动。
@@ -1436,7 +1436,7 @@ chaos:popup    v2 16/16 100.0%  decided 100.0%  disturb 0   screen 10/16 replan 
 
 **为什么是 0.70 而不是 §24.2 里写的 `@0.35`**：`@0.35` 在 16 题窄批里的期望弹窗数按批次 14 的 `11 / 60 题` 换算只有 **≈ 3 个 < 5** ⇒ **判据自己（`popup_seen ≥ 5`）在"窄批 + 0.35"这个组合下不可达**。0.70 是同一段里键通道两个档都跑过、批次 8 也有 `popup70` 的档位，**弹窗更多 = 漏点机会更多**，对这条通道是**更严**的检验。⚠ 代价：与批次 14 的 `@0.35` **强度与长度都不同**，所以本批**不能**读成"把那 1/11 修好了"。
 
-### 16.4 判据（事前写在 `STATE.md` §7 #20 行与 `SCORE.md:1178`）
+### 16.4 判据（事前写在 `../../audit/STATE.md` §7 #20 行与 `SCORE.md:1178`）
 
 | 判据（原文："鼠标通道的 `popup` 批跑满题数且 `popup_dismissed == popup_seen ≥ 5`"） | 结果 |
 | --- | --- |
@@ -1460,13 +1460,13 @@ chaos:popup    v2 16/16 100.0%  decided 100.0%  disturb 0   screen 10/16 replan 
 ### 16.6 这一批的封存口径（第十七段回填，2026-10-05）
 
 - **封存结论**：「**通道可用 + 未引入回归 + 跑满不早停（窄批口径）**」。原稿里"**补丁充分**"是**过度声明** —— 那条拆耦合（16.1-2）**一次都没被触发**（`interferences == popup_seen` 可证）⇒ 本批对它**零信息量**，能说的只有"没有引入回归"；改动仍**保留为定稿**（16.5-6）。
-- **【未决】漏点是否消除**：本批**不关闭**也不重开这一项。唯一入口 = **再跑 3 批（每批 16 题）共 48 题** —— 单批 16 题在统计上区分不了"率降了"与"运气好"（量化见 `REPORT.md` 附录 B-7，本段不跑）。
-- **前台占用如实记**：本批逐题耗时合计 ≈ **72 s**（16 题），期间 gym 窗口**就是前台**；`foreground after … unchanged: True` 只证明"跑完时没被抢走"，**不等于"没占用"**。`STATE.md` §24.2 对 A 的"占用前台约 5–8 分钟"（§23.5 另写"代价是 3 分钟"）都是**按 60 题批**给的 —— 用本批实测 **4476 ms / 题**换算，60 题 ≈ **4.5 分钟**、**落在原估计区间内** ⇒ **原估计成立，被高估的是"单批 60 题"这个前提**（窄批 16 题 ≈ 72 s 才是省法）。
+- **【未决】漏点是否消除**：本批**不关闭**也不重开这一项。唯一入口 = **再跑 3 批（每批 16 题）共 48 题** —— 单批 16 题在统计上区分不了"率降了"与"运气好"（量化见 `../../audit/REPORT.md` 附录 B-7，本段不跑）。
+- **前台占用如实记**：本批逐题耗时合计 ≈ **72 s**（16 题），期间 gym 窗口**就是前台**；`foreground after … unchanged: True` 只证明"跑完时没被抢走"，**不等于"没占用"**。`../../audit/STATE.md` §24.2 对 A 的"占用前台约 5–8 分钟"（§23.5 另写"代价是 3 分钟"）都是**按 60 题批**给的 —— 用本批实测 **4476 ms / 题**换算，60 题 ≈ **4.5 分钟**、**落在原估计区间内** ⇒ **原估计成立，被高估的是"单批 60 题"这个前提**（窄批 16 题 ≈ 72 s 才是省法）。
 
 ## 批次 17–19（2026-10-05 第十九段）—— 拆耦合实战：3 批 × 16 题鼠标前台窄批（`popup@0.70`）
 
 ### 17.0 一句话
-第十六段留下了唯一没被检验的东西：那条"漏一次点 ⇒ 整题死锁"的拆耦合是**未被检验的保险**（`interferences == popup_seen` ⇒ 一次都没被触发）。这一段按 `HANDOFF.md` §4 写死的**唯一入口**跑了 **3 批 × 16 题 = 48 题**鼠标前台窄批，**首次让那条保险实战**：**批次 18 里它被触发了一次并救回**（`interferences 9 > popup_seen 8`、该遭遇最终被清掉、该批 16/16）；三批合计 **0/28 遭遇死锁** ⇒ 死锁率 95% 单侧上限 ≈ **10.7%**（rule of three）。**代码一行未改**（`gym_run.py` 仍 `3fa0e4ba4b1b9679`、`scripts_sha 780adce4017e`）。
+第十六段留下了唯一没被检验的东西：那条"漏一次点 ⇒ 整题死锁"的拆耦合是**未被检验的保险**（`interferences == popup_seen` ⇒ 一次都没被触发）。这一段按 `../../audit/HANDOFF.md` §4 写死的**唯一入口**跑了 **3 批 × 16 题 = 48 题**鼠标前台窄批，**首次让那条保险实战**：**批次 18 里它被触发了一次并救回**（`interferences 9 > popup_seen 8`、该遭遇最终被清掉、该批 16/16）；三批合计 **0/28 遭遇死锁** ⇒ 死锁率 95% 单侧上限 ≈ **10.7%**（rule of three）。**代码一行未改**（`gym_run.py` 仍 `3fa0e4ba4b1b9679`、`scripts_sha 780adce4017e`）。
 
 ### 17.1 这三批要回答的问题与判别式（跑之前写死）
 - 问题不是"清障率"，而是**那条补点/拆耦合有没有被真实触发、触发后有没有救回**。用户点出的关键：**复现漏点 ≠ 补丁被检验**。
@@ -1517,7 +1517,7 @@ chaos:popup    v2 16/16 100.0%  decided 100.0%  disturb 0   screen 10/16 replan 
 
 ### 20.0 一句话
 
-第四格（`popup@0.35` × 鼠标前台）拿到了**弹窗侧的完整证据**：fire **10 ≥ 5**、`popup_seen/dismissed/failed 10/10/0`、**补点 1 次**、`task_i 17` 被 modal 挡住 2.18 s 后恢复且该题 `ok`。但**该批在 `task_i 21` 早停**（21/24、退出码 1）—— 早停题是 `must_refuse`（`prose_only`）题，驱动**没有走拒答路径、反而按了一个标签**（`score.py` 记成 `false_accept 1/1`），**与弹窗通道无关**（该题事件序列只有 `ready`；同 seed 键通道批次 12 的同一题 `refused: true`）。⇒ 另记 `STATE.md` §7 **#21**。
+第四格（`popup@0.35` × 鼠标前台）拿到了**弹窗侧的完整证据**：fire **10 ≥ 5**、`popup_seen/dismissed/failed 10/10/0`、**补点 1 次**、`task_i 17` 被 modal 挡住 2.18 s 后恢复且该题 `ok`。但**该批在 `task_i 21` 早停**（21/24、退出码 1）—— 早停题是 `must_refuse`（`prose_only`）题，驱动**没有走拒答路径、反而按了一个标签**（`score.py` 记成 `false_accept 1/1`），**与弹窗通道无关**（该题事件序列只有 `ready`；同 seed 键通道批次 12 的同一题 `refused: true`）。⇒ 另记 `../../audit/STATE.md` §7 **#21**。
 
 ### 20.1 命令（逐字）
 
@@ -1540,7 +1540,7 @@ chaos:popup    v2 16/16 100.0%  decided 100.0%  disturb 0   screen 10/16 replan 
 - 停住的是 `task_i 21`：ask = `click the button labelled XENON`，app 侧真值 `truth_class = must_refuse`、variant `prose_only`；
 - 该题**事件序列只有 `ready`**（没有 `chaos_planned` / `chaos`）⇒ 弹窗没有参与；
 - 驱动**没有走拒答**：三次尝试的逐题行 `detail` 只有 `{"ask_box_recomputed": 3, "ask_box_shift_px": [0,0]}`、**没有 `refused` / `refuse_why`**；`score.py` 把它记成 **`false_accept 1/1`**（`dec=acted act=click_label result=none clicked=null`）；
-- **对照**：同 seed、同场景的**键通道批次 12** 在同一 `task_i 21`（XENON）与 `task_i 22`（ONYX）都是 `detail {"refused": true, …}`、`result ok` ⇒ 缺口在**鼠标通道的候选/标签选择与拒答判定**（`gym_run.py:1816 refuse()`、`:2207-2210` 那条「no control carries the asked label」没被走到），**机制尚未定案**，已记为 `STATE.md` §7 **#21**；
+- **对照**：同 seed、同场景的**键通道批次 12** 在同一 `task_i 21`（XENON）与 `task_i 22`（ONYX）都是 `detail {"refused": true, …}`、`result ok` ⇒ 缺口在**鼠标通道的候选/标签选择与拒答判定**（`gym_run.py:1816 refuse()`、`:2207-2210` 那条「no control carries the asked label」没被走到），**机制尚未定案**，已记为 `../../audit/STATE.md` §7 **#21**；
 - 该批 `disturbances: 11 fired over 24 task(s), 1 task(s) had >=1`（这个数是**清障点击**，与 `interferences 11` 同源、不是题数）。
 
 ### 20.4 打分（跑完立刻打，`score.py` 逐字）
@@ -1609,7 +1609,7 @@ guard gate sample 44  P50 129 ms  P95 166 ms
 3. **判据是「不再早停 + 该题 `refused_right`」**，不是「鼠标通道的拒答率」：本批 `must_refuse` 只有 3 题。
 4. **`refuse_by_stall` 是第二十六段新加的计数键**；旧批 json 里**没有**这个键，**不要跨 sha 比较它**。
 5. **占用前台**：24 题 ≈ 170 s。
-6. 本批**取代批次 20 的「未跑满」这一形态**；#19 第四格的**强度档证据仍取批次 20 的 fire 数**（20.5 六条边界照旧，`STATE.md` §19.7 第四格有补记）。
+6. 本批**取代批次 20 的「未跑满」这一形态**；#19 第四格的**强度档证据仍取批次 20 的 fire 数**（20.5 六条边界照旧，`../../audit/STATE.md` §19.7 第四格有补记）。
 
 ## 批次 22 结果（2026-10-05 第二十六段）—— #21 修复的回归复跑：批次 14 的同参复跑（60 题 `popup@0.35` × 前台真鼠标）
 
@@ -1656,5 +1656,5 @@ guard gate sample 74  P50 133 ms  P95 171 ms
 5. `refuse_by_stall` 是本段新增键 ⇒ **不要与其他 sha 的批跨比**。
 6. **占用前台**：60 题 ≈ 270 s。
 
-> **#20 = 收口（决定不追加）**；依据见 `STATE.md` §28.3；本文件为数字源，**有意不载决策** —— 上面 16.6 与 17.5 的
+> **#20 = 收口（决定不追加）**；依据见 `../../audit/STATE.md` §28.3；本文件为数字源，**有意不载决策** —— 上面 16.6 与 17.5 的
 > "**【未决】**"是**那时的历史记录**，保留不动；"收口"是**决定**（不再投入），不是结论改变。

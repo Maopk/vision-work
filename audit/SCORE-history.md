@@ -1,6 +1,6 @@
 # 口径史一页纸（GUI Gym 判分线）
 
-**用途**：回答"批次 X 和批次 Y 能不能比"这一件事。读完本页不需要翻别的文档；**所有具体数字一律去 `SCORE.md`（及 `STATE.md`、`HANDOFF.md`）取**，本页只写规则与出处。
+**用途**：回答"批次 X 和批次 Y 能不能比"这一件事。读完本页不需要翻别的文档；**所有具体数字一律去 `../sol/sandbox/SCORE.md`（及 `STATE.md`、`HANDOFF.md`）取**，本页只写规则与出处。
 
 判分线的**口径（gate）不是 json 自带的属性，是 `score.py` 这一版工具的判定算法**：`score.py` 按 run json 里的 `gates` 字段选算法（`score.py:634`），而工具本身会随版本更新——新列在老 json 上也会被**补算**出来。⇒ 引用任何一行都要写清"**哪个 json + 哪版 `score.py`**"。代码版本是另一件事，一律看 `scripts_sha`（= `gym_run.py` + `gym_app.py` + `score.py` 三个文件的 sha256/12，`gym_run.py:3449-3451`）。
 
@@ -27,18 +27,18 @@
 
 | # | 对象 | 标注 | 出处 |
 |---|---|---|---|
-| 1 | `t_trap2-1.json` / `t_trap2-2.json` 的 `gates` 被**错写**成 `v0`（按场景名判版本的 bug，两次之后才修；实际场景是 `t_trap2`） | 这两次的判定数字**不作为 v0 证据**、不与 v1 行混比；凡按 `gates` 索引历史 run 的人必须同时看 `scripts_sha` | `SCORE.md` 勘误块 |
-| 2 | v0 单场景 `t_button` / `t_chips` / `t_menu` 三行 | **数据源存疑·勿引用**（源文件被后来的跑测覆盖，数字不可复现） | `SCORE.md` 源文件核对表 |
+| 1 | `t_trap2-1.json` / `t_trap2-2.json` 的 `gates` 被**错写**成 `v0`（按场景名判版本的 bug，两次之后才修；实际场景是 `t_trap2`） | 这两次的判定数字**不作为 v0 证据**、不与 v1 行混比；凡按 `gates` 索引历史 run 的人必须同时看 `scripts_sha` | `../sol/sandbox/SCORE.md` 勘误块 |
+| 2 | v0 单场景 `t_button` / `t_chips` / `t_menu` 三行 | **数据源存疑·勿引用**（源文件被后来的跑测覆盖，数字不可复现） | `../sol/sandbox/SCORE.md` 源文件核对表 |
 | 3 | v0 单场景 `t_toggle` 行 | **原始文件已丢失·勿引用**（现存同名文件是鼠标通道，无法验证） | 同上 |
 | 4 | v0 单场景 `t_form`（`form-fix5`）/ `t_rows`（`rows-fix2`）两行 | 源文件与数字对得上 ⇒ **只属"不可比"**，可引用 | 同上 |
-| 5 | 批次 3 的 `t_trap3-1.json`（鼠标批，前台被抢占、坐标/时序失真） | **任何数字都不引用** | `SCORE.md` sha 表 |
-| 6 | 批次 7 的 `t_trap2-w7-move70.json` | ⚠ **修复前**、早退 ⇒ **不可引用为 move 类定稿**，只用于定位根因（批次 8 的 move 批才是定稿） | `SCORE.md` sha 表 + 批次 7 节 |
-| 7 | 批次 6 ⑧-1 那句"批次 1–5 的 `race 0/0` 不是没踩中，而是**机制必然**" | **加限定条件**（只在默认判定节奏下成立；`slow` 把判定推后 1.5–3.2 s 后，同批老 variant 的窗口会重新落到守门抓帧之后）⇒ **旧数字一个都不变** | `SCORE.md` 批次 8 节勘误条 + `STATE.md` §10.4 ② |
-| 8 | 批次 9 的 `gate_ms` 与批次 6 的 `gate_ms` | **不可并列**：批次 9 起 `gate_ms` 只含守门（`t_gate` 移到 `self.shot()` 之后 = 欠账 #10），批次 6 含抓帧 | `SCORE.md` 批次 9 节 + `STATE.md` §12 |
-| 9 | run json 的 `events` 字段 | **一个路径**，而 app 每次启动**覆盖写**同一文件 ⇒ 只有**最后跑的那批**能把真值联对；**事后重打任何"非最后一批"都会静默错联**（`MISMATCH` 会暴露）。已公布数字全部是"**跑完立刻打分**"；事后复核必须 `score.py <json> --events <该批留档的 events 副本>` | `SCORE.md` 引用规则 7 |
-| 10 | `t_trap-1..6.json` | 六个不同的驱动版本 ⇒ **互不可比** | `SCORE.md` provenance 表 |
+| 5 | 批次 3 的 `t_trap3-1.json`（鼠标批，前台被抢占、坐标/时序失真） | **任何数字都不引用** | `../sol/sandbox/SCORE.md` sha 表 |
+| 6 | 批次 7 的 `t_trap2-w7-move70.json` | ⚠ **修复前**、早退 ⇒ **不可引用为 move 类定稿**，只用于定位根因（批次 8 的 move 批才是定稿） | `../sol/sandbox/SCORE.md` sha 表 + 批次 7 节 |
+| 7 | 批次 6 ⑧-1 那句"批次 1–5 的 `race 0/0` 不是没踩中，而是**机制必然**" | **加限定条件**（只在默认判定节奏下成立；`slow` 把判定推后 1.5–3.2 s 后，同批老 variant 的窗口会重新落到守门抓帧之后）⇒ **旧数字一个都不变** | `../sol/sandbox/SCORE.md` 批次 8 节勘误条 + `STATE.md` §10.4 ② |
+| 8 | 批次 9 的 `gate_ms` 与批次 6 的 `gate_ms` | **不可并列**：批次 9 起 `gate_ms` 只含守门（`t_gate` 移到 `self.shot()` 之后 = 欠账 #10），批次 6 含抓帧 | `../sol/sandbox/SCORE.md` 批次 9 节 + `STATE.md` §12 |
+| 9 | run json 的 `events` 字段 | **一个路径**，而 app 每次启动**覆盖写**同一文件 ⇒ 只有**最后跑的那批**能把真值联对；**事后重打任何"非最后一批"都会静默错联**（`MISMATCH` 会暴露）。已公布数字全部是"**跑完立刻打分**"；事后复核必须 `score.py <json> --events <该批留档的 events 副本>` | `../sol/sandbox/SCORE.md` 引用规则 7 |
+| 10 | `t_trap-1..6.json` | 六个不同的驱动版本 ⇒ **互不可比** | `../sol/sandbox/SCORE.md` provenance 表 |
 
-另有三条**引用纪律**（细节见 `SCORE.md` 引用规则节）：`race` 与 `guard-blind` 必须带分母（分母 = 真正按了过期 ask 的次数，**不是题数**；分母 < 5 标"非缓解"）；**synonym 鼠标通道的成绩一律不引用**（有效成绩只看键通道）；read 列的 `file` 意思是"屏读没完整覆盖真值"，**不是"没用屏幕"**。
+另有三条**引用纪律**（细节见 `../sol/sandbox/SCORE.md` 引用规则节）：`race` 与 `guard-blind` 必须带分母（分母 = 真正按了过期 ask 的次数，**不是题数**；分母 < 5 标"非缓解"）；**synonym 鼠标通道的成绩一律不引用**（有效成绩只看键通道）；read 列的 `file` 意思是"屏读没完整覆盖真值"，**不是"没用屏幕"**。
 
 ---
 
@@ -65,8 +65,8 @@
 
 ## 4. 出处
 
-- 口径定义与引用规则原文：`sol/sandbox/SCORE.md`（顶部「Measurement gate」+「口径版本与可比性（终版）」+ 各批次节）。
-- 批次的假设、判据、证伪与结果：`vision-work/STATE.md`（§8 起逐批；批次 9 = §12；#4 前置量 = §13）。
-- 一行可复制重跑命令与"如果继续做"：`vision-work/HANDOFF.md`（§2 口径、§3 命令、§6 欠账）。
-- 设计修订（r10/r12/r15…）：`vision-work/DESIGN-refusal-scoring.md`。
+- 口径定义与引用规则原文：`../sol/sandbox/SCORE.md`（顶部「Measurement gate」+「口径版本与可比性（终版）」+ 各批次节）。
+- 批次的假设、判据、证伪与结果：`vision-work/audit/STATE.md`（§8 起逐批；批次 9 = §12；#4 前置量 = §13）。
+- 一行可复制重跑命令与"如果继续做"：`vision-work/audit/HANDOFF.md`（§2 口径、§3 命令、§6 欠账）。
+- 设计修订（r10/r12/r15…）：`vision-work/audit/DESIGN-refusal-scoring.md`。
 - 记忆侧同源条目：热记忆「训练/计分口径」条目 + Mnemon 文档《GUI Gym 判分线：口径版本史 v0/v1/v2/v3 与可比性规则》。

@@ -24,18 +24,18 @@ The driver never receives ground truth: it reads the instruction from the screen
 
 - Not a leaderboard: no model is ranked here.
 - Not a claim about absolute ability: runs are single-machine, Windows-only, and tied to one operator's environment.
-- Not a single pass rate: verdicts are split, denominators are declared, and the measurement gates are versioned (v0–v3). Two batches may only be compared inside the same gate — the rules are in [`HANDOFF.md`](HANDOFF.md) §2, the gate history in [`SCORE-history.md`](SCORE-history.md).
+- Not a single pass rate: verdicts are split, denominators are declared, and the measurement gates are versioned (v0–v3). Two batches may only be compared inside the same gate — the rules are in [`audit/HANDOFF.md`](audit/HANDOFF.md) §2, the gate history in [`audit/SCORE-history.md`](audit/SCORE-history.md).
 
 ## Layout
 
 ```
 README.md  README.zh-CN.md  CHANGELOG.md  LICENSE
-STATE.md                   current state of the line (continuation point at the top, debt table in §7)
-HANDOFF.md                 the three pieces, measurement gates, one-line commands, known blind spots
-DESIGN-refusal-scoring.md  why the verdicts are split apart (requirement + scoring design)
-REPORT.md                  the write-up, draft v0.1 (8 chapters + 2 appendices)
-REPORT-draft.md            chapter skeleton and source pointers (kept on purpose)
-SCORE-history.md           one-page history of the measurement gates
+audit/STATE.md                   current state of the line (continuation point at the top, debt table in §7)
+audit/HANDOFF.md                 the three pieces, measurement gates, one-line commands, known blind spots
+audit/DESIGN-refusal-scoring.md  why the verdicts are split apart (requirement + scoring design)
+audit/REPORT.md                  the write-up, draft v0.1 (8 chapters + 2 appendices)
+audit/REPORT-draft.md            chapter skeleton and source pointers (kept on purpose)
+audit/SCORE-history.md           one-page history of the measurement gates
 sol/sandbox/SCORE.md       every batch result, with per-batch reading notes
 sol/sandbox/               the three programs, the probes, the batch evidence JSON
 ```
@@ -76,11 +76,11 @@ Exit codes: `0` every task ok · `1` a complete run containing failures · `3` a
 | question | document |
 |---|---|
 | what were the scores, batch by batch | [`sol/sandbox/SCORE.md`](sol/sandbox/SCORE.md) |
-| can batch A be compared with batch B | [`SCORE-history.md`](SCORE-history.md), then `HANDOFF.md` §2 |
-| how do I re-run it, and what is known to be broken | [`HANDOFF.md`](HANDOFF.md) §3 and §4 |
-| why "refused right" is a separate count | [`DESIGN-refusal-scoring.md`](DESIGN-refusal-scoring.md) |
-| the finished argument | [`REPORT.md`](REPORT.md) |
-| what is being worked on right now | [`STATE.md`](STATE.md) |
+| can batch A be compared with batch B | [`audit/SCORE-history.md`](audit/SCORE-history.md), then `audit/HANDOFF.md` §2 |
+| how do I re-run it, and what is known to be broken | [`audit/HANDOFF.md`](audit/HANDOFF.md) §3 and §4 |
+| why "refused right" is a separate count | [`audit/DESIGN-refusal-scoring.md`](audit/DESIGN-refusal-scoring.md) |
+| the finished argument | [`audit/REPORT.md`](audit/REPORT.md) |
+| what is being worked on right now | [`audit/STATE.md`](audit/STATE.md) |
 
 ## Skill
 

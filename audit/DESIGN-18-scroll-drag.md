@@ -1,6 +1,6 @@
 # 设计：#18 连续 / 视口类交互（滚轮 + 拖拽）怎么补
 
-> **文件性质**：**设计文档，不含任何代码改动**。本文件只回答"这条缺口现在到哪一步、要补什么、有几条路、推荐哪条、判据是什么"。任何数值一律去 `sol/sandbox/SCORE.md` 与 `STATE.md` 取，本文件不复制分数。
+> **文件性质**：**设计文档，不含任何代码改动**。本文件只回答"这条缺口现在到哪一步、要补什么、有几条路、推荐哪条、判据是什么"。任何数值一律去 `../sol/sandbox/SCORE.md` 与 `STATE.md` 取，本文件不复制分数。
 > **状态**：欠账 #18（`STATE.md` §7 第 18 行）到 2026-10-05 第十三段为止是**"欠（有据）"**——覆盖为 0、机制已读清、**未做任何代码或题型改动**。本文件是它第一次被写成可执行的设计。
 
 ---
@@ -21,11 +21,11 @@
 
 | 位置 | 事实 |
 |---|---|
-| `sol/sandbox/gym_run.py:1214` | `Driver.wheel()` 定义；**唯一调用点** `:2329`，写成 `if self.keys: self.key("Next") else: self.wheel(-3, …)` |
-| `sol/sandbox/gym_run.py:1208` | `Driver.drag()` 定义；**唯一调用点** `:2877`（`t_chips` 的视觉回退路径） |
-| `sol/sandbox/gym_app.py:725–735` | 靶子侧 `bind_all("<MouseWheel>", …)`；同一处把 `keymap["Next"]` 绑到 `_page(1)` |
-| `sol/sandbox/gym_app.py:425–432` | `_page(step)` ⇒ `c.yview_scroll(step*9, "units")`（键通道翻页的真实实现） |
-| `sol/sandbox/gym_app.py:959–961` | `t_chips` 的鼠标绑定；同一族的键盘路径是 `_bind_key(i, drop_slot)` / `_bind_key(len(slots)+i, pick)` |
+| `../sol/sandbox/gym_run.py:1214` | `Driver.wheel()` 定义；**唯一调用点** `:2329`，写成 `if self.keys: self.key("Next") else: self.wheel(-3, …)` |
+| `../sol/sandbox/gym_run.py:1208` | `Driver.drag()` 定义；**唯一调用点** `:2877`（`t_chips` 的视觉回退路径） |
+| `../sol/sandbox/gym_app.py:725–735` | 靶子侧 `bind_all("<MouseWheel>", …)`；同一处把 `keymap["Next"]` 绑到 `_page(1)` |
+| `../sol/sandbox/gym_app.py:425–432` | `_page(step)` ⇒ `c.yview_scroll(step*9, "units")`（键通道翻页的真实实现） |
+| `../sol/sandbox/gym_app.py:959–961` | `t_chips` 的鼠标绑定；同一族的键盘路径是 `_bind_key(i, drop_slot)` / `_bind_key(len(slots)+i, pick)` |
 
 **读法**：两条路径**都不是缺失**，而是"键通道有等价物、鼠标通道没被用过"。`--bg` 下鼠标失效的机制也早已定案：执行器的后台分支走 `PostMessage`，而 **Tk 完全忽略投递的鼠标消息**（`gym_run.py:2329` 附近的注释记录过实测：63 次投递滚轮、位移为 0）；`o_key` 在后台有焦点交接（`AttachThreadInput` + `SetFocus`），**鼠标操作没有对应机制**，而且"有焦点"也救不了它——投递的消息 Tk 就是不收。
 
@@ -149,8 +149,8 @@
 
 ### 7.4 B 不做的完整理由
 
-- 改动落在 `D:\DSH\dsh-vision-kit\actor`（执行器侧）：`scripts_sha` 只覆盖 `sol/sandbox` 三件套 ⇒ 以此跑出的读数**在留档里不可核对**（第十段 #16 的根因就在 actor 侧）。
-- actor 的 `_maybe_front()`（`actor.py:1665`）是**鼠标与按键两种 op 共用**的输入前处理（逐字："raise (and pin) the target first, so DSH stealing the foreground cannot eat the keystrokes"）：改它等于改所有输入 op 的语义，且**必然要动前台** ⇒ 与本线 `--bg` 通道"不抢前台"的性质冲突。
+- 改动落在 `D:\DSH\dsh-vision-kit\actor`（执行器侧）：`scripts_sha` 只覆盖 `../sol/sandbox` 三件套 ⇒ 以此跑出的读数**在留档里不可核对**（第十段 #16 的根因就在 actor 侧）。
+- actor 的 `_maybe_front()` 是**鼠标与按键两种 op 共用**的输入前处理（逐字："raise (and pin) the target first, so DSH stealing the foreground cannot eat the keystrokes"）：改它等于改所有输入 op 的语义，且**必然要动前台** ⇒ 与本线 `--bg` 通道"不抢前台"的性质冲突。
 - 即便改成功，收益也只是"把一条**已被键通道覆盖**的能力搬到鼠标通道上再测一遍" ⇒ 边际收益低，代价却是动全机共用的常驻件。
 
 ---
@@ -163,8 +163,8 @@
 
 | 问题 | 证据 | 结论 |
 |---|---|---|
-| actor 能发滚轮事件吗？ | `actor.py:15` 的 ops 清单里 **`scroll` 是一等 op**；`:1189` 注释「Post wheel messages. dy/dx are raw deltas (one notch = 120)」 | ✅ 能 |
-| actor 能发拖拽（按下-移动-释放）吗？ | `actor.py:15` 的 ops 里有 **`drag`**；`:304 def drag(self, x1, y1, x2, y2, steps=30, ms=240, button='left')`（SendInput 手）；`:1104 def post_drag(...)`（bg 版，「Press, move, release - all posted, **so a drag needs no foreground**」）；`:1300-1317 @op('drag') o_drag`（`bg` 走 `post_drag`，否则 `A.hands.drag`） | ✅ 能 |
+| actor 能发滚轮事件吗？ | 模块 docstring 的 `Ops:` 行里 **`scroll` 是一等 op**（`@op('scroll')`）；`post_scroll()` 的 docstring「Post wheel messages. dy/dx are raw deltas (one notch = 120)」 | ✅ 能 |
+| actor 能发拖拽（按下-移动-释放）吗？ | 模块 docstring 的 `Ops:` 行里 **`drag` 是一等 op**（`@op('drag')`）；`Hands.drag(self, x1, y1, x2, y2, steps=30, ms=240, button='left')`（SendInput 手）；`post_drag(...)`（bg 版，「Press, move, release - all posted, **so a drag needs no foreground**」）；`o_drag`（`bg` 走 `post_drag`，否则 `A.hands.drag`） | ✅ 能 |
 
 ⇒ **不重蹈 #20 的 B 案否决理由**（那条否决是「要改 actor ⇒ 读数落在 `scripts_sha` 覆盖不到的层、不可核对」；这里不需要改 actor）。
 
@@ -258,7 +258,7 @@
 
 | 风险 | 处置 |
 |---|---|
-| `gym_app.py` **首次裂 sha**（`66632d85eac81c12` → 新）⇒ 靶子不再是「批次 1–20 的靶子」 | **回退 = 单文件 revert**：`git revert <commit>` 或 `git checkout <旧 commit> -- sol/sandbox/gym_app.py` ⇒ sha 回到 `66632d85eac81c12`。改动只在两个 `return` 的字典里加键，**无状态、无副作用** ⇒ revert 干净。 |
+| `gym_app.py` **首次裂 sha**（`66632d85eac81c12` → 新）⇒ 靶子不再是「批次 1–20 的靶子」 | **回退 = 单文件 revert**：`git revert <commit>` 或 `git checkout <旧 commit> -- ../sol/sandbox/gym_app.py` ⇒ sha 回到 `66632d85eac81c12`。改动只在两个 `return` 的字典里加键，**无状态、无副作用** ⇒ revert 干净。 |
 | 已跑批次还能复现吗？ | **能**：题池与题序由 `--seed` 决定（`gym_app.py:504-526`），新键**不参与**任何绘制或判定（`finish()` 的 `ok` 一字不改）⇒ 同 seed + 同 scenario 下**题与判定逐题不变**，只有 `ready` 事件多一个字段。 |
 | 新类名漏进某处统计？ | 由 `--selftest` 新增的两条兜住（viewport 不进主分母）。 |
 | 与 #20「不改 actor」的决定冲突吗？ | **不冲突**：本次只改靶子；`D:\DSH\dsh-vision-kit\actor` 一字不动 ⇒ 不触碰 #20 B 案的否决理由。 |

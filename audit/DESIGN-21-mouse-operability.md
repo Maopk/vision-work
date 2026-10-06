@@ -121,7 +121,7 @@
 
 ## 7. 回退
 
-单文件 `git revert <commit>`（或 `git checkout <旧 commit> -- sol/sandbox/gym_run.py`）。改动只有一处、无状态迁移；
+单文件 `git revert <commit>`（或 `git checkout <旧 commit> -- ../sol/sandbox/gym_run.py`）。改动只有一处、无状态迁移；
 回退后 `scripts_sha` 回到 `3fa0e4ba4b1b9679`。**不影响历史批次 json**（判定写在各自 json 里，不回溯）。
 
 ## 8. 边界（写在前面）
@@ -152,5 +152,5 @@
 - **验证（两批前台真实鼠标）**：**批次 21**（`popup@0.35`、24 题、批次 20 的同 seed 同协议复跑）= **24/24 不早停**、`task_i 21/22/23` 全 `refused_right`、`false_accept 0/3`、`refuse_by_stall 3`；**批次 22**（60 题、批次 14 的同参复跑）= **60/60**、`refused_right 14`、`false_accept 0/14`、`false_refusal 0/46`、`refuse_by_stall 4`（= 4 道 `prose_only`；另 10 条 `disabled` 族仍走原有可见性路径）。
 - **回归**：与批次 20 相比前 21 题判定**逐题一致**、`replans` 同为 23（改动只落在收尾动作）；与批次 14 相比**唯一翻转 = `task_i 21`**（正是修复目标）。
 - **残留风险（照 §6 / §8 执行）**：点偏会被记成 `false_refusal` —— 本段两批均为 **0**；将来上升就逐题抽查该批 `false_refusal` 行（题号 + `refuse_by_stall`）。
-- **回退**：单文件 `git checkout <旧 commit> -- sol/sandbox/gym_run.py`（或 `git revert`）⇒ `scripts_sha` 回到 `3fa0e4ba4b1b9679`。
+- **回退**：单文件 `git checkout <旧 commit> -- ../sol/sandbox/gym_run.py`（或 `git revert`）⇒ `scripts_sha` 回到 `3fa0e4ba4b1b9679`。
 - **未覆盖**：`--bg` 鼠标通道（盲区 21）、滚轮 / 拖拽（#18）；「鼠标通道拒答率」未测。

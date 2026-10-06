@@ -41,6 +41,27 @@ it then prints `refusing to start a run while the session is locked` and exits. 
 **`PYTHONUNBUFFERED=1`** (or run `python -u`) so the reason is visible in redirected logs. **Do not**
 kill the driver by hand; a driver that never started writes no run json at all.
 
+### 1c. `t_trap*` scenarios start but produce 0 tasks, or a `scripts_sha` looks wrong
+
+**Cause.** `sol/sandbox/plans.v1.json` — the task-order manifest stage 3.6 moved the five plan
+tables into — is missing, truncated or malformed. The app then has no plan to build tasks from, so
+`t_trap*` scenarios come up with nothing to do. The same file is part of `scripts_sha`, and `_sha()`
+hashes a **missing** file as `b"?"`: a value can therefore change silently instead of failing loudly.
+
+**Fix.** Validate the manifest on its own:
+
+```bash
+python -c "import json; json.load(open('sol/sandbox/plans.v1.json'))"
+```
+
+It prints nothing and exits 0 when the file parses; a traceback is the answer. Then confirm the file
+is still tracked — `.gitignore` must keep the `!sol/sandbox/plans.v1.json` line, otherwise
+`sol/sandbox/*.json` silently drops it and the hash no longer covers the task order.
+
+**Not the same symptom as §1b.** §1b is the driver *hanging* (locked desktop, zero-byte log). This
+one is the app coming up with an empty plan, or a `scripts_sha` that does not match its recorded
+value. The two have different causes and different first commands; do not merge them.
+
 ## 2. `shot failed`, or no run json at all
 
 **Cause.** The run was started without an interactive desktop session — from a service,

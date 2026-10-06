@@ -103,11 +103,12 @@ audit/README.md                  what moved into audit/, and the counting conven
 audit/STATE.md                   current state of the line (continuation point at the top, debt table in §7)
 audit/HANDOFF.md                 the three pieces, measurement gates, one-line commands, known blind spots
 audit/DESIGN-refusal-scoring.md  why the verdicts are split apart (requirement + scoring design)
-audit/REPORT.md                  the write-up, draft v0.1 (8 chapters + 2 appendices)
+audit/REPORT.md                  the write-up (8 chapters + 3 appendices)
 audit/REPORT-draft.md            chapter skeleton and source pointers (kept on purpose)
 audit/SCORE-history.md           one-page history of the measurement gates
 sol/sandbox/SCORE.md       every batch result, with per-batch reading notes
 sol/sandbox/               the three programs, the probes, the batch evidence JSON
+tools/check-counts.py      the count/inventory gate: one source per family, claim sites checked
 ```
 
 ## Where to read what

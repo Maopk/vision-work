@@ -26,7 +26,7 @@
 | 定义 | 覆盖的文件 | 出现在 | 备注 |
 |---|---|---|---|
 | **旧（三文件）** | `gym_run.py` + `gym_app.py` + `score.py` | 批次 1–24 全部；**最后一个值 = `4fc217c37901`**（批次 23/24，viewport 两批） | 老 json **没有** `scripts_sha_files` 字段 ⇒ 按本表就知道它覆盖哪三个 |
-| **新（六文件）** | 上面三个 + `gui_see.py`（屏读/OCR 路径）+ `loop.py`（驱动循环）+ `plans.v1.json`（题序清单） | 阶段 3.6 之后新写的 run json | json 自带 `scripts_sha_files` 字段 = 覆盖清单 ⇒ 值可离线重算 |
+| **新（六文件）** | `gym_run.py` + `gym_app.py` + `score.py` + `gui_see.py`（屏读/OCR 路径）+ `loop.py`（驱动循环）+ `plans.v1.json`（题序清单） | 阶段 3.6 之后新写的 run json | json 自带 `scripts_sha_files` 字段 = 覆盖清单 ⇒ 值可离线重算 |
 
 - **为什么要扩**：旧定义只哈希三件套，而"这一行读数是怎么来的"还牵涉屏读/OCR 模块与驱动循环；更要紧的是 **3.6 把题序搬进了 `plans.v1.json`**——不把它算进去，就会出现"同一个 `scripts_sha` 对应两套题序"。
 - **重算一个值**：读那个 json 的 `scripts_sha_files`（老 json 按上表的三文件），按清单顺序把文件**按该批提交时的字节**拼接，取 `sha256/12`。

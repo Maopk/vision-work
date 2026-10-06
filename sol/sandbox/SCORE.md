@@ -24,7 +24,7 @@ counts how many tasks reached a *decision* at all, and scores refusal on its own
 Reported per run: `pass_rate`, `decided_rate`, `false_refusal_rate` (over answerable),
 `false_accept_rate` (over must_refuse), `disturb` (interference fires, **not** tasks),
 `screen/file` (where the ask was read), `replan`, `stale`, `wasted`, `verify_giveup`.
-A run carries `gates`, `events`, `scripts_sha` (sha256/12 of gym_run+ gym_app + score —— **阶段 3.6 起改为六个文件**，再加 `gui_see.py` / `loop.py` / `plans.v1.json`，并在同一条记录里写 `scripts_sha_files` 清单；两种定义的数值不可互比，见 `audit/SCORE-history.md` §1.1),
+A run carries `gates`, `events`, `scripts_sha` (sha256/12 of `gym_run.py` + `gym_app.py` + `score.py` —— **阶段 3.6 起改为六个文件**，再加 `gui_see.py` / `loop.py` / `plans.v1.json`，并在同一条记录里写 `scripts_sha_files` 清单；两种定义的数值不可互比，见 `audit/SCORE-history.md` §1.1),
 `app_args`; `truth` is joined by `score.py` **after** the run, never by the driver.
 
 Per-row annotation: `gate / channel / ask reads (screen/file)`.

@@ -90,11 +90,12 @@ audit/README.md                  什么搬进了 audit/，以及计数与引用�
 audit/STATE.md                   这条线的现状（开头是接续点，§7 是欠账表）
 audit/HANDOFF.md                 三件套、测量 gate、一行命令、已知盲区
 audit/DESIGN-refusal-scoring.md  为什么判定要拆开（需求 + 计分设计）
-audit/REPORT.md                  成文，草稿 v0.1（8 章 + 2 附录）
+audit/REPORT.md                  成文（8 章 + 3 附录）
 audit/REPORT-draft.md            章节骨架与来源指针（有意保留）
 audit/SCORE-history.md           测量 gate 的一页沿革
 sol/sandbox/SCORE.md       每一批的结果，带逐批阅读注意
 sol/sandbox/               三件套、探针、批次证据 JSON
+tools/check-counts.py      计数 / 清单闸（每个量一个真源，宣称点逐条核对）
 ```
 
 ## 该读哪一份

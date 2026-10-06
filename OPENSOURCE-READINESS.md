@@ -62,11 +62,11 @@
 - `dsh-vision-kit`：actor 实现、UIA/视觉工具、插件包（`plugins/`）、Generation 1 截图路线。
 - `dsh-termux-kit`：Termux 工具（`tools/` 52）、两个 Android app（`apps/` 33）、12 个 widget（`widgets/` 14）、`ui/controls.json` **一源三面**（面板/控制台/桥）。
 
-**三处"仓库外的副本"**（都不在任何仓库里 ⇒ 违反标准 e 或不落盘 ⇒ 违反 b/c）
+**三处"仓库外的副本"**（都不在任何仓库里 ⇒ 违反标准 e 或不落盘 ⇒ 违反 b/c；**第 1 条已在阶段 3.3 解决**，仍存在 2 处）
 
-1. `D:\DSH\skills\gui-audit-gym\SKILL.md` —— `vision-work/README.md:85-88` 明写手册在仓库外（"deliberately not duplicated here"）。
+1. ~~`D:\DSH\skills\gui-audit-gym\SKILL.md`~~ —— **已解决（阶段 3.3）**：规程正本入库为 `vision-work/docs/OPERATING.md`，仓库外那份技能降为**指针**（只留 frontmatter + 一页指向正本的顺序清单，不再复制正文；前门也不再指向它）。
 2. `D:\DSH\dsh-actor\`（actor HOME：`port.txt` / `home.txt` / `logs/`）。
-3. `D:\DSH\.venvs\vision-ci` + Tesseract 安装（`sol/sandbox/gui_see.py:18` 的写死路径指向它）。
+3. `D:\DSH\.venvs\vision-ci` + Tesseract 安装（**阶段 3.1 起不再是代码里的死路径**：`gui_see.py` 读 `TESS`（别名 `TESSERACT`）、作者安装路径只作最后兜底，找不到就停并打印"设 `TESS=<…>`"；本机仍需装它，但那是**环境**、可按 `docs/QUICKSTART.md` 的说法复现）。
 
 ## 3. 影响清单（改谁会影响谁）
 
@@ -87,22 +87,22 @@
 |---|---|---|---|
 | `dsh-termux-kit` | ✅ `README.md` 的 `## Overview` | ✅ 其 `## Quick start`（4 步；缺 `android.jar` 时**停下并打印指令**） | ⚠ 有 12 个 widget 的清单与 `ui/controls.json` 单源，但**没有"加第 13 个 widget / 加一条命令"的路径** ⇒ 阶段 1 已补：见 §8 |
 | `dsh-vision-kit` | ⚠ 无独立 Why 章；`:14 The current path: the PC Actor` 标了当前路线 | ✅ `:22 Quick start`（"nothing to install first"） | ⚠ 有 `:83 Skills`，但 Generation 1（`:103`）/ 1.5（`:200`）/ Actor **三代并置** ⇒ 新手要先读三段才知道从哪开始 |
-| `vision-work` | ❌ 无动机段（`:11 What this is` / `:23 What this is **not**` 有了，但没有"你为什么需要它"） | ⚠ `:50 Quick start` 命令完整，但解释器路径、`TESS`、cwd 三处要改 | ❌ **完全没有**（题硬编码在 `gym_app.py`） |
+| `vision-work` | ✅ `## Why this exists`（三条动机：拒答是行为不是漏做 / 难的是发现屏幕在脚下变了 / 能带走的是方法不是数字，+"谁需要它"一行） | ✅ `## Ten minutes to a scored run`（可移植命令、无本机路径；好跑的样子 + 失败 → `docs/TROUBLESHOOTING.md`；四条前置清单**移到路径之后**当"起飞前检查"） | ✅ `docs/TASK-AUTHORING.md`（四个活动件 + 真值协议 + 加族七步清单；题仍是硬编码，文档**如实说明**并指出改哪几处） |
 
 ### (b) 路径不写死，缺了就报"装什么 / 设什么"
 
-真硬编码只有两处（`sol/sandbox/gui_see.py:18` 的 `TESS`、`sol/sandbox/loop.py:39` 的 `ACTOR_HOME`）；其余 `D:\` 出现在文档命令里。
+真硬编码只有两处（`sol/sandbox/gui_see.py:18` 的 `TESS`、`sol/sandbox/loop.py:39` 的 `ACTOR_HOME`）—— **两处均已于阶段 3.1 参数化**：改读环境变量（`TESS` 保留作者路径为最后兜底、缺失即停并打印指令；`ACTOR_HOME` 的兜底目录没有 `port.txt` 时在 stderr 点名变量并回退端口）。标准 b 的验收语句（缺依赖必须停、并打印"装什么 / 设哪个变量"）现在**三仓库都过**（`vision-work` 两条的实测输出见 `docs/TROUBLESHOOTING.md`）；其余 `D:\` 出现在文档命令里。
 **范本 = `dsh-termux-kit`**：`DSH_AJ` 环境变量 + `$HOME/.smoke/android.jar` 兜底 + 缺依赖即停并打印指令（其 `## Quick start` 的 `android.jar` 段逐字写明；该文件在阶段 1 被改过 ⇒ 此处按**节名**引用，不引行号）。标准 b 的验收语句直接抄它：**缺依赖时脚本必须停止，并打印"装什么、设哪个变量"。**
 
 ### (c) 依赖落盘 —— 拆两半：**语言级 / 系统级**（v1.1 改写）
 
-**语言级依赖必须落盘并 pin。** `dsh-termux-kit` ✅ `requirements-dev.txt`；`dsh-vision-kit` ✅ `requirements.txt`（`numpy==2.3.5` / `pillow==12.3.0`，带 pin 理由）+ `requirements-dev.txt`；`vision-work` ❌ **无**（本机 venv 3.12.14 恰好等于上游 pin ⇒ 可直接引用上游 pin，但必须落盘自己那份 + 声明 Tesseract 版本）。
+**语言级依赖必须落盘并 pin。** `dsh-termux-kit` ✅ `requirements-dev.txt`；`dsh-vision-kit` ✅ `requirements.txt`（`numpy==2.3.5` / `pillow==12.3.0`，带 pin 理由）+ `requirements-dev.txt`；`vision-work` ✅ `requirements.txt`（**阶段 3.1 落盘**：CPython 3.12 + `numpy==2.3.5` / `pillow==12.3.0`，每条带 pin 理由；Tesseract 不是 pip 包 ⇒ 其版本记进 run json 的 `env` 块）。
 **系统级依赖必须给出一行安装命令，并标注版本或"可选"。** 试点实测：`dsh-termux-kit` 的运行依赖是 Termux 系统包（`pkg install zstd imagemagick tesseract tesseract-lang`，写在其 `## Quick start` 里）—— pip 侧落盘覆盖不到它们，同一仓库还有一张"第三方组件"表兜底。⇒ **判据：新机器上，仅按落盘文件 + 这一行命令，能把依赖装齐**；装不齐的必须在同一处标"可选"。
 > 回灌依据：v1 只写"依赖落盘"，试点发现那会把**系统包**整类漏掉 —— 试点仓库的 `requirements-dev.txt` 是齐的，缺的从来不是 pip 那一半。
 
 ### (d) 产物记 `env` 块 —— 拆两种产物：**运行记录 / 构建产物**（v1.1 改写）
 
-**运行记录（每条记录一份）必须带 `env` 块** —— 谁跑的、哪一版代码、什么环境。三仓库目前**都没有**；`vision-work` 的 run json 是唯一这类产物 ⇒ 加 `env`（actor sha / Tesseract 版本 / Python pins / 屏幕 DPI / OS / 三件套 `scripts_sha`）。
+**运行记录（每条记录一份）必须带 `env` 块** —— 谁跑的、哪一版代码、什么环境。**`vision-work` ✅（阶段 3.1）**：run json 里 `env` 与 `scripts_sha` 同级（`python` / `numpy` / `pillow` / `tesseract` / `screen{geom,dpi}` / `actor_py` / `actor_pid`；取不到一律记 `null`、不猜；actor 侧只多发一次 `ping`；**旧 json 不变**）。另两个仓库仍无这类产物 —— 它们的产物是构建物 ⇒ 走下一段的判据。
 **构建产物（一份产物一个版本）必须把版本与来源写进产物本身，并有门禁能核对。** 范本 = `dsh-termux-kit`：`ui/controls.json > appVersions` 是唯一源 ⇒ `tools/ui-controls gen` 写进产物 ⇒ `tools/app-verify` 核对"同版本不同内容"；其 CHANGELOG 也记版本号（如"控制台 1.21（versionCode 34）· 桥 2.2"）与生成块 `UI_VERSION`。
 > 回灌依据：v1 把两类混成一条"运行产物"，而试点仓库**根本没有运行记录类产物** ⇒ 标准在那条上落不了地。拆分后两支各有各的验收语句。
 
@@ -122,12 +122,12 @@
 
 ### (e) 手册在 repo 内
 
-`dsh-termux-kit` ✅（`docs/` 8 篇 + README 自足）；`dsh-vision-kit` ⚠（`docs/` 4 篇，Generation 1 说明仍在 README 内）；`vision-work` ❌（手册在仓库外，见 §2）。
+`dsh-termux-kit` ✅（`docs/` 8 篇 + README 自足）；`dsh-vision-kit` ⚠（`docs/` 4 篇，Generation 1 说明仍在 README 内）；`vision-work` ✅（**阶段 3.3**：规程正本 `docs/OPERATING.md` + 前门四篇 `docs/`；仓库外技能已降为指针，见 §2 第 1 条）。
 
 ### (f) 边界诚实声明
 
 `vision-work` ✅ 最强（`What this is not` + 已知边界 + 【未决】）；`dsh-vision-kit` ✅ `Security`（`:248`：`:8731` 无鉴权、只监听 loopback、截图含整屏）+ "No UI screenshots are published here"；`dsh-termux-kit` ✅ `Troubleshooting` 每条给出 symptom / cause / solution。
-**统一新增一条**：不承诺"复现作者的数字"（OCR、DPI、字体都在环里），只承诺**方法与可重跑的运行** —— 这既是诚实，也是保护。
+**统一新增一条**：不承诺"复现作者的数字"（OCR、DPI、字体都在环里），只承诺**方法与可重跑的运行** —— 这既是诚实，也是保护。`vision-work` **已落（阶段 3.3）**：`README.md` 的 `## Why this exists` 第三条 + `## What this is not` 第四条。
 
 ### (g) 双语策略统一
 
@@ -177,7 +177,7 @@
 
 - **1.x `dsh-termux-kit`（试点）**：1.1 ✅ 前门补第 ③ 问（新增 `docs/TASK-AUTHORING.md`：加 widget / 加命令的路径）；1.2 ✅ 标准落地对照表成文并**已回灌本文档 §4**（v1.1，独立提交）。**未做**：版本号 bump（该仓库 §六：纯文档 commit 不 bump）与该仓库内部 5 处计数漂移（§8）。
 - **2.x `dsh-vision-kit`（上游）**：2.1 发布上游（commit + CHANGELOG + 记下可被引用的 sha）；2.2 前门三代整理（Generation 1 / 1.5 降到 `docs/` 或明确标"历史"，当前路线提到最前）；2.3 下游引用核（`vision-work` 那 14 引用行 / 12 字面量逐条）。
-- **3.x `vision-work`（下游）**：3.1 ✅ 参数化（`TESS` / `ACTOR_HOME`）+ `requirements.txt` + run json `env` 块；3.2 ✅ `audit/` 搬迁 + `audit/README.md` + **714 引用点 / 457 行**内容锚定核验（搬迁前失效清单 412 处 = 仓内 362 + 仓外 50）；3.3 前门重写（动机 + 三问 + 加题接口 `TASK-AUTHORING`）；3.4 manifest v1 + viewport（**一次** sha 裂）+ 验证批（占前台，同时是 #18 的首次真取数）；3.5 v1.0 声明 + 冻结条款 + 欠账分流；**3.6（待办）**计数闸扩展 —— 设计已在仓库外成文（`D:\DSH\dsh-actor\tmp\stage2\C3-checkcounts-design.md`；本轮只落文、不改 `dsh-vision-kit`）：op 数已有闸（`tools/check-skill-ops.py`，`ci-static.ps1` 第 6 阶段），真缺口 = 踩坑条数单一化 / 双语数字一致性 / 清单完整性 ⇒ 建议 `tools/check-counts.py` 接第 7 阶段。
+- **3.x `vision-work`（下游）**：3.1 ✅ 参数化（`TESS` / `ACTOR_HOME`）+ `requirements.txt` + run json `env` 块；3.2 ✅ `audit/` 搬迁 + `audit/README.md` + **714 引用点 / 457 行**内容锚定核验（搬迁前失效清单 412 处 = 仓内 362 + 仓外 50）；3.3 ✅ 前门重写（`## Why this exists` 三条动机 + `## Ten minutes to a scored run` + 前置清单移到路径之后 + `docs/` 四篇 = `QUICKSTART`/`TROUBLESHOOTING`/`TASK-AUTHORING`/`OPERATING` + 规程正本入库、仓库外技能降为指针 + `STATE.md` §14.6 的 `/mnt/d/` 判定为合法路径；三件套 sha 未动）；3.4 manifest v1 + viewport（**一次** sha 裂）+ 验证批（占前台，同时是 #18 的首次真取数）；3.5 v1.0 声明 + 冻结条款 + 欠账分流；**3.6（待办）**计数闸扩展 —— 设计已在仓库外成文（`D:\DSH\dsh-actor\tmp\stage2\C3-checkcounts-design.md`；本轮只落文、不改 `dsh-vision-kit`）：op 数已有闸（`tools/check-skill-ops.py`，`ci-static.ps1` 第 6 阶段），真缺口 = 踩坑条数单一化 / 双语数字一致性 / 清单完整性 ⇒ 建议 `tools/check-counts.py` 接第 7 阶段。
 
 ## 7. 红线（v1 写作段与 v1.1 回灌段共同适用）
 

@@ -16,7 +16,7 @@
   ① **#20 通道层三选一 ⇒ 选 C（接受边界）**：鼠标通道的 `popup` 写成**已知边界**（键通道两档是有效成绩、账目不变、**#20 保持开着**）；**A（前台批 + 显式声明通道）降级为按需**——要用就得重落批次 14 的补丁，且**必须先拆掉"漏一次点 ⇒ 整题死锁"的耦合**（两个前置条件写进 §24.3）；**B（给鼠标动作加托管输入 + 焦点交接）不做**——要改 `dsh-vision-kit\actor` 里鼠标与按键**共用**的 `_maybe_front()`，读数落在 `scripts_sha` 覆盖不到的层、不可核对，还可能抢前台。依据 = §23.4 + `gym_run.py:3452-3470` + actor 的 `o_click` / `o_key` 两条分支（§24.1 三处逐条读过）。
   ② **#18 同样选 C**：键通道优先（键盘等价物本就存在、驱动已在用），滚轮 / 拖拽的**真实鼠标路径写成已知边界**（代价 = 永远不会被自动化测试覆盖，只能靠前台手工验证）；A 的唯一适用场景 = 偶尔跑一次 **12–16 题前台窄批**拿真凭据；**B 不做**（与 #20 的 B 同根：actor 层改动、代价大、收益边际）。
   ③ **落点**：`STATE.md` §24（`:1257–1292`）+ `DESIGN-18-scroll-drag.md` §7（`:129–154`）+ `HANDOFF.md` 盲区 23 的 ⚠ 第十五段块（`:174–175`）+ 报告 **v0.6**（版本行、§5.1 **第 16 行 = 决策行不是批次**、§5.2 ④、§6.2 D 族、§7.2/§7.3、第 8 章、附录 A 行号重算、**新增附录 B-6**）；口径本身没变，变的是"这条洞被写成显式边界"。
-  ④ **明天开工顺序（固定）**：**第一件 = 新会话验证技能目录注入**（`D:\DSH\skills\gui-audit-gym\SKILL.md`）；**第二件 = 三选一**：(i) 什么都不动（口径已自洽、报告 v0.6 已同步）；(ii) 需要真凭据时按 §24.3 先拆耦合、再用 A 方案跑 12–16 题窄批；(iii) 走出练习场 / 报告 v0.7（若又有行号漂移）。
+  ④ **明天开工顺序（固定）**：**第一件 = 新会话验证技能目录注入**（`D:\DSH\skills\gui-audit-gym\SKILL.md` —— **阶段 3.3 起该技能只是指针**，规程正本 = 仓库内 `docs/OPERATING.md`）；**第二件 = 三选一**：(i) 什么都不动（口径已自洽、报告 v0.6 已同步）；(ii) 需要真凭据时按 §24.3 先拆耦合、再用 A 方案跑 12–16 题窄批；(iii) 走出练习场 / 报告 v0.7（若又有行号漂移）。
 - **第十四段（2026-10-05）：#20 第二次修复尝试（降级按键）+ 报告 v0.5 仅同步 —— 干跑即被证伪、未成批、已回退**：
   ① **先读码再选方向，选了 (b)「失败时降级用靶子自己绑定的按键」**（§23.1.1 逐条结论：`gym_run.py:3460` 的"清障计数 ≠ 0 ⇒ break 去 replan"耦合**真实存在，但单独修不好**——弹窗还在 ⇒ 靶子什么都不判分 ⇒ 每题都判不出 ⇒ 仍会三连败早停，只改变"死在哪、不改变会不会死"；同点补点 = 对未知原因再赌同一条路；降级 Return 的残留风险 = 控件级焦点被别的控件抢走时键会落错）。改动 = 非 bg 鼠标分支**尾部**加"漏点处理"块（`window_by_title("attention")` 仍在 ⇒ `seen == 0` 时记 `popup_seen`、连发 `self.key("Return")`、按"还在不在"记 `popup_key_dismissed` / `popup_dismissed` / `popup_dismiss_failed`），**净 +24 行 / −0 行**、只碰清障路径（30 行硬闸未触）；**sha 轨迹 `87470aaff559` → `178591e19c40c37f` →（回退）`87470aaff559`**。
   ② **干跑 2 题即失败**（鼠标通道、`--tasks 2`、`--chaos 1.0 --chaos-kind popup`）：两题全 `NONE`、退出码 1、`popup_seen 13` 而 **`popup_dismissed` 与新增的 `popup_key_dismissed` 两个键在 `stats` 里根本不存在 = 13 次发现、0 次清掉**（`keys 45`、`replans 66`、`interferences 39`、`clicks 0`）⇒ 按终止条件**直接回退**，**A 批 / B 批都没跑**（同一段不试第二遍改动）。
@@ -54,7 +54,7 @@
   **放弃 WSL 做 GUI 靶场**（走 A 不可行：抓不了整屏 + 失焦后无任何 X 侧注入手段 + 到不了 actor `:8731`；
   走 B 技术成立但与现有 Windows 通道能力等价，代价是几何标定 + 三处辅助重做 + 字体差异致 OCR 需重调 ⇒ 数字不可比）。
   WSL 保留作**工具链**（`jq`/`rg`/管道：已用它独立复算批次 8 的 `chaos` fires 与 `trap_*`，与 `../sol/sandbox/SCORE.md` 逐项一致）。
-- **技能已落盘（2026-10-05 13:57）**：`D:\DSH\skills\gui-audit-gym\SKILL.md`（10234 B；**项目级、非软链**；三块 = 必读前置 / 跑批与复核 / 口径与引用；数字一律指向 `../sol/sandbox/SCORE.md`/`STATE.md`/`HANDOFF.md`，技能里不存批次数字）。
+- **技能已落盘（2026-10-05 13:57）**：`D:\DSH\skills\gui-audit-gym\SKILL.md`（10234 B；**项目级、非软链**；三块 = 必读前置 / 跑批与复核 / 口径与引用；数字一律指向 `../sol/sandbox/SCORE.md`/`STATE.md`/`HANDOFF.md`，技能里不存批次数字）。**阶段 3.3 更新**：三块正文已移入仓库、成为 `docs/OPERATING.md` 正本（中文），仓库外这份降为**指针**（只留 frontmatter + 一页顺序清单）—— 从此规程随仓库版本一起提交，不再有第二份会漂的副本。
 - **技能验证（本会话，2026-10-05）三项全过**：①面板 list 由 15 → **16 条**，`gui-audit-gym` 在列（`provider=dsh-skills-manager-external`、`level=other:project-openclaw`、**`modelInvocable=true`**、`userInvocable=true`；清单存 `D:\DSH\dsh-actor\tmp\se_list2.json`）；
   ② frontmatter 显式写了 `disable-model-invocation: false`，与面板 `modelInvocable=true` 一致；
   ③ 本会话 `skill` 工具**当场解析成功**（返回正文 + `Base directory for this skill: D:\DSH\skills\gui-audit-gym`）⇒ 项目级技能根是活的，**不需要重载会话**。
@@ -704,7 +704,7 @@ i–iv 全不成立；`ask_read_unreadable` 在 `move@0.70` 降为 **0**；无 `
 - **干跑**（`--tasks 2`，Windows 侧 + `-WindowStyle Normal` + `--keys --bg`）：**2/2 OK**、`keys 3`（**首题有真按压**）、`foreground unchanged: True`；干跑 json = `t_trap2-w9-dry2.json`（正式批会覆盖同名 state/events，已预期）。
 
 ### 14.6 跑批（键通道 + `move@0.70`，协议照批次 8，与它直接对比）
-- 命令：`cd /mnt/d/DSH/vision-work/sol/sandbox` → `D:\DSH\.venvs\vision-ci\Scripts\python.exe gym_run.py --scenario t_trap2 --tasks 60 --seed 20251007 --keys --bg --chaos 0.70 --chaos-kind move --chaos-ms 200,700 --until-interferences 5 --max-tasks 60 --max-repeat 3 --json-out t_trap2-w9-move70.json` → `score.py t_trap2-w9-move70.json` → `score.py --selftest`。
+- 命令：`cd /mnt/d/DSH/vision-work/sol/sandbox` → `D:\DSH\.venvs\vision-ci\Scripts\python.exe gym_run.py --scenario t_trap2 --tasks 60 --seed 20251007 --keys --bg --chaos 0.70 --chaos-kind move --chaos-ms 200,700 --until-interferences 5 --max-tasks 60 --max-repeat 3 --json-out t_trap2-w9-move70.json` → `score.py t_trap2-w9-move70.json` → `score.py --selftest`。（`/mnt/d/` = WSL 侧看到的 `D:\`，是当时从 WSL bash 起跑的真实记录 —— **合法路径、不是漏**；阶段 3.2 的路径改写有意只动相对路径、不动绝对路径。）
 - 从 **Windows 侧**启动 + 显式 `-WindowStyle Normal`；先干跑 `--tasks 2` 确认首题有真按压；新文件名不覆盖批次 7/8；跑完**立刻**打分（events 会被覆盖）。
 - 可选对照：时间够再跑 `move@0.35` 看剂量-反应。
 

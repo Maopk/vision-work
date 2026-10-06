@@ -203,6 +203,30 @@ def src_vkstatus() -> str:
     return " / ".join("%d %s" % (marks.count(m), m) for m in ("❌", "⚠", "✅"))
 
 
+def src_readme_labels() -> list[str]:
+    """C1–C8 表里**没有**来源标记的值行（空 = 每行都有）。标签家族用它，**不盯数值**。"""
+    rows: list[str] = []
+    seen = False
+    for ln in (ROOT / "audit/README.md").read_text(encoding="utf-8").splitlines():
+        if "本表数据点定义不同" in ln:
+            seen = True
+            continue
+        if not seen:
+            continue
+        if ln.startswith("|"):
+            rows.append(ln)
+        elif rows:
+            break
+    out = []
+    for ln in rows:
+        first = ln.strip("|").split("|")[0].strip()
+        if first == "量" or set(first) <= set("-"):
+            continue
+        if not re.search(r"\*\*(⑧[a-e]|3\.2 快照)[^*]*\*\*", ln):
+            out.append(first)
+    return out
+
+
 # --------------------------------------------------------------- the registry ---
 CHECKS: list[dict] = [
     {
@@ -338,6 +362,12 @@ CHECKS: list[dict] = [
         ],
     },
     {
+        "id": "readme-labels",
+        "what": "C1–C8 计数表的「口径」标签（表头句 + 每个值行一个来源标记；不盯数值）",
+        "value": src_readme_labels,
+        "claims": [("audit/README.md", "本表数据点定义不同", "每行都带一个来源标记")],
+    },
+    {
         "id": "vk-status",
         "what": "`dsh-vision-kit` 对 §4 八条的核验分布（`§37.2` 九行标记）",
         "value": src_vkstatus,
@@ -445,6 +475,14 @@ def check_layout() -> None:
                 _fail(f"layout: {rel} names {hit}, which does not exist")
 
 
+def check_readme_labels() -> None:
+    """C1–C8 表的标签纪律：表头句在场（由家族 claim 核），且每个值行都带一个来源标记。"""
+    missing = src_readme_labels()
+    if missing:
+        _fail("readme-labels: audit/README.md rows without a provenance marker: "
+              + ", ".join(missing))
+
+
 def check_literals() -> None:
     """`266` is distinctive enough to police the *other* direction: no unregistered site."""
     for chk in CHECKS:
@@ -475,6 +513,7 @@ def main() -> int:
     check_report_line_policy()
     check_dual_language()
     check_layout()
+    check_readme_labels()
     check_literals()
     for p in _PROBLEMS:
         print("DRIFT " + p)

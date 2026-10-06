@@ -191,7 +191,7 @@ def src_v1xopen() -> int:
 
 
 def src_censusrows() -> int:
-    """`§36.2` 普查表里【可变量】家族的行数（同表行数 vs 三处散文里自称的数）。"""
+    """`§36.2` 普查表里【可变量】家族的行数（同表行数 vs 四处散文里自称的数）。"""
     body = section("audit/STATE.md", "**36.2 普查表**", "**36.3 分类判据**")
     return len(re.findall(r"^\| V\d+ \|", body, re.M))
 
@@ -318,12 +318,13 @@ CHECKS: list[dict] = [
     },
     {
         "id": "census-rows",
-        "what": "`§36.2` 普查表里【可变量】家族的行数（三处散文自称的数必须等于表里的行数）",
+        "what": "`§36.2` 普查表里【可变量】家族的行数（四处散文自称的数必须等于表里的行数）",
         "value": src_censusrows,
         "claims": [
             ("audit/STATE.md", "**36.1 一句话**", "**{n}** 个【可变量】家族"),
             ("audit/STATE.md", "只覆盖 §36.2 表里登记的", "**{n}** 个【可变量】家族"),
             ("docs/OPERATING.md", "- **管什么**", "**{n}** 个【可变量】家族"),
+            ("OPENSOURCE-READINESS.md", "普查 → ", "**{n}** 个【可变量】家族"),
         ],
     },
 ]
